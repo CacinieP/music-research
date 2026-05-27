@@ -306,13 +306,13 @@ Audio-level models require compressing high-dimensional waveforms (44,100 sample
 - Adapts Stable Diffusion + AudioLDM for music generation
 - Focus on reducing plagiarism risk in generated outputs
 
-#### ACE-Step (ByteDance, 2025)
-- **Open-source** step-by-step diffusion model for music generation
+#### ACE-Step (ACE Studio + StepFun / 阶跃星辰, 2025)
+- **Open-source** step-by-step diffusion model for music generation, co-led by ACE Studio and StepFun (阶跃星辰)
 - Novel paradigm: decomposes generation into sequential stages (melody → harmony → rhythm → full arrangement) rather than single end-to-end diffusion pass
 - Strong **Chinese-language (Mandarin) lyrics and vocal** support — a notable advantage over Western-developed models
 - Supports text prompts, genre tags, and intermediate editing at each generation step
 - Built on PyTorch with inference optimization for consumer hardware
-- Represents a growing trend of Chinese tech companies releasing open-source music generation models
+- Represents a growing trend of Chinese tech companies and AI studios releasing open-source music generation models
 
 #### MusicFlow (ICLR 2025)
 - **Cascading flow matching** framework for music generation
@@ -706,7 +706,7 @@ Aligning music generation models with human aesthetic preferences, analogous to 
 | Suno V5 | 2025 | Undisclosed | Undisclosed | 4 min+ | Text + lyrics | No |
 | Udio | 2024--25 | Undisclosed | Undisclosed | 2 min | Text + lyrics | No |
 | TangoFlux | 2024 | Flow Matching | Learned | 30 sec | Text | Yes |
-| ACE-Step | 2025 | Step-by-step Diffusion | Learned (step-wise) | ~3 min | Text + lyrics | Yes |
+| ACE-Step | 2025 | Step-by-step Diffusion | Learned (step-wise) | ~3 min | Text + lyrics | Yes (ACE Studio + StepFun) |
 | MusicFlow | 2025 | Cascading Flow Matching | Learned | ~2 min | Text | Yes |
 | SongCreator | 2025 | Dual-track AR | Learned | Full song | Lyrics + style | Yes |
 | MusicFX | 2023--25 | MusicLM-based (Google) | SoundStream | Short clips | Text | No |
@@ -759,7 +759,7 @@ Aligning music generation models with human aesthetic preferences, analogous to 
 - "Pianoroll-Event" (arXiv:2601.19951, 2025)
 - "REMI-z: Track-Aware Tokenization" (NeurIPS 2025)
 - "SegTune: Structured and Fine-Grained Control" (arXiv:2510.18416, 2025)
-- ACE-Step: "Step-by-Step Diffusion for Music Generation" (ByteDance, 2025)
+- ACE-Step: "Step-by-Step Diffusion for Music Generation" (ACE Studio + StepFun, 2025)
 - MusicFlow: "Cascading Flow Matching for Music Generation" (ICLR 2025)
 - SongCreator: "Text-based Song Generation with In-context Learning" (2025)
 - "MusicRLHF: Reward Modeling for Music Generation" (2025)

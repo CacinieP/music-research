@@ -20,7 +20,7 @@
 | MusicGen (Copet et al.) | 2023 | 文本到音乐生成 |
 | Stable Audio (Roberts et al.) | 2023 | 潜在扩散模型，实时生成 |
 | YuE (team) | 2025 | 完整歌曲生成 |
-| ACE-Step (字节跳动) | 2025 | 分步扩散音乐生成 |
+| ACE-Step (ACE Studio + 阶跃星辰) | 2025 | 分步扩散音乐生成 |
 | MusicFlow | 2025 | 级联流匹配音乐生成 (ICLR 2025) |
 | SongCreator | 2025 | 歌词到歌曲，支持上下文学习 |
 | MusicFX (Google) | 2023--25 | 消费级文本到音乐 (基于 MusicLM) |

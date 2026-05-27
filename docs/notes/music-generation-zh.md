@@ -308,13 +308,13 @@ REMI (Huang & Yang, 2020) 影响最大：它添加了显式的 `Bar`、`Position
 - 将 Stable Diffusion + AudioLDM 适配于音乐生成
 - 聚焦降低生成输出的抄袭风险
 
-#### ACE-Step (字节跳动, 2025)
-- **开源**的分步扩散音乐生成模型
+#### ACE-Step (ACE Studio + 阶跃星辰/StepFun, 2025)
+- **开源**的分步扩散音乐生成模型，由 ACE Studio 和 StepFun（阶跃星辰）联合开发
 - 新范式：将生成分解为顺序阶段（旋律 → 和声 → 节奏 → 完整编配），而非单次端到端扩散
 - 强大的**中文（普通话）歌词与人声**支持——西方模型的显著短板
 - 支持文本提示、流派标签和每步中间编辑
 - 基于 PyTorch 构建，针对消费级硬件优化推理
-- 代表中国科技公司开源音乐生成模型的增长趋势
+- 代表中国 AI 公司和工作室开源音乐生成模型的增长趋势
 
 #### MusicFlow (ICLR 2025)
 - **级联流匹配**框架用于音乐生成
@@ -708,7 +708,7 @@ SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。
 | Suno V5 | 2025 | 未公开 | 未公开 | 4 分钟+ | 文本 + 歌词 | 否 |
 | Udio | 2024--25 | 未公开 | 未公开 | 2 分钟 | 文本 + 歌词 | 否 |
 | TangoFlux | 2024 | Flow Matching | 学习的 | 30 秒 | 文本 | 是 |
-| ACE-Step | 2025 | 分步扩散 | 学习的 (分步) | ~3 分钟 | 文本 + 歌词 | 是 |
+| ACE-Step | 2025 | 分步扩散 | 学习的 (分步) | ~3 分钟 | 文本 + 歌词 | 是 (ACE Studio + StepFun) |
 | MusicFlow | 2025 | 级联流匹配 | 学习的 | ~2 分钟 | 文本 | 是 |
 | SongCreator | 2025 | 双轨自回归 | 学习的 | 全曲 | 歌词 + 风格 | 是 |
 | MusicFX | 2023--25 | 基于 MusicLM (Google) | SoundStream | 短片段 | 文本 | 否 |
@@ -761,7 +761,7 @@ SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。
 - "Pianoroll-Event" (arXiv:2601.19951, 2025)
 - "REMI-z: Track-Aware Tokenization" (NeurIPS 2025)
 - "SegTune: Structured and Fine-Grained Control" (arXiv:2510.18416, 2025)
-- ACE-Step: "Step-by-Step Diffusion for Music Generation" (字节跳动, 2025)
+- ACE-Step: "Step-by-Step Diffusion for Music Generation" (ACE Studio + StepFun, 2025)
 - MusicFlow: "Cascading Flow Matching for Music Generation" (ICLR 2025)
 - SongCreator: "Text-based Song Generation with In-context Learning" (2025)
 - "MusicRLHF: Reward Modeling for Music Generation" (2025)
