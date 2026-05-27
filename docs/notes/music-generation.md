@@ -267,6 +267,7 @@ Audio-level models require compressing high-dimensional waveforms (44,100 sample
   - V1--V3 (2023--2024): Rapid iteration, improving from simple clips to structured songs
   - **V4** (late 2024): Major quality leap; professional-sounding output with coherent verse-chorus structure
   - **V4.5** (2025): Further quality improvements; considered best-in-class for complete songs with vocals
+  - **V5** (2025): Significant leap in audio fidelity, vocal realism, and song structure. Improved mixing/mastering-like finish, better instrument separation, enhanced genre versatility, and longer coherent song generation
 - **Capabilities**:
   - Text-to-song: Generate complete songs from text descriptions
   - Lyrics input: Custom or AI-generated lyrics
@@ -304,6 +305,42 @@ Audio-level models require compressing high-dimensional waveforms (44,100 sample
 #### MusicLDM
 - Adapts Stable Diffusion + AudioLDM for music generation
 - Focus on reducing plagiarism risk in generated outputs
+
+#### ACE-Step (ByteDance, 2025)
+- **Open-source** step-by-step diffusion model for music generation
+- Novel paradigm: decomposes generation into sequential stages (melody → harmony → rhythm → full arrangement) rather than single end-to-end diffusion pass
+- Strong **Chinese-language (Mandarin) lyrics and vocal** support — a notable advantage over Western-developed models
+- Supports text prompts, genre tags, and intermediate editing at each generation step
+- Built on PyTorch with inference optimization for consumer hardware
+- Represents a growing trend of Chinese tech companies releasing open-source music generation models
+
+#### MusicFlow (ICLR 2025)
+- **Cascading flow matching** framework for music generation
+- Multi-stage generative process where flow matching models are arranged in a cascade, progressively refining output
+- Analogous to cascaded diffusion models but adapted for the flow matching paradigm
+- Addresses the challenge of multi-track, multi-instrument, and temporal structure in music
+- Flow matching offers simpler training and faster inference compared to traditional diffusion
+
+#### SongCreator (2025)
+- **Lyric-to-song generation** with in-context learning capabilities
+- Dual-track architecture handling vocal (singing) and accompaniment tracks with musical coherence
+- Supports controllable generation: style/genre, singer voice characteristics, accompaniment style, tempo and mood
+- Conditioning on reference audio or style prompts for diverse and controllable song creation
+- Addresses the challenging problem of aligning lyrics with melody and rhythm while producing natural vocals and accompaniment
+
+#### MusicFX (Google, 2023--2025)
+- Consumer-facing music generation tool powered by MusicLM technology
+- Released as part of Google's AI Test Kitchen
+- Generates short music clips from text prompts
+- Applies **SynthID watermarking** to generated audio for identification
+- Restricts generation of music mimicking specific artists (copyright safeguard)
+- Updated periodically with quality and diversity improvements
+
+#### SkyMusic (昆仑万维, 2024--2025)
+- Chinese text-to-music generation platform from Kunlun Tech
+- Supports multilingual output (Chinese, English, and others)
+- Integrated with昆仑万维's broader AI ecosystem (Skywork models)
+- Part of the emerging Chinese AI music generation landscape targeting domestic users
 
 ---
 
@@ -375,6 +412,24 @@ SVS generates a singing voice from a musical score input (lyrics phoneme sequenc
 #### DITSinger (2025)
 - Investigates scaling effects on SVS quality
 - Addresses unclear scaling laws and systematic methodology for SVS
+
+#### OpenDiffSinger (Community, 2022--2025)
+- Open-source community fork and extension of the DiffSinger framework
+- Major ongoing contributions: multi-speaker/multi-language support expansions, improved phoneme dictionary and duration modeling
+- New GUI tools for dataset preparation and training pipeline simplification
+- Vocoder improvements integrating NSF (Neural Source Filter) and HiFi-GAN variants
+- The OpenVPI ecosystem provides companion tools for SVS dataset creation, phoneme alignment, and training
+
+#### ACE Studio / ACE Singer (2024--2025)
+- Commercial SVS tool with roots in DiffSinger technology
+- Offers high-quality multi-style synthesis with expressive control
+- Supports diverse singing genres (pop, opera, folk) and multiple languages
+- Represents the commercialization pathway for academic SVS research
+
+#### DiffSinger-Lite (2025)
+- Accelerated version of DiffSinger using consistency distillation and progressive distillation
+- Reduces diffusion sampling steps while maintaining quality
+- Enables near-real-time inference for interactive SVS applications
 
 ### 3.3 SVS Evaluation
 
@@ -468,9 +523,79 @@ Controllable music generation allows users to specify musical attributes beyond 
 
 ---
 
-## 5. Evaluation
+## 5. Video-to-Music Generation
 
-### 5.1 Automated Metrics
+Cross-modal music generation from visual inputs (video, images) is an emerging research direction that bridges computer vision and audio generation.
+
+### 5.1 Key Models
+
+#### CMT (Contrastive Multimodal Transformer)
+- Generates music from video inputs using contrastive learning to align visual and audio representations
+- Multimodal transformer processes video frames and generates corresponding music sequences using cross-modal attention
+- Ensures musically coherent outputs that match the visual content (mood, tempo, dynamics)
+
+#### M2UGen (Multi-Modal Music Generation)
+- Multi-modal music generation framework handling video, text, and image inputs
+- Encoder-decoder architecture: multimodal encoder captures features from input (video frames, text), music decoder generates audio tokens or MIDI
+- Produces music that semantically aligns with the input modality
+
+#### Video2Music
+- Generates background music conditioned on video semantics and motion
+- Addresses temporal alignment: ensuring generated music rhythm and mood match scene transitions
+
+#### MuVi
+- Visual-to-music generation with attention to rhythmic alignment between video motion and musical beat structure
+
+### 5.2 Evaluation Challenges
+- **CMMD (Contrastive Music-Video Metric)**: Evaluation metric for assessing alignment between generated music and video content
+- **Temporal synchronization**: How well do musical beats align with visual scene transitions?
+- **Emotional congruence**: Does the mood of generated music match the visual content?
+- No standardized benchmark exists for video-to-music evaluation
+
+### 5.3 Emerging Trends
+- **Diffusion-based V2M**: Higher-fidelity audio generation from video using latent diffusion
+- **LLM-conditioned V2M**: Using large language models as music generation backbones with visual feature conditioning
+- **Emotion-driven generation**: Mapping visual emotional content (color, motion, facial expression) to musical parameters
+
+---
+
+## 6. Human Preference Alignment
+
+Aligning music generation models with human aesthetic preferences, analogous to RLHF in language models, is a rapidly emerging research area.
+
+### 6.1 RLHF for Music
+
+- **MusicRLHF**: Reward model trained on human preference data for music generation
+  - Introduces curated dataset of pairwise human comparisons across musical attributes (harmony, melody, rhythm, overall quality)
+  - Enables fine-tuning of music language models via reinforcement learning from human feedback
+  - Key challenge: music's temporal structure and multi-attribute nature make reward modeling harder than for text
+
+### 6.2 Direct Preference Optimization (DPO)
+
+- Applies the DPO framework (originally developed for LLMs) to music generation
+- Directly optimizes from preference pairs without needing a separate reward model
+- Often found to be more stable and efficient than RLHF for music alignment
+- Demonstrated improved musical quality and stylistic consistency when applied to MusicGen/AudioCraft
+
+### 6.3 Evaluation Benchmarks
+
+- **MusicBench**: Benchmark specifically designed to measure alignment with human preferences across dimensions: musicality, genre adherence, emotional expressiveness
+- **SongBench** (Make-It-Music, 2025): Song-level evaluation benchmark going beyond short clip evaluation to assess full songs
+  - Covers melody quality, harmony, rhythm, vocal clarity, lyrics adherence, structural coherence, and overall musicality
+  - Includes both objective metrics (audio signal analysis, lyrics alignment scores) and subjective/human evaluations
+- **FakeMusicCaps**: Dataset of AI-generated music for detection and attribution tasks
+
+### 6.4 Open Problems
+- **Reward modeling**: Music's multi-attribute nature (harmony, rhythm, melody, timbre) and high subjectivity make reward modeling uniquely challenging
+- **Preference data collection**: Scalable and reliable collection of pairwise human comparisons for music
+- **Multi-dimensional alignment**: Aligning across multiple musical dimensions simultaneously without trade-offs
+- **Cultural sensitivity**: Human preferences vary significantly across cultures and musical traditions
+
+---
+
+## 7. Evaluation
+
+### 7.1 Automated Metrics
 
 #### Frechet Audio Distance (FAD)
 - **Origin**: Kilgour et al., INTERSPEECH 2019; adapted from Frechet Inception Distance (FID) for images
@@ -505,7 +630,7 @@ Controllable music generation allows users to specify musical attributes beyond 
 - **FID (Frechet Inception Distance)**: Image-domain metric occasionally adapted for spectrogram representations
 - **Log-spectral distance**: Measures spectral similarity between generated and reference audio
 
-### 5.2 Human Evaluation
+### 7.2 Human Evaluation
 
 #### Mean Opinion Score (MOS)
 - Gold standard for perceptual quality assessment
@@ -525,7 +650,7 @@ Controllable music generation allows users to specify musical attributes beyond 
 - **Evaluation protocol**: Generate audio from MusicCaps captions, compute FAD and other metrics against reference clips
 - **Limitation**: Only 10-second clips; limited cultural/genre diversity despite broad coverage
 
-### 5.3 Comprehensive Evaluation Survey (2025)
+### 7.3 Comprehensive Evaluation Survey (2025)
 
 - **Paper**: "A Survey on Evaluation Metrics for Music Generation" (arXiv:2509.00051, 2025)
 - Consolidates evaluation approaches across the field
@@ -536,7 +661,7 @@ Controllable music generation allows users to specify musical attributes beyond 
   - Human evaluation remains essential for reliable assessment
   - Benchmark datasets (MusicCaps, AudioSet) introduce their own biases
 
-### 5.4 Challenges in Evaluating Generated Music
+### 7.4 Challenges in Evaluating Generated Music
 
 1. **Multidimensionality**: Music quality encompasses melody, harmony, rhythm, timbre, form, dynamics, and expressiveness. No single metric captures all dimensions.
 
@@ -554,16 +679,18 @@ Controllable music generation allows users to specify musical attributes beyond 
 
 8. **Lack of standardized benchmarks**: Different papers use different datasets, splits, and protocols, making cross-paper comparison difficult.
 
-### 5.5 Emerging Evaluation Approaches
+### 7.5 Emerging Evaluation Approaches
 
 - **LLM-as-judge**: Using large language models to evaluate music quality from descriptions and audio features
 - **Music understanding benchmarks**: MARBLE benchmark (used by YuE) evaluates learned representations on music understanding tasks
 - **Human preference alignment**: AAAI 2025 paper (arXiv:2511.15038) on aligning generative music AI with human preferences
 - **FakeMusicCaps**: Dataset of AI-generated music for detection and attribution tasks, derived from MusicCaps
+- **SongBench** (Make-It-Music, 2025): Song-level evaluation benchmark covering melody quality, harmony, rhythm, vocal clarity, lyrics adherence, structural coherence, and overall musicality. Goes beyond short clip evaluation to assess full songs
+- **MusicBench**: Benchmark for measuring alignment with human preferences across musicality, genre adherence, and emotional expressiveness
 
 ---
 
-## 6. Architecture Comparison Summary
+## 8. Architecture Comparison Summary
 
 | Model | Year | Approach | Tokenizer/Codec | Max Length | Text Cond. | Open Source |
 |-------|------|----------|-----------------|------------|------------|-------------|
@@ -576,12 +703,18 @@ Controllable music generation allows users to specify musical attributes beyond 
 | Stable Audio Open | 2024 | Latent Diffusion (DiT) | Autoencoder | ~47 sec | T5 | Yes |
 | YuE | 2025 | LLaMA2-based AR Transformer | Learned music tokens | 5 min | Lyrics + style | Yes |
 | Suno V4.5 | 2025 | Undisclosed | Undisclosed | 4 min | Text + lyrics | No |
+| Suno V5 | 2025 | Undisclosed | Undisclosed | 4 min+ | Text + lyrics | No |
 | Udio | 2024--25 | Undisclosed | Undisclosed | 2 min | Text + lyrics | No |
 | TangoFlux | 2024 | Flow Matching | Learned | 30 sec | Text | Yes |
+| ACE-Step | 2025 | Step-by-step Diffusion | Learned (step-wise) | ~3 min | Text + lyrics | Yes |
+| MusicFlow | 2025 | Cascading Flow Matching | Learned | ~2 min | Text | Yes |
+| SongCreator | 2025 | Dual-track AR | Learned | Full song | Lyrics + style | Yes |
+| MusicFX | 2023--25 | MusicLM-based (Google) | SoundStream | Short clips | Text | No |
+| SkyMusic | 2024--25 | Undisclosed | Undisclosed | Full song | Text (multilingual) | No |
 
 ---
 
-## 7. Key Open Problems and Future Directions
+## 9. Key Open Problems and Future Directions
 
 1. **Long-form coherence**: Maintaining musical structure, thematic development, and global form over multi-minute compositions remains the primary challenge. YuE's 5-minute output is a milestone but quality remains inconsistent.
 
@@ -626,3 +759,13 @@ Controllable music generation allows users to specify musical attributes beyond 
 - "Pianoroll-Event" (arXiv:2601.19951, 2025)
 - "REMI-z: Track-Aware Tokenization" (NeurIPS 2025)
 - "SegTune: Structured and Fine-Grained Control" (arXiv:2510.18416, 2025)
+- ACE-Step: "Step-by-Step Diffusion for Music Generation" (ByteDance, 2025)
+- MusicFlow: "Cascading Flow Matching for Music Generation" (ICLR 2025)
+- SongCreator: "Text-based Song Generation with In-context Learning" (2025)
+- "MusicRLHF: Reward Modeling for Music Generation" (2025)
+- "Direct Preference Optimization for Music Generation" (2025)
+- CMT: "Contrastive Multimodal Transformer for Video-to-Music" (2025)
+- M2UGen: "Multi-Modal Music Understanding and Generation" (2025)
+- "Make-It-Music / SongBench: Song-Level Music Generation Benchmark" (2025)
+- OpenDiffSinger community: GitHub (ongoing, 2022--2025)
+- "Discrete Audio Tokens: More Than a Survey" (arXiv:2506.10274, 2025)

@@ -18,6 +18,36 @@
 | MusicGen (Copet et al.) | 2023 | Text-to-music |
 | Stable Audio (Roberts et al.) | 2023 | Latent diffusion, real-time |
 | YuE (team) | 2025 | Full-song generation |
+| ACE-Step (ByteDance) | 2025 | Step-by-step diffusion for music |
+| MusicFlow | 2025 | Cascading flow matching for music (ICLR 2025) |
+| SongCreator | 2025 | Lyric-to-song with in-context learning |
+| MusicFX (Google) | 2023--25 | Consumer text-to-music (MusicLM-based) |
+
+## Video-to-Music Generation
+
+| Paper | Year | Topic |
+|-------|------|-------|
+| CMT (Contrastive Multimodal Transformer) | 2025 | Video-to-music via contrastive cross-modal alignment |
+| M2UGen | 2025 | Multi-modal music understanding and generation |
+| Video2Music | 2025 | Video-conditioned background music |
+| MuVi | 2025 | Visual-to-music with rhythmic alignment |
+
+## Human Preference Alignment
+
+| Paper | Year | Topic |
+|-------|------|-------|
+| MusicRLHF | 2025 | Reward modeling for music generation |
+| DPO for Music Generation | 2025 | Direct preference optimization for music |
+| Aligning Generative Music AI with Human Preferences | 2025 | Preference alignment survey (AAAI 2025) |
+| Make-It-Music / SongBench | 2025 | Song-level evaluation benchmark |
+
+## Singing Voice Synthesis (New)
+
+| Paper | Year | Topic |
+|-------|------|-------|
+| OpenDiffSinger (Community) | 2022--25 | Open-source DiffSinger fork with multi-speaker/multi-language |
+| ACE Studio / ACE Singer | 2024--25 | Commercial SVS with multi-style synthesis |
+| DiffSinger-Lite | 2025 | Accelerated SVS via consistency distillation |
 
 ## Audio Engineering
 

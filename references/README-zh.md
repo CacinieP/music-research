@@ -20,6 +20,36 @@
 | MusicGen (Copet et al.) | 2023 | 文本到音乐生成 |
 | Stable Audio (Roberts et al.) | 2023 | 潜在扩散模型，实时生成 |
 | YuE (team) | 2025 | 完整歌曲生成 |
+| ACE-Step (字节跳动) | 2025 | 分步扩散音乐生成 |
+| MusicFlow | 2025 | 级联流匹配音乐生成 (ICLR 2025) |
+| SongCreator | 2025 | 歌词到歌曲，支持上下文学习 |
+| MusicFX (Google) | 2023--25 | 消费级文本到音乐 (基于 MusicLM) |
+
+## 视频到音乐生成
+
+| 论文 | 年份 | 主题 |
+|------|------|------|
+| CMT (对比多模态 Transformer) | 2025 | 通过对比跨模态对齐的视频到音乐 |
+| M2UGen | 2025 | 多模态音乐理解与生成 |
+| Video2Music | 2025 | 视频条件背景音乐 |
+| MuVi | 2025 | 视觉到音乐，节奏对齐 |
+
+## 人类偏好对齐
+
+| 论文 | 年份 | 主题 |
+|------|------|------|
+| MusicRLHF | 2025 | 音乐生成奖励建模 |
+| DPO for Music Generation | 2025 | 音乐生成直接偏好优化 |
+| Aligning Generative Music AI with Human Preferences | 2025 | 偏好对齐综述 (AAAI 2025) |
+| Make-It-Music / SongBench | 2025 | 歌曲级评估基准 |
+
+## 歌声合成 (新增)
+
+| 论文 | 年份 | 主题 |
+|------|------|------|
+| OpenDiffSinger (社区) | 2022--25 | DiffSinger 开源分支，多说话人/多语言 |
+| ACE Studio / ACE Singer | 2024--25 | 商业 SVS，多风格合成 |
+| DiffSinger-Lite | 2025 | 加速 SVS，一致性蒸馏 |
 
 ## 音频工程
 
