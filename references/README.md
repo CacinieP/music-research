@@ -46,8 +46,8 @@
 | Paper | Year | Topic |
 |-------|------|-------|
 | OpenDiffSinger (Community) | 2022--25 | Open-source DiffSinger fork with multi-speaker/multi-language |
-| ACE Studio / ACE Singer | 2024--25 | Commercial SVS with multi-style synthesis |
-| DiffSinger-Lite | 2025 | Accelerated SVS via consistency distillation |
+| ACE Studio / ACE Singer | 2024--25 | Commercial SVS system, multi-language, DAW integration |
+| DiffSinger Acceleration | 2025 | Faster SVS inference via distillation (multiple approaches) |
 
 ## Audio Engineering
 

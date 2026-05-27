@@ -48,8 +48,8 @@
 | 论文 | 年份 | 主题 |
 |------|------|------|
 | OpenDiffSinger (社区) | 2022--25 | DiffSinger 开源分支，多说话人/多语言 |
-| ACE Studio / ACE Singer | 2024--25 | 商业 SVS，多风格合成 |
-| DiffSinger-Lite | 2025 | 加速 SVS，一致性蒸馏 |
+| ACE Studio / ACE Singer | 2024--25 | 商业 SVS 系统，多语言，DAW 集成 |
+| DiffSinger 加速 | 2025 | 通过蒸馏加速 SVS 推理（多种方法） |
 
 ## 音频工程
 

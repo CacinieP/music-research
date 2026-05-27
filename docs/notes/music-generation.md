@@ -267,7 +267,7 @@ Audio-level models require compressing high-dimensional waveforms (44,100 sample
   - V1--V3 (2023--2024): Rapid iteration, improving from simple clips to structured songs
   - **V4** (late 2024): Major quality leap; professional-sounding output with coherent verse-chorus structure
   - **V4.5** (2025): Further quality improvements; considered best-in-class for complete songs with vocals
-  - **V5** (2025): Significant leap in audio fidelity, vocal realism, and song structure. Improved mixing/mastering-like finish, better instrument separation, enhanced genre versatility, and longer coherent song generation
+  - **V5** (anticipated 2025): In development; expected to bring further leaps in audio fidelity, vocal realism, and song structure
 - **Capabilities**:
   - Text-to-song: Generate complete songs from text descriptions
   - Lyrics input: Custom or AI-generated lyrics
@@ -421,15 +421,15 @@ SVS generates a singing voice from a musical score input (lyrics phoneme sequenc
 - The OpenVPI ecosystem provides companion tools for SVS dataset creation, phoneme alignment, and training
 
 #### ACE Studio / ACE Singer (2024--2025)
-- Commercial SVS tool with roots in DiffSinger technology
-- Offers high-quality multi-style synthesis with expressive control
-- Supports diverse singing genres (pop, opera, folk) and multiple languages
-- Represents the commercialization pathway for academic SVS research
+- Commercial SVS system by ACE Studio (Chinese AI music technology company)
+- Generates realistic singing from score/lyrics input — true SVS, not voice conversion
+- Offers multi-language support (Chinese, English, Japanese), expressive parameter control (breath, vibrato, dynamics), multiple voicebanks, and DAW integration via VST plugins
+- Competes with Synthesizer V (Dreamtonics) and XiaoiceSing in the commercial SVS market
 
-#### DiffSinger-Lite (2025)
-- Accelerated version of DiffSinger using consistency distillation and progressive distillation
-- Reduces diffusion sampling steps while maintaining quality
-- Enables near-real-time inference for interactive SVS applications
+#### DiffSinger Acceleration (2025)
+- Multiple ongoing efforts to accelerate DiffSinger inference, including consistency distillation, progressive distillation, and fewer-step ODE solvers
+- Reduces diffusion sampling steps while maintaining quality, enabling near-real-time inference for interactive SVS applications
+- No single canonical "Lite" paper; acceleration techniques are adapted from broader diffusion model acceleration literature
 
 ### 3.3 SVS Evaluation
 
@@ -529,18 +529,26 @@ Cross-modal music generation from visual inputs (video, images) is an emerging r
 
 ### 5.1 Key Models
 
-#### CMT (Contrastive Multimodal Transformer)
-- Generates music from video inputs using contrastive learning to align visual and audio representations
-- Multimodal transformer processes video frames and generates corresponding music sequences using cross-modal attention
-- Ensures musically coherent outputs that match the visual content (mood, tempo, dynamics)
+#### MuVi (arXiv:2410.07840, 2024)
+- **Paper**: "MuVi: Video-to-Music Generation with Rhythmic Alignment"
+- Generates music from video input with **rhythmic alignment** between visual motion and musical beat structure
+- **Visual Rhythm Extractor**: Extracts rhythmic cues from video (motion intensity, scene transitions) to form a "visual rhythm" representation
+- **Music Generation Module**: Uses extracted visual rhythm as conditioning to generate music that aligns temporally with video dynamics
+- Evaluation via both objective rhythmic alignment scores and subjective human evaluations
 
-#### M2UGen (Multi-Modal Music Generation)
-- Multi-modal music generation framework handling video, text, and image inputs
-- Encoder-decoder architecture: multimodal encoder captures features from input (video frames, text), music decoder generates audio tokens or MIDI
-- Produces music that semantically aligns with the input modality
+#### CMT (Contrastive Multimodal Transformer)
+- Cross-modal generation framework using contrastive learning to align video and music representations
+- Transformer-based architecture processes video frames and generates corresponding music via cross-modal attention
+- Note: multiple papers use similar naming; verify specific arXiv ID for the exact work referenced
+
+#### M2UGen (Multi-modal Music Understanding and Generation)
+- Unified framework bridging music understanding (captioning, QA, analysis) and generation (text-to-music, image-to-music)
+- LLM-based architecture integrating specialized audio and visual encoders with a music generation decoder
+- Handles text, image, and audio inputs for cross-modal music creation
 
 #### Video2Music
 - Generates background music conditioned on video semantics and motion
+- Extracts multi-modal features (visual, motion, semantic) from video frames as conditioning signals
 - Addresses temporal alignment: ensuring generated music rhythm and mood match scene transitions
 
 #### MuVi
@@ -703,7 +711,7 @@ Aligning music generation models with human aesthetic preferences, analogous to 
 | Stable Audio Open | 2024 | Latent Diffusion (DiT) | Autoencoder | ~47 sec | T5 | Yes |
 | YuE | 2025 | LLaMA2-based AR Transformer | Learned music tokens | 5 min | Lyrics + style | Yes |
 | Suno V4.5 | 2025 | Undisclosed | Undisclosed | 4 min | Text + lyrics | No |
-| Suno V5 | 2025 | Undisclosed | Undisclosed | 4 min+ | Text + lyrics | No |
+| Suno V5 | Anticipated | Undisclosed | Undisclosed | TBD | Text + lyrics | No |
 | Udio | 2024--25 | Undisclosed | Undisclosed | 2 min | Text + lyrics | No |
 | TangoFlux | 2024 | Flow Matching | Learned | 30 sec | Text | Yes |
 | ACE-Step | 2025 | Step-by-step Diffusion | Learned (step-wise) | ~3 min | Text + lyrics | Yes (ACE Studio + StepFun) |
@@ -764,7 +772,9 @@ Aligning music generation models with human aesthetic preferences, analogous to 
 - SongCreator: "Text-based Song Generation with In-context Learning" (2025)
 - "MusicRLHF: Reward Modeling for Music Generation" (2025)
 - "Direct Preference Optimization for Music Generation" (2025)
-- CMT: "Contrastive Multimodal Transformer for Video-to-Music" (2025)
+- ACE Studio / ACE Singer: Commercial SVS system (2024--2025)
+- DiffSinger Acceleration: Consistency distillation and progressive distillation for faster SVS inference (2025)
+- CMT: "Contrastive Multimodal Transformer for Video-to-Music" (verify specific arXiv ID)
 - M2UGen: "Multi-Modal Music Understanding and Generation" (2025)
 - "Make-It-Music / SongBench: Song-Level Music Generation Benchmark" (2025)
 - OpenDiffSinger community: GitHub (ongoing, 2022--2025)
