@@ -18,8 +18,8 @@
 | MusicGen (Copet et al.) | 2023 | Text-to-music |
 | Stable Audio (Roberts et al.) | 2023 | Latent diffusion, real-time |
 | YuE (team) | 2025 | Full-song generation |
-| ACE-Step (ACE Studio + StepFun) | 2025 | Step-by-step diffusion for music |
-| MusicFlow | 2025 | Cascading flow matching for music (ICLR 2025) |
+| ACE-Step (ACE Studio + StepFun) | 2025 | Foundation model: DCAE + linear transformer + diffusion (REPA) |
+| MusicFlow (Prajwal et al., Meta) | 2024 | Cascaded flow matching for text-to-music (ICML 2024) |
 | SongCreator | 2025 | Lyric-to-song with in-context learning |
 | MusicFX (Google) | 2023--25 | Consumer text-to-music (MusicLM-based) |
 

@@ -309,19 +309,20 @@ REMI (Huang & Yang, 2020) 影响最大：它添加了显式的 `Bar`、`Position
 - 聚焦降低生成输出的抄袭风险
 
 #### ACE-Step (ACE Studio + 阶跃星辰/StepFun, 2025)
-- **开源**的分步扩散音乐生成模型，由 ACE Studio 和 StepFun（阶跃星辰）联合开发
-- 新范式：将生成分解为顺序阶段（旋律 → 和声 → 节奏 → 完整编配），而非单次端到端扩散
-- 强大的**中文（普通话）歌词与人声**支持——西方模型的显著短板
-- 支持文本提示、流派标签和每步中间编辑
-- 基于 PyTorch 构建，针对消费级硬件优化推理
-- 代表中国 AI 公司和工作室开源音乐生成模型的增长趋势
+- **论文**: "ACE-Step: A Step Towards Music Generation Foundation Model" (Junmin Gong, Sean Zhao, et al.; arXiv:2506.00045)
+- **开源**音乐生成基础模型（3.5B 参数 v1，Apache 2.0 许可）
+- **架构**: 集成**扩散生成与 Sana 的深度压缩自编码器 (DCAE)** 和轻量级**线性 Transformer**
+- 使用 **REPA（表示对齐）**训练：利用 MERT 和 m-hubert 对齐语义表示，实现快速收敛
+- **性能**: 在 A100 GPU 上约 20 秒合成长达 4 分钟的音乐——比 LLM 方法快 15 倍
+- 强大的**中文（普通话）歌词与人声**支持
+- 支持声音克隆、歌词编辑、混音、歌词到人声、歌唱到伴奏
+- 目标：建立音乐 AI 基础模型（类似 Stable Diffusion 对图像的影响）
 
-#### MusicFlow (ICLR 2025)
-- **级联流匹配**框架用于音乐生成
-- 多阶段生成过程，流匹配模型级联排列，逐步精炼输出
-- 类似级联扩散模型但适配流匹配范式
-- 解决音乐中多轨、多乐器和时间结构的挑战
-- 流匹配相比传统扩散提供更简训练和更快推理
+#### MusicFlow (ICML 2024)
+- **论文**: "MusicFlow: Cascaded Flow Matching for Text Guided Music Generation" (K R Prajwal, Bowen Shi, et al.; arXiv:2410.20478, ICML 2024 Poster)
+- **级联流匹配**框架：两个流匹配网络分别建模语义和声学特征的条件分布，基于自监督表示
+- 使用**掩码预测**作为训练目标，支持零样本泛化到音乐填充和续写任务
+- 在 MusicCaps 上实现更优质量和文本一致性，尽管模型体积 2--5 倍更小、迭代步数仅需 1/5
 
 #### SongCreator (2025)
 - **歌词到歌曲**生成，支持上下文学习
@@ -716,8 +717,8 @@ SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。
 | Suno V5 | 预计 | 未公开 | 未公开 | TBD | 文本 + 歌词 | 否 |
 | Udio | 2024--25 | 未公开 | 未公开 | 2 分钟 | 文本 + 歌词 | 否 |
 | TangoFlux | 2024 | Flow Matching | 学习的 | 30 秒 | 文本 | 是 |
-| ACE-Step | 2025 | 分步扩散 | 学习的 (分步) | ~3 分钟 | 文本 + 歌词 | 是 (ACE Studio + StepFun) |
-| MusicFlow | 2025 | 级联流匹配 | 学习的 | ~2 分钟 | 文本 | 是 |
+| ACE-Step | 2025 | DCAE + 线性 Transformer + 扩散 (REPA) | DCAE (Sana) + MERT/m-hubert | 4 分钟 | 文本 + 歌词 | 是 (ACE Studio + StepFun) |
+| MusicFlow | 2024 | 级联流匹配 | 自监督语义/声学 | ~30 秒 | 文本 | 是 |
 | SongCreator | 2025 | 双轨自回归 | 学习的 | 全曲 | 歌词 + 风格 | 是 |
 | MusicFX | 2023--25 | 基于 MusicLM (Google) | SoundStream | 短片段 | 文本 | 否 |
 | SkyMusic | 2024--25 | 未公开 | 未公开 | 全曲 | 文本 (多语言) | 否 |
@@ -769,8 +770,8 @@ SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。
 - "Pianoroll-Event" (arXiv:2601.19951, 2025)
 - "REMI-z: Track-Aware Tokenization" (NeurIPS 2025)
 - "SegTune: Structured and Fine-Grained Control" (arXiv:2510.18416, 2025)
-- ACE-Step: "Step-by-Step Diffusion for Music Generation" (ACE Studio + StepFun, 2025)
-- MusicFlow: "Cascading Flow Matching for Music Generation" (ICLR 2025)
+- ACE-Step: "A Step Towards Music Generation Foundation Model" (arXiv:2506.00045, ACE Studio + StepFun, 2025)
+- MusicFlow: "Cascaded Flow Matching for Text Guided Music Generation" (arXiv:2410.20478, ICML 2024)
 - SongCreator: "Text-based Song Generation with In-context Learning" (2025)
 - "MusicRLHF: Reward Modeling for Music Generation" (2025)
 - "Direct Preference Optimization for Music Generation" (2025)
