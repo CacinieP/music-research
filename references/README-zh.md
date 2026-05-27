@@ -22,7 +22,7 @@
 | YuE (team) | 2025 | 完整歌曲生成 |
 | ACE-Step (ACE Studio + 阶跃星辰) | 2025 | 基础模型: DCAE + 线性 Transformer + 扩散 (REPA) |
 | MusicFlow (Prajwal et al., Meta) | 2024 | 级联流匹配文本到音乐 (ICML 2024) |
-| SongCreator | 2025 | 歌词到歌曲，支持上下文学习 |
+| SongCreator (Shun Lei et al.) | 2024 | 基于歌词的通用歌曲生成 (NeurIPS 2024, DSLM) |
 | MusicFX (Google) | 2023--25 | 消费级文本到音乐 (基于 MusicLM) |
 
 ## 视频到音乐生成
@@ -38,10 +38,9 @@
 
 | 论文 | 年份 | 主题 |
 |------|------|------|
-| MusicRLHF | 2025 | 音乐生成奖励建模 |
-| DPO for Music Generation | 2025 | 音乐生成直接偏好优化 |
-| Aligning Generative Music AI with Human Preferences | 2025 | 偏好对齐综述 (AAAI 2025) |
-| Make-It-Music / SongBench | 2025 | 歌曲级评估基准 |
+| 音乐生成模型与指标的人类偏好基准研究 | 2025 | 人类偏好基准 (ICASSP 2025) |
+| Aligning Generative Music AI with Human Preferences | 2025 | 偏好对齐 (AAAI 2025) |
+| Make-It-Music / SongBench (南开大学) | 2025 | 带监督质量标签的歌曲生成框架 (arXiv:2502.19324) |
 
 ## 歌声合成 (新增)
 

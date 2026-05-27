@@ -45,8 +45,7 @@
 | **MetaMIDI** | 436K 文件 | 大规模 MIDI | MIDI | CC0 | [github.com/AI-Guru/MetaMIDI](https://github.com/AI-Guru/MetaMIDI) |
 | **AD Pianoforte** | ~100h | 古典钢琴 | MIDI | 研究 | 联系作者 |
 | **FMA** | ~106K 曲目 | 完整曲目 | MP3 | CC BY / 混合 | [github.com/mdeff/fma](https://github.com/mdeff/fma) |
-| **SongBench** | 多曲目 | 完整歌曲级评估数据 | WAV + 标注 | 研究 | arXiv (Make-It-Music, 2025) |
-| **MusicRLHF Preference Data** | 配对比较 | 人类偏好对比数据 | 音频 + 标签 | 研究 | arXiv (MusicRLHF, 2025) |
+| **SongBench** | 多曲目 | 带监督质量标签的歌曲生成数据 | WAV + 标注 | 研究 | arXiv:2502.19324 (Make-It-Music, 南开大学) |
 | **FakeMusicCaps** | AI 生成片段 | AI 音乐检测数据 | WAV + JSON | CC BY 4.0 | 派生自 MusicCaps |
 
 ## 情感识别

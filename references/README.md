@@ -20,7 +20,7 @@
 | YuE (team) | 2025 | Full-song generation |
 | ACE-Step (ACE Studio + StepFun) | 2025 | Foundation model: DCAE + linear transformer + diffusion (REPA) |
 | MusicFlow (Prajwal et al., Meta) | 2024 | Cascaded flow matching for text-to-music (ICML 2024) |
-| SongCreator | 2025 | Lyric-to-song with in-context learning |
+| SongCreator (Shun Lei et al.) | 2024 | Lyrics-based universal song generation (NeurIPS 2024, DSLM) |
 | MusicFX (Google) | 2023--25 | Consumer text-to-music (MusicLM-based) |
 
 ## Video-to-Music Generation
@@ -36,10 +36,9 @@
 
 | Paper | Year | Topic |
 |-------|------|-------|
-| MusicRLHF | 2025 | Reward modeling for music generation |
-| DPO for Music Generation | 2025 | Direct preference optimization for music |
-| Aligning Generative Music AI with Human Preferences | 2025 | Preference alignment survey (AAAI 2025) |
-| Make-It-Music / SongBench | 2025 | Song-level evaluation benchmark |
+| Benchmarking Music Gen Models and Metrics via Human Preference Studies | 2025 | Human preference benchmark for music generation (ICASSP 2025) |
+| Aligning Generative Music AI with Human Preferences | 2025 | Preference alignment (AAAI 2025) |
+| Make-It-Music / SongBench (Nankai Univ.) | 2025 | Song generation framework with supervised quality labels (arXiv:2502.19324) |
 
 ## Singing Voice Synthesis (New)
 

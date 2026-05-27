@@ -324,12 +324,12 @@ REMI (Huang & Yang, 2020) 影响最大：它添加了显式的 `Bar`、`Position
 - 使用**掩码预测**作为训练目标，支持零样本泛化到音乐填充和续写任务
 - 在 MusicCaps 上实现更优质量和文本一致性，尽管模型体积 2--5 倍更小、迭代步数仅需 1/5
 
-#### SongCreator (2025)
-- **歌词到歌曲**生成，支持上下文学习
-- 双轨架构处理人声（歌唱）和伴奏轨，确保音乐协调性
-- 支持可控生成：风格/流派、歌手声音特征、伴奏风格、速度和情绪
-- 基于参考音频或风格提示的条件生成
-- 解决歌词与旋律和节奏对齐、同时产生自然人声和伴奏的挑战
+#### SongCreator (NeurIPS 2024)
+- **论文**: "SongCreator: Lyrics-based Universal Song Generation" (Shun Lei et al.; NeurIPS 2024 Poster)
+- **架构**: **双序列语言模型 (DSLM)** 在单一框架内将人声和伴奏作为并行序列处理
+- **核心创新**: 可配置的**注意力掩码策略**将同一基础模型路由到不同任务（歌曲生成、人声生成、伴奏生成、歌曲编辑、歌曲理解），无需更改架构
+- 支持通过不同音频提示独立控制人声和伴奏的声学条件
+- 在八个歌曲相关任务上达到 SOTA 或竞争力性能
 
 #### MusicFX (Google, 2023--2025)
 - 基于 MusicLM 技术的消费级音乐生成工具
@@ -574,26 +574,24 @@ SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。
 
 将音乐生成模型与人类审美偏好对齐，类似于语言模型中的 RLHF，是快速兴起的研究领域。
 
-### 6.1 音乐 RLHF
+### 6.1 音乐偏好基准
 
-- **MusicRLHF**: 在人类偏好数据上训练的音乐生成奖励模型
-  - 引入跨音乐属性（和声、旋律、节奏、整体质量）的配对人类比较数据集
-  - 通过人类反馈强化学习实现音乐语言模型的微调
-  - 关键挑战：音乐的时序结构和多属性特性使奖励建模比文本更困难
+- **音乐生成模型与指标的人类偏好基准研究** (ICASSP 2025)
+  - 系统的人类偏好研究，基准测试多个音乐生成模型和评估指标
+  - 评估现有自动化指标（FAD、KL 散度等）与人类感知质量的相关性
+  - 关键发现：当前指标与人类偏好相关性有限，推动偏好对齐方法的发展
+  - 为未来音乐生成中的 RLHF 式对齐工作提供实证基础
+- **音乐偏好对齐**是新兴方向：将 RLHF/DPO 方法（在 LLM 中已验证）应用于音乐生成
 
-### 6.2 直接偏好优化 (DPO)
+### 6.2 DPO 与偏好对齐方向
 
-- 将 DPO 框架（最初为 LLM 开发）应用于音乐生成
-- 直接从偏好配对优化，无需单独的奖励模型
-- 在音乐对齐中通常比 RLHF 更稳定和高效
-- 应用于 MusicGen/AudioCraft 时展示了改进的音乐质量和风格一致性
+- 将 DPO 框架（最初为 LLM 开发）应用于音乐生成是活跃研究方向
+- 直接从偏好配对优化，无需单独的奖励模型，理论上更稳定和高效
+- 多篇 2025 年论文探索此方向，但尚无统一公认的框架名称
 
 ### 6.3 评估基准
 
-- **MusicBench**: 专门用于衡量与人类偏好对齐度的基准，覆盖音乐性、流派遵从和情感表现力
-- **SongBench** (Make-It-Music, 2025): 歌曲级评估基准，超越短片段评估以评估完整歌曲
-  - 涵盖旋律质量、和声、节奏、人声清晰度、歌词遵从、结构连贯性和整体音乐性
-  - 包括客观指标（音频信号分析、歌词对齐分数）和主观/人工评估
+- **SongBench** (Make-It-Music, 2025, arXiv:2502.19324): 南开大学提出的带监督音乐质量标签的策划数据集，用于歌曲生成。Make-It-Music 框架利用这些质量标签改进训练
 - **FakeMusicCaps**: 用于检测和归因任务的 AI 生成音乐数据集
 
 ### 6.4 开放性问题
@@ -696,8 +694,7 @@ SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。
 - **音乐理解基准**: MARBLE 基准（YuE 使用）在音乐理解任务上评估学习的表示
 - **人类偏好对齐**: AAAI 2025 论文 (arXiv:2511.15038) 关于将生成式音乐 AI 与人类偏好对齐
 - **FakeMusicCaps**: 从 MusicCaps 派生的 AI 生成音乐数据集，用于检测和归属任务
-- **SongBench** (Make-It-Music, 2025): 歌曲级评估基准，涵盖旋律质量、和声、节奏、人声清晰度、歌词遵从、结构连贯性和整体音乐性。超越短片段评估以评估完整歌曲
-- **MusicBench**: 衡量音乐性、流派遵从和情感表现力的人类偏好对齐基准
+- **SongBench** (Make-It-Music, 2025, arXiv:2502.19324): 南开大学提出的带监督音乐质量标签的策划数据集
 
 ---
 
@@ -719,7 +716,7 @@ SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。
 | TangoFlux | 2024 | Flow Matching | 学习的 | 30 秒 | 文本 | 是 |
 | ACE-Step | 2025 | DCAE + 线性 Transformer + 扩散 (REPA) | DCAE (Sana) + MERT/m-hubert | 4 分钟 | 文本 + 歌词 | 是 (ACE Studio + StepFun) |
 | MusicFlow | 2024 | 级联流匹配 | 自监督语义/声学 | ~30 秒 | 文本 | 是 |
-| SongCreator | 2025 | 双轨自回归 | 学习的 | 全曲 | 歌词 + 风格 | 是 |
+| SongCreator | 2024 | 双序列 LM (DSLM) + 注意力掩码 | EnCodec 风格 | 全曲 | 歌词 + 音频提示 | 是 |
 | MusicFX | 2023--25 | 基于 MusicLM (Google) | SoundStream | 短片段 | 文本 | 否 |
 | SkyMusic | 2024--25 | 未公开 | 未公开 | 全曲 | 文本 (多语言) | 否 |
 
@@ -772,11 +769,10 @@ SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。
 - "SegTune: Structured and Fine-Grained Control" (arXiv:2510.18416, 2025)
 - ACE-Step: "A Step Towards Music Generation Foundation Model" (arXiv:2506.00045, ACE Studio + StepFun, 2025)
 - MusicFlow: "Cascaded Flow Matching for Text Guided Music Generation" (arXiv:2410.20478, ICML 2024)
-- SongCreator: "Text-based Song Generation with In-context Learning" (2025)
-- "MusicRLHF: Reward Modeling for Music Generation" (2025)
-- "Direct Preference Optimization for Music Generation" (2025)
-- CMT: "Contrastive Multimodal Transformer for Video-to-Music" (2025)
-- M2UGen: "Multi-Modal Music Understanding and Generation" (2025)
-- "Make-It-Music / SongBench: Song-Level Music Generation Benchmark" (2025)
+- SongCreator: "Lyrics-based Universal Song Generation" (NeurIPS 2024 Poster, Shun Lei et al.)
+- "Benchmarking Music Generation Models and Metrics via Human Preference Studies" (ICASSP 2025)
+- CMT: "Contrastive Multimodal Transformer for Video-to-Music" (需确认具体 arXiv ID)
+- M2UGen: "Multi-Modal Music Understanding and Generation" (需确认具体 arXiv ID)
+- "Make-It-Music / SongBench" (arXiv:2502.19324, 2025, 南开大学)
 - OpenDiffSinger community: GitHub (持续更新, 2022--2025)
 - "Discrete Audio Tokens: More Than a Survey" (arXiv:2506.10274, 2025)

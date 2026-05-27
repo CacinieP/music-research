@@ -323,12 +323,12 @@ Audio-level models require compressing high-dimensional waveforms (44,100 sample
 - Achieves superior quality and text coherence on MusicCaps despite being 2--5x smaller and requiring 5x fewer iterative steps than competitors
 - Can perform music infilling and continuation tasks competitively
 
-#### SongCreator (2025)
-- **Lyric-to-song generation** with in-context learning capabilities
-- Dual-track architecture handling vocal (singing) and accompaniment tracks with musical coherence
-- Supports controllable generation: style/genre, singer voice characteristics, accompaniment style, tempo and mood
-- Conditioning on reference audio or style prompts for diverse and controllable song creation
-- Addresses the challenging problem of aligning lyrics with melody and rhythm while producing natural vocals and accompaniment
+#### SongCreator (NeurIPS 2024)
+- **Paper**: "SongCreator: Lyrics-based Universal Song Generation" (Shun Lei et al.; NeurIPS 2024 Poster)
+- **Architecture**: **Dual-Sequence Language Model (DSLM)** that processes vocals and accompaniment as parallel sequences within a single framework
+- **Key innovation**: Configurable **attention mask strategies** route the same base model toward different tasks (song generation, vocal generation, accompaniment generation, song editing, song understanding) without changing architecture
+- Supports independent control of vocal and accompaniment acoustic conditions through different audio prompts
+- Achieves SOTA or competitive performance across eight song-related tasks
 
 #### MusicFX (Google, 2023--2025)
 - Consumer-facing music generation tool powered by MusicLM technology
@@ -575,10 +575,12 @@ Aligning music generation models with human aesthetic preferences, analogous to 
 
 ### 6.1 RLHF for Music
 
-- **MusicRLHF**: Reward model trained on human preference data for music generation
-  - Introduces curated dataset of pairwise human comparisons across musical attributes (harmony, melody, rhythm, overall quality)
-  - Enables fine-tuning of music language models via reinforcement learning from human feedback
-  - Key challenge: music's temporal structure and multi-attribute nature make reward modeling harder than for text
+- **Benchmarking Music Generation Models and Metrics via Human Preference Studies** (ICASSP 2025)
+  - Conducts systematic human preference studies benchmarking multiple music generation models and evaluation metrics
+  - Evaluates how well existing automated metrics (FAD, KL divergence, etc.) correlate with human perceptual quality
+  - Key finding: current metrics have limited correlation with human preferences, motivating preference-based alignment approaches
+  - Provides empirical foundation for future RLHF-style alignment work in music generation
+- **Music preference alignment** is an emerging direction: applying RLHF/DPO paradigms (proven for LLMs) to music generation, where evaluation is inherently subjective and multi-dimensional
 
 ### 6.2 Direct Preference Optimization (DPO)
 
@@ -589,10 +591,8 @@ Aligning music generation models with human aesthetic preferences, analogous to 
 
 ### 6.3 Evaluation Benchmarks
 
-- **MusicBench**: Benchmark specifically designed to measure alignment with human preferences across dimensions: musicality, genre adherence, emotional expressiveness
-- **SongBench** (Make-It-Music, 2025): Song-level evaluation benchmark going beyond short clip evaluation to assess full songs
-  - Covers melody quality, harmony, rhythm, vocal clarity, lyrics adherence, structural coherence, and overall musicality
-  - Includes both objective metrics (audio signal analysis, lyrics alignment scores) and subjective/human evaluations
+- **SongBench** (Make-It-Music, 2025, arXiv:2502.19324): A curated dataset with supervised musical quality labels for song generation, from Nankai University. The Make-It-Music framework is a unified song generation system that uses these quality labels to improve training
+- **FakeMusicCaps**: Dataset of AI-generated music for detection and attribution tasks, derived from MusicCaps
 - **FakeMusicCaps**: Dataset of AI-generated music for detection and attribution tasks
 
 ### 6.4 Open Problems
@@ -718,7 +718,7 @@ Aligning music generation models with human aesthetic preferences, analogous to 
 | TangoFlux | 2024 | Flow Matching | Learned | 30 sec | Text | Yes |
 | ACE-Step | 2025 | DCAE + Linear Transformer + Diffusion (REPA) | DCAE (Sana) + MERT/m-hubert | 4 min | Text + lyrics | Yes (ACE Studio + StepFun) |
 | MusicFlow | 2024 | Cascaded Flow Matching | Self-supervised semantic/acoustic | ~30 sec | Text | Yes |
-| SongCreator | 2025 | Dual-track AR | Learned | Full song | Lyrics + style | Yes |
+| SongCreator | 2024 | Dual-Sequence LM (DSLM) + Attention Masks | EnCodec-style | Full song | Lyrics + audio prompts | Yes |
 | MusicFX | 2023--25 | MusicLM-based (Google) | SoundStream | Short clips | Text | No |
 | SkyMusic | 2024--25 | Undisclosed | Undisclosed | Full song | Text (multilingual) | No |
 
@@ -771,13 +771,12 @@ Aligning music generation models with human aesthetic preferences, analogous to 
 - "SegTune: Structured and Fine-Grained Control" (arXiv:2510.18416, 2025)
 - ACE-Step: "A Step Towards Music Generation Foundation Model" (arXiv:2506.00045, ACE Studio + StepFun, 2025)
 - MusicFlow: "Cascaded Flow Matching for Text Guided Music Generation" (arXiv:2410.20478, ICML 2024)
-- SongCreator: "Text-based Song Generation with In-context Learning" (2025)
-- "MusicRLHF: Reward Modeling for Music Generation" (2025)
-- "Direct Preference Optimization for Music Generation" (2025)
+- SongCreator: "Lyrics-based Universal Song Generation" (NeurIPS 2024 Poster, Shun Lei et al.)
+- "Benchmarking Music Generation Models and Metrics via Human Preference Studies" (ICASSP 2025)
 - ACE Studio / ACE Singer: Commercial SVS system (2024--2025)
 - DiffSinger Acceleration: Consistency distillation and progressive distillation for faster SVS inference (2025)
 - CMT: "Contrastive Multimodal Transformer for Video-to-Music" (verify specific arXiv ID)
-- M2UGen: "Multi-Modal Music Understanding and Generation" (2025)
-- "Make-It-Music / SongBench: Song-Level Music Generation Benchmark" (2025)
+- M2UGen: "Multi-Modal Music Understanding and Generation" (verify specific arXiv ID)
+- "Make-It-Music / SongBench" (arXiv:2502.19324, 2025, Nankai Univ.)
 - OpenDiffSinger community: GitHub (ongoing, 2022--2025)
 - "Discrete Audio Tokens: More Than a Survey" (arXiv:2506.10274, 2025)
