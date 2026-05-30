@@ -1,6 +1,11 @@
 # Music Research
 
+[![License: CC BY 4.0](https://img.shields.io/badge/license-CC%20BY%204.0-lightgrey?style=flat-square)](LICENSE)
+[![Notes](https://img.shields.io/badge/research-notes%20%2B%20surveys-39c5bb?style=flat-square)](docs/)
+
 Music understanding & generation research repository.
+
+This is a curated research workspace for audio engineering, MIR, generative music, music foundation models, edge deployment, and copyright/compliance. It is meant to be useful both as a reading map and as a starting point for reproducible experiments.
 
 ## Scope
 
