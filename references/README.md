@@ -78,6 +78,18 @@
 | Brown (CQT) | 1991 | Constant-Q transform for music |
 | Schorkhuber & Klapuri | 2010 | CQT toolbox for music processing |
 
+## Music Theory & Foundations
+
+| Paper / Book | Year | Topic |
+|--------------|------|-------|
+| Piston, W. *Harmony* (revised ed.) | 1987 | Functional harmony, standard textbook |
+| Kostka, S. & Payne, D. *Tonal Harmony* (8th ed.) | 2018 | Modern harmony textbook |
+| Aldwell, E. & Cadwallader, A. *Harmony and Voice Leading* (4th ed.) | 2018 | Voice-leading-oriented harmony |
+| Krumhansl, C.L. *Cognitive Foundations of Musical Pitch* | 1990 | Pitch perception, key-finding theory |
+| Bregman, A.S. *Auditory Scene Analysis* | 1990 | Cognitive basis for source separation |
+| Müller, M. *Fundamentals of Music Processing* (2nd ed.) | 2021 | Computational musicology textbook |
+| Zbikowski, L.M. *Conceptualizing Music* | 2002 | Music cognition and computational models |
+
 ## Surveys
 
 | Paper | Year | Scope |

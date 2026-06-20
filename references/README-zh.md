@@ -80,6 +80,18 @@
 | Brown (CQT) | 1991 | 音乐恒定 Q 变换 |
 | Schorkhuber & Klapuri | 2010 | 音乐处理 CQT 工具箱 |
 
+## 乐理与基础
+
+| 教材/论文 | 年份 | 主题 |
+|-----------|------|------|
+| Piston, W. *Harmony*（修订版） | 1987 | 功能和声经典教材 |
+| Kostka, S. & Payne, D. *Tonal Harmony*（第 8 版） | 2018 | 现代和声学标准教材 |
+| Aldwell, E. & Cadwallader, A. *Harmony and Voice Leading*（第 4 版） | 2018 | 声部进行导向的和声学 |
+| Krumhansl, C.L. *Cognitive Foundations of Musical Pitch* | 1990 | 音高感知认知科学，调性检测理论基础 |
+| Bregman, A.S. *Auditory Scene Analysis* | 1990 | 听觉场景分析，source separation 认知基础 |
+| Müller, M. *Fundamentals of Music Processing*（第 2 版） | 2021 | 计算音乐学教材，含 MIR 算法 |
+| Zbikowski, L.M. *Conceptualizing Music* | 2002 | 音乐认知与计算模型桥梁 |
+
 ## 综述文献
 
 | 论文 | 年份 | 范围 |
