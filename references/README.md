@@ -40,14 +40,6 @@
 | Aligning Generative Music AI with Human Preferences | 2025 | Preference alignment (AAAI 2025) |
 | Make-It-Music / SongBench (Nankai Univ.) | 2025 | Song generation framework with supervised quality labels (arXiv:2502.19324) |
 
-## Singing Voice Synthesis (New)
-
-| Paper | Year | Topic |
-|-------|------|-------|
-| OpenDiffSinger (Community) | 2022--25 | Open-source DiffSinger fork with multi-speaker/multi-language |
-| ACE Studio / ACE Singer | 2024--25 | Commercial SVS system, multi-language, DAW integration |
-| DiffSinger Acceleration | 2025 | Faster SVS inference via distillation (multiple approaches) |
-
 ## Audio Engineering
 
 | Paper | Year | Topic |
@@ -100,6 +92,49 @@
 | Park, J. et al. "Multitrack Music Transformer" | 2022 | Multi-instrument style modeling |
 | Hung, H.T. et al. "Emotional Music Generation via Disentangled Representations" | 2022 | Style disentanglement for generation |
 | Brée, D. *AI and Music: A Comprehensive Survey* | — | Technical survey covering style in AI music |
+
+## Music Evaluation
+
+| Paper / System | Year | Topic |
+|----------------|------|-------|
+| FAD (Fréchet Audio Distance) | 2021 | Distribution-based audio quality metric |
+| CLAP Score | 2023 | Text-audio alignment metric |
+| Benchmarking Music Gen Models via Human Preference Studies | 2025 | Human preference benchmark (ICASSP 2025) |
+| Aligning Generative Music AI with Human Preferences | 2025 | Preference alignment (AAAI 2025) |
+| SongBench | 2025 | Supervised quality labels for song generation |
+| PEMO-Q | — | Perceptual audio quality evaluation (ITU-R) |
+| ViSQOL | — | Virtual speech/audio quality objective listener |
+
+## Singing Voice Synthesis
+
+| Paper / System | Year | Topic |
+|----------------|------|-------|
+| DiffSinger | 2021 | Diffusion-based SVS, landmark open-source |
+| OpenDiffSinger | 2022--25 | Community fork with multi-speaker/language |
+| So-VITS-SVC | 2022 | VITS-based singing voice conversion |
+| SingSong (Google) | 2023 | Diffusion-based singing extraction + synthesis |
+| ACE Singer (ACE Studio) | 2024--25 | Commercial multi-language SVS, DAW integration |
+| RDCM | 2025 | Recurrent diffusion for long-form singing |
+| A Survey on Singing Voice Synthesis | 2024 | Comprehensive SVS survey |
+
+## Music Recommendation
+
+| Paper / System | Year | Topic |
+|----------------|------|-------|
+| Spotify audio features | 2010s | Danceability, energy, valence features |
+| MERT for recommendation | 2023 | Self-supervised embeddings for music similarity |
+| CLAP for music search | 2023 | Text-based music retrieval |
+| MusicFM | 2023 | Foundation model for recommendation |
+
+## Cover Detection & Melody Extraction
+
+| Paper / System | Year | Topic |
+|----------------|------|-------|
+| Chromaprint / AcoustID | 2008-- | Chroma-based fingerprinting for cover detection |
+| DeepSalience | 2018 | Deep learning pitch salience for melody extraction |
+| SecondHandSongs | — | Crowdsourced cover metadata (~1M works) |
+| Da-TACOS | 2019 | Large-scale cover song benchmark (~17K) |
+| Covers80 | 2011 | Classic small benchmark (80 pairs) |
 
 ## Surveys
 

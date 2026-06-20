@@ -454,7 +454,224 @@ Identifying the chord label (e.g., C:maj, G:min7, F#:dim) at each time step in a
 
 ---
 
-## Key References (Organized by Area)
+## 7. Music Recommendation 音乐推荐
+
+### Problem Definition
+
+Recommending music to users based on audio content, user preferences, or context. Audio-based recommendation is a direct application of MIR — it requires extracting meaningful representations from audio and computing similarity.
+
+### Approaches
+
+#### Content-Based Filtering
+
+| Method | Features | Notes |
+|--------|----------|-------|
+| Hand-crafted features | MFCC, chroma, spectral features + distance metrics | Classic approach, interpretable but limited |
+| Embedding-based | Pre-trained embeddings (MERT, CLAP, MusicFM) + nearest neighbor | Current standard |
+| Metric learning | Learn distance function from preference data | Better for fine-grained similarity |
+
+#### Audio Embedding for Recommendation
+
+Modern recommendation systems use pre-trained audio embeddings:
+
+- **MERT embeddings**: Self-supervised music representations. Encode harmonic, rhythmic, and timbral information. Can be used directly for similarity search.
+- **CLAP embeddings**: Audio-text joint space. Enables text-based music search ("find music like X with mood Y").
+- **MusicFM embeddings**: Large-scale pre-trained representations with strong transfer to recommendation tasks.
+
+**相似度计算**：Cosine similarity on embeddings is the standard. For large catalogs, approximate nearest neighbor (ANN) search (FAISS, ScaNN) is essential.
+
+#### Hybrid Systems
+
+| System | Content signal | Collaborative signal | Notes |
+|--------|---------------|---------------------|-------|
+| Spotify (internal) | Audio features + NLP | User listening history | Industry standard, proprietary |
+| Spotify public API | Audio features (danceability, energy, valence) | — | Limited but accessible |
+| Content-based only | MERT/CLAP embeddings | None | Works without user data |
+
+### Evaluation
+
+| Metric | Description |
+|--------|-------------|
+| **Precision@K** | % of top-K recommendations that are relevant |
+| **Recall@K** | % of relevant items retrieved in top-K |
+| **NDCG@K** | Normalized discounted cumulative gain — ranks relevant items higher |
+| **Coverage** | % of catalog that can be recommended |
+| **Serendipity** | Novelty of recommendations (not just popular items) |
+
+### Open Problems
+
+- **Cold start**: Recommending new tracks without listening history.
+- **Long-tail**: Most recommendation data is concentrated on popular tracks; niche music is underserved.
+- **Context-awareness**: Time of day, activity, mood as additional signals.
+- **Cross-cultural**: Recommendation systems trained on Western music fail for non-Western listeners.
+
+---
+
+## 8. Cover Detection and Version Identification 翻唱检测与版本识别
+
+### Problem Definition
+
+Identifying when two audio recordings are different performances of the same underlying musical work. A "cover" is a new performance/arrangement of an existing song.
+
+### Why It Matters
+
+- **Music rights management**: Identifying unlicensed covers for royalty distribution.
+- **Music discovery**: Finding different versions of songs a user likes.
+- **Cultural analysis**: Studying how musical works evolve across performances.
+
+### Approaches
+
+#### Traditional Approaches (Pre-2020)
+
+- **Chromaprint / AcoustID**: Chroma-based fingerprinting. Robust to tempo changes, key transposition. Still widely used.
+- **Cover Song Identification (CSI) systems**: Chroma + dynamic time warping (DTW) for alignment-invariant comparison.
+
+#### Deep Learning Approaches
+
+| Method | Description |
+|--------|-------------|
+| **2D-CNN on chromagrams** | Learn chroma patterns robust to arrangement changes |
+| **Siamese networks** | Learn similarity metric for cover pairs |
+| **Triplet loss** | Train with anchor-positive (same work) and anchor-negative (different works) |
+| **Self-supervised pretraining** | Pre-train on large audio corpora, fine-tune for cover detection |
+
+### Datasets
+
+| Dataset | Content | Size | Notes |
+|---------|---------|------|-------|
+| **SecondHandSongs** | Crowdsourced cover metadata | ~1M works | Largest metadata source |
+| **Covers80** | 80 original + cover pairs | 160 tracks | Classic small benchmark |
+| **Da-TACOS** | Cover + original pairs | ~17K | Large-scale benchmark |
+| **Covers2001** | Query-cover pairs | ~1K queries | Standard evaluation set |
+
+### Evaluation Metrics
+
+| Metric | Description |
+|--------|-------------|
+| **Mean Rank** | Average rank of the correct match |
+| **mAP** | Mean average precision across queries |
+| **MRR** | Mean reciprocal rank |
+| **Top-K accuracy** | % of queries where correct cover is in top-K |
+
+### Open Problems
+
+- **Arrangement changes**: Same song with completely different instrumentation (orchestral → electronic).
+- **Structural variations**: Covers may reorder sections, add/remove verses.
+- **Medleys**: Multiple songs combined in one performance.
+- **Humming/whistling queries**: Query by humming (QBH) — finding covers from a sung query.
+
+---
+
+## 9. Melody Extraction 主旋律提取
+
+### Problem Definition
+
+Extracting the dominant melody pitch contour from polyphonic music. Also called "vocal melody extraction" when focused on singing voice, or "pitch tracking" more broadly.
+
+### Why It Matters
+
+- **Downstream task**: Input for cover detection, query-by-humming, music transcription, singing voice analysis.
+- **Music production**: Automatic melody isolation for remixing, karaoke track generation.
+- **Music education**: Pitch visualization for learning.
+
+### Approaches
+
+#### Traditional Methods
+
+- **SALAMI** + pitch tracking: Source separation + F0 estimation on separated melody source.
+- **P. Rao (2010)**: Salience-based melody extraction using pitch salience functions from harmonic structure.
+
+#### Deep Learning Methods
+
+| Method | Architecture | Notes |
+|--------|-------------|-------|
+| **CNN-based** | CNN on mel-spectrogram predicting pitch per frame | Fast but limited temporal context |
+| **CRNN (CNN + LSTM)** | CNN features + LSTM temporal modeling | Better temporal coherence |
+| **Transformer-based** | Self-attention over spectrogram frames | State-of-art, captures long-range |
+| **Segmentation-free** | End-to-end pitch tracking without note segmentation | Current trend |
+
+### Key Systems
+
+| System | Year | Notes |
+|--------|------|-------|
+| **Melodia** | 2013 | Classic pitch contour extraction, widely used |
+| **DeepSalience** | 2018 | Deep learning for pitch salience |
+| **MelodyCNN** | 2019 | CNN for melody extraction |
+| **pYIN** | 2015 | Probabilistic YIN, standard baseline |
+
+### Evaluation
+
+| Metric | Description |
+|--------|-------------|
+| **RPA** (Raw Pitch Accuracy) | % of frames where estimated pitch is within 50 cents of ground truth |
+| **RCA** (Raw Chroma Accuracy) | RPA ignoring octave errors |
+| **OA** (Overall Accuracy) | RPA + correct voicing decisions |
+| **VR** (Voicing Recall) | % of voiced frames correctly identified |
+| **VF** (Voicing False Alarm) | % of unvoiced frames incorrectly labeled voiced |
+
+Typical SOTA: RPA ~80–85% on MIREX datasets. Performance degrades on complex mixtures (orchestral, heavy polyphony).
+
+### Open Problems
+
+- **Melody in complex mixtures**: When melody is not the loudest source (e.g., soft vocal in full band).
+- **Polyphonic melody**: Multiple melodic lines (e.g., counterpoint in Bach).
+- **Non-vocal melody**: Instrumental melodies (saxophone, guitar lead) have different timbral characteristics.
+- **Real-time extraction**: Low-latency melody extraction for interactive applications.
+
+---
+
+## 10. Cross-Cutting MIR Challenges 跨领域 MIR 挑战
+
+### 10.1 Cultural Bias in MIR
+
+All major MIR benchmarks (GTZAN, MAESTRO, MUSDB18) are dominated by Western popular and classical music. Consequences:
+
+- **Poor generalization**: Models trained on Western music fail on non-Western traditions.
+- **Measurement bias**: Evaluation results are not representative of global musical diversity.
+- **Reinforcement loop**: AI-generated music trained on Western data perpetuates Western idioms.
+
+**Efforts to address**: CultureMERT (multilingual/cultural pre-training), diverse benchmark collections, community-led dataset creation.
+
+### 10.2 The Evaluation Bottleneck
+
+MIR evaluation is bottlenecked by:
+
+- **Label quality**: Crowd-sourced labels (MagnaTagATune) are noisy. Expert annotations are expensive.
+- **Dataset size**: Many MIR datasets are small (hundreds to thousands of examples), limiting model capacity.
+- **Benchmark saturation**: Some tasks (genre classification on GTZAN, piano transcription on MAESTRO) approach ceiling performance, reducing research incentive.
+- **Lack of standardization**: Different papers use different train/test splits, metrics, and preprocessing, making comparison difficult.
+
+### 10.3 From Lab to Production
+
+| Challenge | Description |
+|-----------|-------------|
+| **Real-time requirements** | Production systems need low latency (<100ms for some applications) |
+| **Robustness** | Must handle noisy recordings, phone microphones, compressed audio |
+| **Scalability** | Billions of tracks to process; efficient inference essential |
+| **Continuous learning** | New music styles, languages, and artists emerge continuously |
+| **Explainability** | Why did the model tag this as "jazz"? Needed for trust and debugging |
+
+---
+
+## 11. Summary: MIR Task Landscape MIR 任务全景
+
+| Task | Input | Output | Current SOTA | Open challenge |
+|------|-------|--------|-------------|----------------|
+| Auto-tagging | Audio | Tags | ~0.93 ROC-AUC | Fine-grained, cross-cultural |
+| Transcription | Audio | MIDI notes | 93–97% F1 (piano) | Multi-instrument realistic mixes |
+| Source separation | Mixed audio | Isolated stems | ~12 dB SDR | >4 stems, real-time |
+| Emotion recognition | Audio | Arousal/valence | Moderate | Standardized evaluation |
+| Beat tracking | Audio | Beat times | 85–92% F1 | Rubato, complex meters |
+| Chord recognition | Audio | Chord labels | 80–87% | Complex chords, ambiguous harmony |
+| Key detection | Audio | Key label | 70–85% | Foundation model weakness |
+| Recommendation | Audio + user | Track list | Industry practice | Cold start, long-tail |
+| Cover detection | Audio pair | Match/none | Moderate | Arrangement changes |
+| Melody extraction | Audio | Pitch contour | 80–85% RPA | Complex mixtures |
+
+---
+
+> This document covers music understanding and MIR as of 2025--2026. For related topics, see [music-generation.md](music-generation.md) (generation), [audio-engineering.md](audio-engineering.md) (signal processing), [music-theory-fundamentals.md](music-theory-fundamentals.md) (theoretical foundations), and [music-styles.md](music-styles.md) (style analysis).
+
 
 ### Auto-Tagging
 - Choi et al., "Automatic Tagging Using Deep Convolutional Neural Networks," ISMIR 2016.

@@ -17,6 +17,8 @@ This is a curated research workspace for audio engineering, MIR, generative musi
 - **Copyright & Compliance** — training data rights, generation infringement, legislation
 - **Music Theory Fundamentals** — pitch, harmony, rhythm, melody, form — bridging theory to AI practice
 - **Music Styles & Genre** — genre taxonomy, style dimensions, style-conditioned generation, cross-cultural style
+- **Music Evaluation** — human evaluation protocols, automatic metrics (FAD, CLAP Score, perceptual), evaluation gaps
+- **Singing Voice Synthesis** — acoustic modeling, controllable singing, voice conversion, datasets
 
 ## Directory Structure
 
@@ -31,6 +33,8 @@ docs/
     model-reproduction-guide.md     — reproduction framework
     music-theory-fundamentals.md    — music theory fundamentals
     music-styles.md                  — music styles: genre, aesthetics, style-aware generation
+    music-evaluation.md             — evaluation metrics, human protocols, benchmark gaps
+    music-singing-synthesis.md      — singing voice synthesis: models, datasets, controllable singing
   surveys/              — literature reviews
 datasets/               — public dataset catalog
 src/                    — code structure guide & tool recommendations
@@ -49,6 +53,8 @@ references/             — curated paper lists and resources
 | Model Reproduction Guide | [model-reproduction-guide.md](docs/notes/model-reproduction-guide.md) | — (merged bilingual) |
 | Music Theory Fundamentals | [music-theory-fundamentals.md](docs/notes/music-theory-fundamentals.md) | [music-theory-fundamentals-zh.md](docs/notes/music-theory-fundamentals-zh.md) |
 | Music Styles | [music-styles.md](docs/notes/music-styles.md) | [music-styles-zh.md](docs/notes/music-styles-zh.md) |
+| Music Evaluation | [music-evaluation.md](docs/notes/music-evaluation.md) | [music-evaluation-zh.md](docs/notes/music-evaluation-zh.md) |
+| Singing Voice Synthesis | [music-singing-synthesis.md](docs/notes/music-singing-synthesis.md) | [music-singing-synthesis-zh.md](docs/notes/music-singing-synthesis-zh.md) |
 
 ## Other Resources
 
@@ -81,6 +87,8 @@ references/             — curated paper lists and resources
 - **版权与合规** — 训练数据权利、生成侵权、立法动态
 - **乐理基础** — 音高、和声、节奏、旋律、曲式 — 乐理到 AI 的桥梁
 - **音乐风格与流派** — 流派分类、风格计算维度、风格条件生成、跨文化风格
+- **音乐评测** — 人类评测协议、自动指标（FAD、CLAP Score、感知指标）、评测鸿沟
+- **歌声合成** — 声学建模、可控歌声生成、歌声转换、数据集
 
 ## 目录结构
 
@@ -95,6 +103,8 @@ docs/
     model-reproduction-guide.md     — 复现框架
     music-theory-fundamentals.md    — 乐理基础
     music-styles.md                  — 音乐风格
+    music-evaluation.md             — 评测方法与协议
+    music-singing-synthesis.md      — 歌声合成
   surveys/              — 文献综述
 datasets/               — 公开数据集目录
 src/                    — 代码结构指南与工具推荐
@@ -113,6 +123,8 @@ references/             — 精选论文列表与资源
 | 模型复现指南 | [model-reproduction-guide.md](docs/notes/model-reproduction-guide.md) | —（双语合并版） |
 | 乐理基础 | [music-theory-fundamentals.md](docs/notes/music-theory-fundamentals.md) | [music-theory-fundamentals-zh.md](docs/notes/music-theory-fundamentals-zh.md) |
 | 音乐风格 | [music-styles.md](docs/notes/music-styles.md) | [music-styles-zh.md](docs/notes/music-styles-zh.md) |
+| 音乐评测 | [music-evaluation.md](docs/notes/music-evaluation.md) | [music-evaluation-zh.md](docs/notes/music-evaluation-zh.md) |
+| 歌声合成 | [music-singing-synthesis.md](docs/notes/music-singing-synthesis.md) | [music-singing-synthesis-zh.md](docs/notes/music-singing-synthesis-zh.md) |
 
 ## 其他资源
 
