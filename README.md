@@ -36,6 +36,7 @@ docs/
     music-evaluation.md             — evaluation metrics, human protocols, benchmark gaps
     music-singing-synthesis.md      — singing voice synthesis: models, datasets, controllable singing
   surveys/              — literature reviews
+    reading-guide.md    — survey reading guide: key AI music surveys annotated
 datasets/               — public dataset catalog
 src/                    — code structure guide & tool recommendations
 references/             — curated paper lists and resources
@@ -106,6 +107,7 @@ docs/
     music-evaluation.md             — 评测方法与协议
     music-singing-synthesis.md      — 歌声合成
   surveys/              — 文献综述
+    reading-guide.md    — 综述论文导读：8 篇关键综述的解读与阅读路径
 datasets/               — 公开数据集目录
 src/                    — 代码结构指南与工具推荐
 references/             — 精选论文列表与资源
