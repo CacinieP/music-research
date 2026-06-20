@@ -92,6 +92,17 @@
 | Müller, M. *Fundamentals of Music Processing*（第 2 版） | 2021 | 计算音乐学教材，含 MIR 算法 |
 | Zbikowski, L.M. *Conceptualizing Music* | 2002 | 音乐认知与计算模型桥梁 |
 
+## 音乐风格与流派
+
+| 教材/论文 | 年份 | 主题 |
+|-----------|------|------|
+| Serrà, J. et al. "Correlation and Causality in Music Style Construction" | 2012 | 音乐风格的统计分析 |
+| Huang, C.Z.A. *Music Style Modeling and Generation* (PhD thesis) | 2017 | 风格的计算方法 |
+| Lomax, A. *Folk Song Style and Culture* | 1968 | 音乐风格的人类学方法 |
+| Park, J. et al. "Multitrack Music Transformer" | 2022 | 多乐器风格建模 |
+| Hung, H.T. et al. "Emotional Music Generation via Disentangled Representations" | 2022 | 风格解耦生成 |
+| Brée, D. *AI and Music: A Comprehensive Survey* | — | AI 音乐中风格的技术综述 |
+
 ## 综述文献
 
 | 论文 | 年份 | 范围 |

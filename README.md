@@ -16,6 +16,7 @@ This is a curated research workspace for audio engineering, MIR, generative musi
 - **Edge Deployment** — model optimization, real-time inference, embedded hardware
 - **Copyright & Compliance** — training data rights, generation infringement, legislation
 - **Music Theory Fundamentals** — pitch, harmony, rhythm, melody, form — bridging theory to AI practice
+- **Music Styles & Genre** — genre taxonomy, style dimensions, style-conditioned generation, cross-cultural style
 
 ## Directory Structure
 
@@ -29,6 +30,7 @@ docs/
     edge-deployment.md              — edge deployment & real-time inference
     model-reproduction-guide.md     — reproduction framework
     music-theory-fundamentals.md    — music theory fundamentals
+    music-styles.md                  — music styles: genre, aesthetics, style-aware generation
   surveys/              — literature reviews
 datasets/               — public dataset catalog
 src/                    — code structure guide & tool recommendations
@@ -46,6 +48,7 @@ references/             — curated paper lists and resources
 | Edge Deployment | [edge-deployment.md](docs/notes/edge-deployment.md) | — (merged bilingual) |
 | Model Reproduction Guide | [model-reproduction-guide.md](docs/notes/model-reproduction-guide.md) | — (merged bilingual) |
 | Music Theory Fundamentals | [music-theory-fundamentals.md](docs/notes/music-theory-fundamentals.md) | [music-theory-fundamentals-zh.md](docs/notes/music-theory-fundamentals-zh.md) |
+| Music Styles | [music-styles.md](docs/notes/music-styles.md) | [music-styles-zh.md](docs/notes/music-styles-zh.md) |
 
 ## Other Resources
 
@@ -77,6 +80,7 @@ references/             — curated paper lists and resources
 - **边缘部署** — 模型优化、实时推理、嵌入式硬件
 - **版权与合规** — 训练数据权利、生成侵权、立法动态
 - **乐理基础** — 音高、和声、节奏、旋律、曲式 — 乐理到 AI 的桥梁
+- **音乐风格与流派** — 流派分类、风格计算维度、风格条件生成、跨文化风格
 
 ## 目录结构
 
@@ -90,6 +94,7 @@ docs/
     edge-deployment.md              — 边缘部署与实时推理
     model-reproduction-guide.md     — 复现框架
     music-theory-fundamentals.md    — 乐理基础
+    music-styles.md                  — 音乐风格
   surveys/              — 文献综述
 datasets/               — 公开数据集目录
 src/                    — 代码结构指南与工具推荐
@@ -107,6 +112,7 @@ references/             — 精选论文列表与资源
 | 边缘部署 | [edge-deployment.md](docs/notes/edge-deployment.md) | —（双语合并版） |
 | 模型复现指南 | [model-reproduction-guide.md](docs/notes/model-reproduction-guide.md) | —（双语合并版） |
 | 乐理基础 | [music-theory-fundamentals.md](docs/notes/music-theory-fundamentals.md) | [music-theory-fundamentals-zh.md](docs/notes/music-theory-fundamentals-zh.md) |
+| 音乐风格 | [music-styles.md](docs/notes/music-styles.md) | [music-styles-zh.md](docs/notes/music-styles-zh.md) |
 
 ## 其他资源
 

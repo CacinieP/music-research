@@ -90,6 +90,17 @@
 | Müller, M. *Fundamentals of Music Processing* (2nd ed.) | 2021 | Computational musicology textbook |
 | Zbikowski, L.M. *Conceptualizing Music* | 2002 | Music cognition and computational models |
 
+## Music Styles & Genre
+
+| Paper / Book | Year | Topic |
+|--------------|------|-------|
+| Serrà, J. et al. "Correlation and Causality in Music Style Construction" | 2012 | Statistical analysis of musical style |
+| Huang, C.Z.A. *Music Style Modeling and Generation* (PhD thesis) | 2017 | Computational approaches to style |
+| Lomax, A. *Folk Song Style and Culture* | 1968 | Anthropological approach to musical style |
+| Park, J. et al. "Multitrack Music Transformer" | 2022 | Multi-instrument style modeling |
+| Hung, H.T. et al. "Emotional Music Generation via Disentangled Representations" | 2022 | Style disentanglement for generation |
+| Brée, D. *AI and Music: A Comprehensive Survey* | — | Technical survey covering style in AI music |
+
 ## Surveys
 
 | Paper | Year | Scope |
