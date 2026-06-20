@@ -41,24 +41,121 @@ A musical style is **not** a single feature but a probabilistic distribution ove
 | Baroque | 1600–1750 | Basso continuo, tonal harmony born, terraced dynamics, ornamentation (trills, mordents) |
 | Classical | 1750–1820 | Balanced phrases (4+4), homophonic texture, sonata form, Alberti bass |
 | Romantic | 1820–1900 | Expanded harmony, chromaticism, expressive rubato, program music |
-| Modern | 1900–present | Atonality, serialism, extended techniques, electronic, minimalism |
 
-**对 AI 的意义**：Each era has distinct statistical signatures. Baroque music is characterized by high polyphony, continuous rhythmic motion, and limited dynamic range. Romantic music has longer phrases, wider pitch ranges, and richer harmonic vocabulary. Training era-specific models yields dramatically different output characteristics even with the same architecture.
+#### 2.1.1 Modern and Contemporary 现代与当代
+
+**Impressionism (印象派, 1890s–1920s)** — Debussy, Ravel
+- Rejected Germanic tonal logic; embraced non-functional harmony, whole-tone and pentatonic scales, parallel chords (planing)
+- Tone color *is* the structure; harmony creates atmosphere rather than progression
+- Fluid, unresolved cadences; ambiguous metric pulse
+- **对 AI 的意义**： Impressionist music has *low functional clarity* (few V→I resolutions) and *high planing frequency* — distinctive statistical signatures a model can learn. Whole-tone and pentatonic pitch collections reduce effective pitch vocabulary to 6–7 classes.
+
+**Expressionism & Serialism (表现主义与序列主义, 1910s–1950s)** — Schoenberg, Berg, Webern
+- Atonality (无调性): abandoning tonal center; all 12 pitch classes treated equally (十二音 equal-status principle)
+- Serialism (序列主义): extending 12-tone row to rhythm, dynamics, articulation — total pitch-class ordering
+- Extreme dissonance; no hierarchy of consonance vs. dissonance
+- **对 AI 的意义**： Atonal music breaks the assumption that some pitch transitions are "expected." Models trained only on tonal music fail on atonal repertoire (high perplexity on valid atonal progressions). 12-tone rows have *no repeated pitch class within the row* — a hard constraint generative models can learn but rarely do without explicit conditioning.
+
+**Neoclassicism (新古典主义, 1920s–1950s)** — Stravinsky, Prokofiev
+- Return to Baroque/Classical forms (concerto grosso, fugue, suite) with modern harmony
+- Rhythmic complexity: Stravinsky's irregular accents, metric displacement (《春之祭》的 2+3+2 patterns)
+- Diatonic melody + dissonant harmony juxtaposition
+- **对 AI 的意义**： Neoclassical music combines tonal melody with non-tonal harmony — a "best of both worlds" challenge. Metric displacement (accenting off-beats) requires modeling *metric hierarchy* rather than just beat positions.
+
+**Electronic & Tape Music (电子与磁带音乐, 1950s–1970s)** — Stockhausen, Xenakis, Cage
+- Sound as material rather than note-embodiment (具体音乐的遗产)
+- Xenakis: stochastic music (随机音乐) — mathematical probability distributions controlling musical parameters
+- Stockhausen: spatialization (空间化) as composition — multiple speaker placement, *Hörraum* (listening space)
+- **对 AI 的意义**： Electronic music separates *sound design* from *musical structure*. A generative system for Stockhausen must model both the stochastic distributions and the spatial trajectories. Traditional music representations (MIDI, scores) are inadequate — frequency-domain representations are primary.
+
+**Minimalism (极简主义, 1960s–present)** — Reich, Glass, Adams
+- Repetition of short patterns with gradual transformation (phase shifting, additive process)
+- *Process music*: the compositional process is audible; the listener can trace the transformation
+- Tonal or modal harmony but with *extended repetition* (minutes on one chord)
+- Steady pulse, often fast tempi (Glass: constant eighth-note motion)
+- **对 AI 的意义**： Minimalism inverts the standard generation problem: *variation within repetition* rather than *novelty*. Most language-model-based generators produce high-entropy outputs; minimalist music requires *low entropy with slow drift* — a fundamentally different generation profile. The process-driven nature means a generative system could encode the transformation rule and let it run.
+
+**Postmodern & Pluralism (后现代与多元, 1980s–present)** — No single style; eclecticism
+- Collage, quotation, pastiche (Berio's *Sinfonia*, Schnittke's polystylism)
+- Return to tonality alongside continued avant-garde practice — "no style is the style"
+- Spectralism (Grisey, Murail): sound spectrum *itself* as compositional material; form from spectral evolution
+- **对 AI 的意义**： Postmodern pluralism means a single model cannot capture "the" contemporary style — there isn't one. The best strategy is *style-switching capability* or *genre-aware routing*. Spectralism requires spectrogram-level compositional thinking (form = spectral evolution), pushing beyond event-based representations entirely.
+
+**对 AI 的意义**：Modern and contemporary music encompasses a wider range of statistical profiles than any other era. A model trained on all "classical" music must handle: functional tonal progressions (Baroque/Classical), chromatic expansions (Romantic), planing and whole-tone collections (Impressionism), atonal/serial distributions (Expressionism), metric displacement (Neoclassicism), stochastic processes (Electronic), process-based repetition (Minimalism), and eclectic collage (Postmodern). The diversity within "Western art music" is a major challenge for generalist models.
 
 ### 2.2 Popular Music 流行音乐
 
-| Genre | Core rhythmic特征 | Harmonic特征 | Melodic特征 | Production |
-|-------|------|------|------|------|
-| Pop | 4/4, 110–130 BPM, straight | Simple progressions (I-V-vi-IV), diatonic | Catchy, repetitive, 8-bar phrases | Polished, vocal-forward |
-| Rock | 4/4, 120–160 BPM | Power chords (5ths), modal (Mixolydian) | Guitar riffs, vocal grit | Distorted guitars, live feel |
-| Jazz | Swing/shuffle, variable | Extended chords (9ths, 13ths), ii-V-I | Improvisational, blue notes | Acoustic instruments, room tone |
-| Blues | Shuffle, 60–120 BPM | 12-bar form, I-IV-V, blue notes | Call-response, bent notes | Electric guitar, harmonica |
-| R&B | 4/4, 80–110 BPM, groove | Extended harmony, suspensions | Melismatic vocals, runs | Smooth production, heavy bass |
-| Hip-hop | 4/4, 70–100 BPM | Loop-based, minimal harmony | Spoken/rapped, rhythmic speech | Sampled, drum-heavy |
-| EDM | 4/4, 120–150 BPM | Often minimal, synth-driven | Arpeggiated, filter sweeps | Sidechain, reverb washes |
-| Country | 4/4, 100–130 BPM | I-IV-V, pedal steel harmonies | Storytelling, vocal twang | Acoustic instruments, reverb |
-| Soul | 4/4, 80–110 BPM | Gospel-derived progressions | Embellished vocals, melisma | Warm, analog production |
-| Funk | 4/4, 100–120 BPM | Static harmony, modal vamp | Rhythmic riffs, locked-in groove | Tight low end, drum emphasis |
+流行音乐的研究价值在于其训练数据可获得性最高、生成模型评测基准最成熟，同时也是风格边界最模糊、融合最快的领域。
+
+#### Pop (主流流行)
+
+- **和声**：极度标准化 — I-V-vi-IV 四和弦进行占流行音乐的 ~40%；vi-IV-I-V 是变体。常用 borrowed chords（mode mixture）制造色彩对比（大调中用 iv 小和弦制造"忧郁瞬间"）。
+- **节奏**：4/4 直拍，110–130 BPM。Kick 落在 1 和 3，snare 落在 2 和 4（backbeat）。Hi-hat 八分音符驱动。
+- **旋律**：8-bar 乐句，音程小（stepwise motion），重复式 hook（chorus 中的 memorable motif）。人声旋律是最核心的"乐器"。
+- **制作**：人声前置（vocal-forward mix），压缩激烈（loudness war 主流），reverb 适度。
+- **对 AI 的意义**：Pop 是生成模型的"默认风格" — 训练数据中占比最高。但 Pop 的标准化也意味着模型容易学到 *stereotypical* patterns（四和弦进行、snare on 2&4）而缺少微妙变化。Controlled deviation from pop norms (borrowed chord, metric modulation) 是评测生成质量的好方法。
+
+#### Rock (摇滚)
+
+- **和声**：强力和弦（power chords, 根音+五度，无三度）模糊大小调；Mixolydian 调式（降七音）制造"摇滚感"；Blues 音阶渗透。
+- **节奏**：120–160 BPM；kick + snare 驱动的 backbeat；crossover 存在 shuffle/swing 变体（classic rock vs. funk-rock）。
+- **旋律**：吉他riff（重复式动机）、人声沙哑（grit）、五声音阶solo（pentatonic shredding）。
+- **制作**：失真吉他（overdriven/distorted）、鼓 Room 话筒拾音（live drum sound）、中低频能量集中。
+- **对 AI 的意义**：Rock 的音色 *is* 风格 — 同样的和弦进行用失真吉他和原声吉他演奏是完全不同的流派。Tokenization 不包含音色信息（MIDI 只有 Program Change），导致符号生成的摇滚"听起来不像摇滚"。Audio-level 模型通过训练数据学习音色，但可控性差。
+
+#### R&B & Soul (节奏布鲁斯与灵魂乐)
+
+- **和声**：福音音乐衍生 — extended dominants, tritone substitutions, chromatic mediants。Suspensions 大量使用（4-3 resolution 是标志性色彩）。
+- **节奏**：80–110 BPM 的 *groove* 是核心 — kick 和 snare 的微时值偏移（behind-the-beat placement）制造"松弛感"。
+- **旋律**：花腔人声（melisma, 一音多词）、转音（runs）、即兴装饰 — 人声是旋律 *和* 节奏 *和* 和声的复合体。
+- **制作**：丝滑（smooth）低频，暖色模拟合成器（Moog bass），人声厚（layered harmonies, doubles）。
+- **对 AI 的意义**：R&B 的 melismatic vocal runs 是生成系统的高频失败点 — 模型倾向于生成"歌词式的"音符序列而非装饰性的 vocal line。需要显式建模 vocal ornamentation *as* musical structure, not just pitch sequence.
+
+#### Hip-hop & Rap (嘻哈)
+
+- **和声**：极简 — 通常是一个 loop（4-16 bars），和声变化少。和弦的功能被 *sample choice* 替代：一个 James Brown breakbeat 的 pitch content *is* the harmony.
+- **节奏**：70–100 BPM；boom-bap (kick-snare-kick-snare) 或 trap (808 sub-bass + hi-hat triplets)。鼓组 *is* 音乐。
+- **旋律**：人声以节奏化语音（rhythmic speech）为主 — flow（flow 的节奏性 *and* 韵律性）。Melodic rap（ melodically pitched speech）是子风格。
+- **制作**：采样（vinyl crackle + chopped vocal snippets）+ 808 bass + hi-hat rolls。
+- **对 AI 的意义**：Hip-hop 生成最困难的部分不是"音符"而是 *groove* — 人声 flow 的节奏微妙性和鼓组的音色设计。纯符号模型几乎无法产生"听起来像"的 hip-hop。Sample-based generation 涉及版权障碍。
+
+#### EDM & Electronic (电子舞曲)
+
+- **和声**：通常极简 — 单音bass line + 偶尔pad和弦。功能性被 *bass design* 替代：一个失真saw bass的频谱内容驱动情绪。
+- **节奏**：120–150 BPM 4/4 四-on-the-floor（kick 每拍）。Build-up → Drop 结构（32-bar tension → 16-bar release）。
+- **旋律**：Arpeggiated（分解和弦式）合成器line + 滤波扫描（filter sweep）制造运动感。人声常作为"纹理"而非"旋律"。
+- **制作**：Sidechain compression（kick 控制 bass 电平）创造"pumping"效果；reverb washes 制造空间；layered supersaws（宽立体声pad）。
+- **对 AI 的意义**：EDM 的核心挑战是 *production chain modeling* — build-up/drop 的能量曲线、supersaw 的频谱轮廓、sidechain 的压缩包络。这些是音频级特征，符号模型天然缺失。Build-up → Drop 的结构模板可以指导符号模型，但音色必须由音频模型补充。
+
+#### Jazz (爵士) — expanded from §2.2
+
+- **和声**：ii-V-I 是原子单位；extended chords（9, 11, 13, altered）；tritone substitution（V7 → bII7）；reharmonization（替换和弦制造色彩）；upper-structure triads。
+- **节奏**：Swing（八分音符的"长-短"比例 2:1 到 7:3）；shuffle 变体。Bebop 速度快（200+ BPM），Cool jazz 慢且空间化。
+- **旋律**：即兴 — 预先写下的旋律 *is* a suggestion。Blue notes（微降三音、五音、七音）制造"between the cracks"的色彩。
+- **制作**：Acoustic instruments + room tone；1950s–60s 的"温暖"压缩（tube compression）。
+- **对 AI 的意义**：Jazz 的 harmonic richness + rhythmic subtlety + improvisational nature 三者同时作用，是当前 AI 音乐最难的风格。见 §8.2 详细分析。
+
+#### Country (乡村)
+
+- **和声**：I-IV-V 三和弦为主；pedal steel guitar 制造" crying"滑音和 suspended chords。
+- **节奏**：100–130 BPM；train beat（shuffle pattern on hi-hat）；steel guitar 的 *crying* 滑音是 rhythmic + timbral 复合体。
+- **旋律**：叙事性歌词驱动；vocal twang（鼻化共振）；fiddle 的 double-stop（双音）。
+- **制作**：Acoustic guitar + mandolin + fiddle；room reverb；Warm analog。
+
+#### Blues (布鲁斯)
+
+- **和声**：12-bar form（I-I-I-I / IV-IV-I-I / V-IV-I-I 或变体）；I-IV-V 三和弦；dominant 7th everywhere（major chord with minor 7th = blue note essence）。
+- **节奏**：Shuffle feel；60–120 BPM。Call-response（人声 call → guitar response）。
+- **旋律**：Blue notes（b3, b5, b7 — 微降的半音）；bent notes（推弦）；vocal *moan* 作为 rhythmic device。
+- **对 AI 的意义**：Blues 的 *blue note intonation*（不在 12-TET 网格上的微降）是 MIDI/12-TET tokenization 的盲点 — 模型学到的是"降三音的符号"而非"微降三音的滑音轨迹"。Audio-level 模型通过 training data 隐式学习，但可控性不足。
+
+#### Funk (放克)
+
+- **和声**：极简循环 — 通常一个和弦或两个和弦的 vamp；modal（Dorian/Mixolydian）；harmonic movement 通过 *bass line movement* 而非 chord change 实现。
+- **节奏**：100–120 BPM；*the one*（第一拍的强拍强调）是放克的宗教；16th-note hi-hat；slap bass 的 *thump-pop* 模式。
+- **旋律**：Rhythmic riffs（吉他/键盘的节奏性重复动机）；horn stabs（铜管短句）。
+- **制作**：Tight low end（kick + bass 互不抢频）；drum 混音突出 snare 的 snap。
+- **对 AI 的意义**：Funk 的 *locked-in groove* — bass、guitar、drums 之间的微时值同步（"in the pocket"）是其风格的核心。符号模型丢失了微时值信息；音频模型可以学习但难以控制。Funk 的 harmonic minimalism 也意味着 generation quality depends almost entirely on *groove* quality.
 
 ### 2.3 Electronic and Experimental 电子与实验音乐
 

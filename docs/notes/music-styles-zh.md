@@ -41,24 +41,118 @@
 | 巴洛克 | 1600–1750 | 通奏低音、调性和声诞生、阶梯式力度、装饰音（颤音、回音） |
 | 古典 | 1750–1820 | 平衡乐句（4+4）、主声声部、奏鸣曲式、阿尔贝蒂低音 |
 | 浪漫 | 1820–1900 | 扩展和声、半音化、表情性弹性速度、标题音乐 |
-| 现代 | 1900–至今 | 无调性、序列主义、扩展技法、电子、极简主义 |
 
-**对 AI 的意义**：每个时期有独特的统计特征。巴洛克音乐以高复调、持续的节奏运动和有限的力度范围为特征。浪漫音乐有更长的乐句、更宽的音域和更丰富的和声词汇。用相同架构训练时期特定模型会产生截然不同的输出特征。
+#### 2.1.1 现代与当代
+
+**印象派（Impressionism, 1890s–1920s）** — Debussy, Ravel
+- 拒绝德奥调性逻辑；拥抱非功能和声、全音阶与五声音阶、平行和弦（planing）
+- 音色 *就是* 结构；和声创造氛围而非推动进行
+- 模糊的不完全终止；不明确的节拍脉搏
+- **对 AI 的意义**：印象派音乐具有 *低功能清晰度*（少 V→I 解决）和 *高 planing 频率* — 可区分的统计特征。全音阶和五声音阶将有效音高词汇压缩到 6–7 个音高类。
+
+**表现主义与序列主义（Expressionism & Serialism, 1910s–1950s）** — Schoenberg, Berg, Webern
+- 无调性：放弃调性中心；12 个音高类平等对待（十二音 equal-status 原则）
+- 序列主义：将 12 音行扩展到节奏、力度、articulation — 全面的音高类排序
+- 极端不协和；无协和/不协和层级
+- **对 AI 的意义**：无调性音乐打破了"某些音高过渡是预期的"假设。仅在调性音乐上训练的模型在无调性曲目上表现糟糕（有效无调性进行的高困惑度）。12 音行约束（行内无重复音高类）是生成模型可以学习但很少显式编码的硬约束。
+
+**新古典主义（Neoclassicism, 1920s–1950s）** — Stravinsky, Prokofiev
+- 回归巴洛克/古典形式（协奏曲、赋格、组曲）但用现代和声
+- 节奏复杂性：Stravinsky 的不规则重音、节拍位移（《春之祭》的 2+3+2 模式）
+- 调内旋律 + 不协和和声并置
+- **对 AI 的意义**：新古典主义结合调内旋律与非调内和声 — "两全其美"的挑战。节拍位移要求建模 *节拍层级* 而不仅是拍位。
+
+**电子与磁带音乐（Electronic & Tape, 1950s–1970s）** — Stockhausen, Xenakis, Cage
+- 声音作为材料而非音符的体现（具体音乐遗产）
+- Xenakis：随机音乐 — 数学概率分布控制音乐参数
+- Stockhausen：空间化作为作曲 — 多扬声器布局、*Hörraum*（聆听空间）
+- **对 AI 的意义**：电子音乐将 *声音设计* 与 *音乐结构* 分离。Stockhausen 的生成系统必须同时建模随机分布和空间轨迹。传统表示（MIDI、乐谱）不足 — 频域表示是首要的。
+
+**极简主义（Minimalism, 1960s–至今）** — Reich, Glass, Adams
+- 短模式的重复与渐进变换（phase shifting, additive process）
+- *过程音乐*：作曲过程可听；听者可追踪变换轨迹
+- 调性或调式和声但 *extended repetition*（一个和弦持续数分钟）
+- 稳定脉搏，常快速（Glass：持续八分音符运动）
+- **对 AI 的意义**：极简主义反转了标准生成问题：*重复中的变化* 而非 *新颖性*。大多数 LM 生成器产生高熵输出；极简主义需要 *低熵 + 缓慢漂移* — 完全不同的生成特征。过程驱动意味着生成系统可以编码变换规则然后让它运行。
+
+**后现代与多元（Postmodern & Pluralism, 1980s–至今）** — 无统一风格；折中主义
+- 拼贴、引用、戏仿（Berio《交响曲》、Schnittke 的多风格主义）
+- 调性回归与前卫实践的并存 — "无风格即风格"
+- 频谱主义（Grisey, Murail）：声音频谱 *本身* 作为作曲材料；形式来自频谱演化
+- **对 AI 的意义**：后现代多元意味着单个模型无法捕捉"当代风格" — 因为不存在统一风格。最佳策略是 *风格切换能力* 或 *流派感知路由*。频谱主义要求频谱图级的作曲思维（形式 = 频谱演化），完全超越事件级表示。
+
+**对 AI 的意义**：现代与当代音乐涵盖比任何其他时期更广的统计特征谱。一个在"古典"音乐上训练的模型必须处理：功能和声进行（巴洛克/古典）、半音扩展（浪漫）、planing 与全音阶集合（印象派）、无调性/序列分布（表现主义）、节拍位移（新古典）、随机过程（电子）、过程性重复（极简）、折中拼贴（后现代）。"西方艺术音乐"内部的多样性是通用模型的主要挑战。
 
 ### 2.2 流行音乐
 
-| 流派 | 节奏核心 | 和声特征 | 旋律特征 | 制作特征 |
-|------|------|------|------|------|
-| 流行 | 4/4, 110–130 BPM, 直拍 | 简单进行 (I-V-vi-IV), 调内 | 易记、重复, 8-bar 乐句 | 精致、人声前置 |
-| 摇滚 | 4/4, 120–160 BPM | 强力和弦(5度), Mixolydian 调式 | 吉他riff, 人声沙哑 | 失真吉他、现场感 |
-| 爵士 | Swing/Shuffle, 可变 | 延伸和弦(9, 13), ii-V-I | 即兴、蓝音 | 原声乐器、房间感 |
-| 布鲁斯 | Shuffle, 60–120 BPM | 12-bar 形式, I-IV-V, 蓝音 | 呼应式、推弦 | 电吉他、口琴 |
-| R&B | 4/4, 80–110 BPM, Groove | 延伸和声、挂留 | 花腔人声、转音 | 丝滑制作、重低音 |
-| 嘻哈 | 4/4, 70–100 BPM | 循环驱动、极简和声 | 说唱、节奏化语音 | 采样驱动、鼓重 |
-| 电子舞曲 | 4/4, 120–150 BPM | 常极简、合成器驱动 | 琶音、滤波扫描 | 侧链压缩、混响铺底 |
-| 乡村 | 4/4, 100–130 BPM | I-IV-V, 踏板钢棒和声 | 叙事性、人声鼻音 | 原声乐器、混响 |
-| 灵魂乐 | 4/4, 80–110 BPM | 福音衍生进行 | 装饰人声、花腔 | 温暖、模拟制作 |
-| 放克 | 4/4, 100–120 BPM | 静态和声、调式循环 | 节奏性riff、锁定律动 | 紧凑低频、鼓强调 |
+流行音乐的研究价值在于其训练数据可获得性最高、生成模型评测基准最成熟，同时也是风格边界最模糊、融合最快的领域。
+
+#### 流行（Pop）
+
+- **和声**：极度标准化 — I-V-vi-IV 四和弦进行占流行音乐的 ~40%；vi-IV-I-V 是变体。常用 borrowed chords（调式借用）制造色彩对比（大调中用 iv 小和弦制造"忧郁瞬间"）。
+- **节奏**：4/4 直拍，110–130 BPM。Kick 落在 1 和 3，snare 落在 2 和 4（backbeat）。
+- **旋律**：8-bar 乐句，小音程级进，重复式 hook（chorus 中的 memorable motif）。人声旋律是最核心的"乐器"。
+- **制作**：人声前置，压缩激烈，reverb 适度。
+- **对 AI 的意义**：Pop 是生成模型的"默认风格" — 训练数据中占比最高。标准化也意味着模型容易学到 *stereotypical* patterns 而缺少微妙变化。
+
+#### 摇滚（Rock）
+
+- **和声**：强力和弦（根音+五度，无三度）模糊大小调；Mixolydian 调式（降七音）制造"摇滚感"。
+- **节奏**：120–160 BPM；kick + snare 驱动的 backbeat。
+- **旋律**：吉他riff、人声沙哑、五声音阶solo。
+- **制作**：失真吉他、鼓 Room 话筒拾音、中低频能量集中。
+- **对 AI 的意义**：Rock 的音色 *就是* 风格 — 同样和弦用失真吉他和原声吉他演奏是完全不同的流派。MIDI 的 Program Change 不足以表示这种音色差异。
+
+#### 节奏布鲁斯与灵魂乐（R&B & Soul）
+
+- **和声**：福音音乐衍生 — extended dominants, tritone substitutions, suspensions。4-3 resolution 是标志性色彩。
+- **节奏**：80–110 BPM 的 *groove* 是核心 — kick 和 snare 的微时值偏移（behind-the-beat）制造"松弛感"。
+- **旋律**：花腔人声（melisma, 一音多词）、转音（runs）— 人声是旋律 *和* 节奏 *和* 和声的复合体。
+- **制作**：丝滑低频，暖色模拟合成器（Moog bass），人声厚（layered harmonies）。
+- **对 AI 的意义**：R&B 的 melismatic vocal runs 是生成系统的高频失败点 — 模型倾向于生成"歌词式的"音符序列而非装饰性的 vocal line。
+
+#### 嘻哈（Hip-hop）
+
+- **和声**：极简 — 通常一个 loop；和声功能被 *sample choice* 替代。
+- **节奏**：70–100 BPM；boom-bap 或 trap（808 sub-bass + hi-hat triplets）。鼓组 *就是* 音乐。
+- **旋律**：人声以节奏化语音为主 — flow 的节奏性 *and* 韵律性。
+- **制作**：采样 + 808 bass + hi-hat rolls。
+- **对 AI 的意义**：Hip-hop 生成最困难的是 *groove* — 人声 flow 的节奏微妙性和鼓组音色设计。Sample-based generation 涉及版权障碍。
+
+#### 电子舞曲（EDM）
+
+- **和声**：极简 — 单音bass line + 偶尔pad和弦。功能性被 *bass design* 替代。
+- **节奏**：120–150 BPM 4/4 四-on-the-floor。Build-up → Drop 结构。
+- **旋律**：琶音式合成器line + 滤波扫描；人声常作为"纹理"。
+- **制作**：Sidechain compression 创造"pumping"；reverb washes 制造空间；layered supersaws。
+- **对 AI 的意义**：EDM 的核心是 *production chain modeling* — build-up/drop 的能量曲线、supersaw 的频谱轮廓。这些是音频级特征，符号模型天然缺失。
+
+#### 爵士（Jazz）
+
+- **和声**：ii-V-I 是原子单位；extended chords（9, 11, 13, altered）；tritone substitution。
+- **节奏**：Swing（八分音符"长-短"比例 2:1 到 7:3）；Bebop 快速，Cool jazz 慢且空间化。
+- **旋律**：即兴 — Blue notes（微降三音、五音、七音）制造"between the cracks"的色彩。
+- **对 AI 的意义**：Jazz 的 harmonic richness + rhythmic subtlety + improvisational nature 三者同时作用，是当前 AI 音乐最难的风格。见 §8.2。
+
+#### 乡村（Country）
+
+- **和声**：I-IV-V 三和弦为主；pedal steel guitar 制造"crying"滑音和 suspended chords。
+- **节奏**：100–130 BPM；train beat；steel guitar 的滑音是 rhythmic + timbral 复合体。
+- **旋律**：叙事性歌词驱动；vocal twang（鼻化共振）。
+
+#### 布鲁斯（Blues）
+
+- **和声**：12-bar form；I-IV-V 三和弦；dominant 7th everywhere。
+- **节奏**：Shuffle feel；60–120 BPM。Call-response。
+- **旋律**：Blue notes（b3, b5, b7 — 微降的半音）；bent notes；vocal moan。
+- **对 AI 的意义**：Blues 的 blue note intonation（不在 12-TET 网格上的微降）是 MIDI/12-TET tokenization 的盲点 — 模型学到的是"降三音的符号"而非"微降三音的滑音轨迹"。
+
+#### 放克（Funk）
+
+- **和声**：极简循环 — 通常一个和弦的 vamp；modal（Dorian/Mixolydian）；harmonic movement 通过 bass line 而非 chord change 实现。
+- **节奏**：100–120 BPM；*the one*（第一拍强拍强调）是放克的宗教；slap bass 的 thump-pop 模式。
+- **制作**：Tight low end（kick + bass 互不抢频）；drum 混音突出 snare 的 snap。
+- **对 AI 的意义**：Funk 的 *locked-in groove* — bass、guitar、drums 之间的微时值同步是其风格核心。符号模型丢失微时值信息。Harmonic minimalism 意味着生成质量几乎完全取决于 *groove* 质量。
 
 ### 2.3 电子与实验音乐
 
