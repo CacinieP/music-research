@@ -19,6 +19,8 @@ This is a curated research workspace for audio engineering, MIR, generative musi
 - **Music Styles & Genre** — genre taxonomy, style dimensions, style-conditioned generation, cross-cultural style
 - **Music Evaluation** — human evaluation protocols, automatic metrics (FAD, CLAP Score, perceptual), evaluation gaps
 - **Singing Voice Synthesis** — acoustic modeling, controllable singing, voice conversion, datasets
+- **Cookbook** — runnable code recipes for common music AI tasks
+- **Thoughts** — personal reflections on the field
 
 ## Directory Structure
 
@@ -37,6 +39,8 @@ docs/
     music-singing-synthesis.md      — singing voice synthesis: models, datasets, controllable singing
   surveys/              — literature reviews
     reading-guide.md    — survey reading guide: key AI music surveys annotated
+  cookbook/             — practical code recipes
+    recipes.md          — runnable code for common music AI tasks
 datasets/               — public dataset catalog
 src/                    — code structure guide & tool recommendations
 references/             — curated paper lists and resources
@@ -62,6 +66,8 @@ references/             — curated paper lists and resources
 - [Code Structure & Compute Guide](src/README.md) — directory structure, GPU/VRAM requirements, environment recommendations
 - [Public Dataset Catalog](datasets/README.md) — download links, sizes, formats, licensing
 - [References & Reading List](references/README.md) — 50+ key papers organized by topic
+- [Cookbook: Code Recipes](docs/cookbook/recipes.md) — runnable code for feature extraction, generation, separation, evaluation
+- [Personal Thoughts](docs/thoughts/personal-thoughts.md) — reflections on the field, opinions, lessons learned
 
 ## License
 
