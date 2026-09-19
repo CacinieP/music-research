@@ -1,0 +1,2820 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="乐理、音频工程、MIR、音乐生成与评测的中英文研究笔记">
+      
+      
+      
+        <link rel="canonical" href="https://caciniep.github.io/music-research/docs/notes/music-generation-zh/">
+      
+      
+        <link rel="prev" href="../music-understanding-mir/">
+      
+      
+        <link rel="next" href="../music-generation/">
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>中文 - 音乐研究 · Music Research</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.e53b48f4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/reading.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#音乐生成技术研究笔记" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../.." title="音乐研究 · Music Research" class="md-header__button md-logo" aria-label="音乐研究 · Music Research" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            音乐研究 · Music Research
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              中文
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CacinieP/music-research" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CacinieP/music-research
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="音乐研究 · Music Research" class="md-nav__button md-logo" aria-label="音乐研究 · Music Research" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    音乐研究 · Music Research
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CacinieP/music-research" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CacinieP/music-research
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    开始阅读
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    笔记目录
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    研究笔记
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            研究笔记
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    乐理基础
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            乐理基础
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-theory-fundamentals-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-theory-fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    音频工程
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            音频工程
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../audio-engineering-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../audio-engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    音乐理解 · MIR
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            音乐理解 · MIR
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-understanding-mir-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-understanding-mir/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    音乐生成
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            音乐生成
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-符号音乐生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 符号音乐生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 符号音乐生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-表示" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 表示
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-代表模型" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 代表模型
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-自回归扩散与流匹配" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 自回归、扩散与流匹配
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-数据集" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.4 数据集
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-开放问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5 开放问题
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-音频级音乐生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 音频级音乐生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 音频级音乐生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-编解码器与连续自编码器" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 编解码器与连续自编码器
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-jukeboxopenai2020" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Jukebox（OpenAI，2020）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-musiclmgoogle2023" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 MusicLM（Google，2023）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-musicgenmeta2023" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 MusicGen（Meta，2023）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-audioldm-与-audioldm-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.5 AudioLDM 与 AudioLDM 2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-stable-audio-版本" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.6 Stable Audio 版本
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-yue2025" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.7 YuE（2025）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#28-商业歌曲生成器" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.8 商业歌曲生成器
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#29-其他研究系统" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.9 其他研究系统
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-歌声合成" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 歌声合成
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-可控生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 可控生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 可控生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-条件模态" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 条件模态
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-时变控制" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 时变控制
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-剩余挑战" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 剩余挑战
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-视频到音乐生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. 视频到音乐生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 视频到音乐生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-代表模型" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 代表模型
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-评测" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 评测
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-人类偏好对齐" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. 人类偏好对齐
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-评测" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. 评测
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-架构对比" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. 架构对比
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-开放问题与研究实践" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. 开放问题与研究实践
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    音乐评测
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            音乐评测
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-evaluation-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    歌声合成
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            歌声合成
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-singing-synthesis-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-singing-synthesis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    风格与流派
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            风格与流派
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-styles-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-styles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edge-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    端侧部署
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-reproduction-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    复现指南
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../music-copyright-compliance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    版权与合规
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../surveys/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    文献导读
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            文献导读
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../surveys/reading-guide-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../surveys/reading-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+          
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../references/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    参考文献
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            参考文献
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../references/README-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../cookbook/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    实践
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            实践
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cookbook/recipes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    代码示例
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../src/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    代码与算力
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    数据集
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../thoughts/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    研究随笔
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            研究随笔
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../thoughts/personal-thoughts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    随笔
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../PUBLISHING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    构建与发布
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../review-2026-09-19/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    审校记录
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-符号音乐生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 符号音乐生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 符号音乐生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-表示" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 表示
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-代表模型" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 代表模型
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-自回归扩散与流匹配" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 自回归、扩散与流匹配
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-数据集" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.4 数据集
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-开放问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5 开放问题
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-音频级音乐生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 音频级音乐生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 音频级音乐生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-编解码器与连续自编码器" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 编解码器与连续自编码器
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-jukeboxopenai2020" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Jukebox（OpenAI，2020）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-musiclmgoogle2023" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 MusicLM（Google，2023）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-musicgenmeta2023" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 MusicGen（Meta，2023）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-audioldm-与-audioldm-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.5 AudioLDM 与 AudioLDM 2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-stable-audio-版本" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.6 Stable Audio 版本
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-yue2025" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.7 YuE（2025）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#28-商业歌曲生成器" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.8 商业歌曲生成器
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#29-其他研究系统" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.9 其他研究系统
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-歌声合成" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 歌声合成
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-可控生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 可控生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 可控生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-条件模态" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 条件模态
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-时变控制" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 时变控制
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-剩余挑战" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 剩余挑战
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-视频到音乐生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. 视频到音乐生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 视频到音乐生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-代表模型" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 代表模型
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-评测" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 评测
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-人类偏好对齐" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. 人类偏好对齐
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-评测" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. 评测
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-架构对比" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. 架构对比
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-开放问题与研究实践" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. 开放问题与研究实践
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="音乐生成技术研究笔记">音乐生成：技术研究笔记<a class="headerlink" href="#音乐生成技术研究笔记" title="Permanent link">&para;</a></h1>
+<p>精选符号生成、音频生成、歌声、控制、视频条件和评测研究。内容核对日期：2026-09-19。下述参数对应注明的论文/版本，不代表整个产品系列的所有后续版本。</p>
+<blockquote>
+<p>English version: <a href="../music-generation/">music-generation.md</a></p>
+</blockquote>
+<hr />
+<h2 id="1-符号音乐生成">1. 符号音乐生成<a class="headerlink" href="#1-符号音乐生成" title="Permanent link">&para;</a></h2>
+<h3 id="11-表示">1.1 表示<a class="headerlink" href="#11-表示" title="Permanent link">&para;</a></h3>
+<p>符号模型生成音符、时长、时序、配器或记谱；还需要合成器或渲染器才能转成音频。</p>
+<table>
+<thead>
+<tr>
+<th>表示</th>
+<th>编码内容</th>
+<th>权衡</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MIDI / MIDI-like 事件</td>
+<td>音符开关、音高、力度、时序、乐器及可选控制</td>
+<td>演奏事件紧凑，但分词须定义排序和时间分辨率</td>
+</tr>
+<tr>
+<td>钢琴卷帘</td>
+<td>音高 × 时间的激活/力度，可按轨道分开</td>
+<td>网格方便；分辨率越高越大，相邻同音重复需要起音处理</td>
+</tr>
+<tr>
+<td>ABC 记谱</td>
+<td>拍号、音高、时长、声部等文本记谱</td>
+<td>紧凑可读，支持特性取决于解析器及语料</td>
+</tr>
+<tr>
+<td>REMI</td>
+<td>显式小节/拍位、音高、时长、力度及选定元数据</td>
+<td>直接表示节拍位置，以量化损失换取结构</td>
+</tr>
+<tr>
+<td>Compound Word</td>
+<td>将属性组合，使用各自的属性嵌入/预测</td>
+<td>缩短序列，需明确复合事件的结构</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MIDI 与分词不同：</strong> <code>Time Shift</code> 是模型 token，不是原生 MIDI 通道消息类型；力度是音符消息的属性。标准 MIDI 文件存储 delta time，可包含速度/拍号元数据，并能据此推导小节。可能省略节拍结构的是选定的事件词表，而非 MIDI 整体。</p>
+<p>ABC 支持多声部和复调，并非只能表达单旋律。<a href="https://arxiv.org/abs/2404.06393">MuPT 论文</a> 使用同步多轨 ABC（SMT-ABC）处理不同轨道的小节对齐。</p>
+<p>已核验的分词来源：</p>
+<ul>
+<li><a href="https://arxiv.org/abs/2002.00212">Pop Music Transformer / REMI</a>，Yu-Siang Huang、Yi-Hsuan Yang，2020。</li>
+<li><a href="https://arxiv.org/abs/2101.02402">Compound Word Transformer</a>，Hsiao 等，2021。</li>
+<li><a href="https://github.com/Sonata165/REMI-z">REMI-z 实现及论文引用</a>，<em>Unifying Symbolic Music Arrangement: Track-Aware Reconstruction and Structured Tokenization</em>，NeurIPS 2025。REMI-z 在小节结构中按轨道组织音符；REMI+ 与 REMI-z 是不同方案，不是同一个 2025 格式的两个名称。</li>
+<li><a href="https://arxiv.org/abs/2601.19951">Pianoroll-Event</a>，Qian 等，<strong>2026 年 1 月</strong>：用帧、间隙、模式和音乐结构事件结合网格结构与紧凑编码。</li>
+<li><a href="https://miditok.readthedocs.io/en/latest/">MidiTok</a> 是支持多种方案的分词库，不是名为“MIDI-Token”的单一表示。可复现研究需固定版本与分词配置。</li>
+</ul>
+<h3 id="12-代表模型">1.2 代表模型<a class="headerlink" href="#12-代表模型" title="Permanent link">&para;</a></h3>
+<p><strong>Music Transformer</strong>（Huang 等，ICLR 2019）提出面向长音乐序列的高效相对注意力实现。原实验使用 <strong>JSB Chorales 和 Piano-e-Competition</strong>，不是 MAESTRO。相对序列位置有助于重复与时序建模，但本身并不编码移调不变的音程。效率改进针对中间相对位置张量，而非消除注意力的全部二次复杂度。<a href="https://arxiv.org/abs/1809.04281">论文</a>。</p>
+<p><strong>Pop Music Transformer</strong> 将 Transformer-XL 式模型与 REMI 结合，进行节拍感知的流行钢琴生成。论文在其评测下显示节奏收益，不代表所有流派都一定更好。<a href="https://arxiv.org/abs/2002.00212">论文</a>。</p>
+<p><strong>MuPT</strong>（2024）研究符号音乐 Transformer 预训练、SMT-ABC、上下文与规模扩展。结论依赖语料和表示，“更大符号模型总能保持曲式”并非一般结论。<a href="https://arxiv.org/abs/2404.06393">论文</a>。</p>
+<h3 id="13-自回归扩散与流匹配">1.3 自回归、扩散与流匹配<a class="headerlink" href="#13-自回归扩散与流匹配" title="Permanent link">&para;</a></h3>
+<p>自回归模型将 token 序列分解为：</p>
+<div class="arithmatex">\[
+p(x\mid c)=\prod_{t=1}^{T}p(x_t\mid x_{&lt;t},c).
+\]</div>
+<p>它天然支持顺序续写，但需付出逐步采样成本。上下文限制和训练/推理差异可能损害长程连贯性。</p>
+<p>扩散与流匹配模型迭代地将噪声转为钢琴卷帘、潜在序列或其他表示。每一步内部的位置可以并行处理，但仍有多个采样步骤。固定输出长度是部分实现的常见设置，不是数学要求；时长条件、掩码与分块可以支持可变长度。</p>
+<p>流匹配学习选定概率路径的向量场；扩散学习去噪/分数相关模型。它们是相关的连续生成方法，但不是同义词，也都不能保证在所有设置下多样性或结构更好。</p>
+<p><a href="https://arxiv.org/abs/2506.08570">Auto-Regressive vs Flow-Matching</a>（Tal、Kreuk、Adi，2025）在控制数据与训练设置下比较<strong>文本条件的音频音乐</strong>。其中的质量、控制、编辑和采样结论不能用来证明所有符号音乐模型的优劣。</p>
+<h3 id="14-数据集">1.4 数据集<a class="headerlink" href="#14-数据集" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>数据集</th>
+<th>内容</th>
+<th>对应版本规模</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://magenta.tensorflow.org/datasets/maestro">MAESTRO</a></td>
+<td>紧密对齐的钢琴音频/MIDI 演奏</td>
+<td>约 200 小时；使用官方版本划分</td>
+</tr>
+<tr>
+<td><a href="https://colinraffel.com/projects/lmd/">Lakh MIDI v0.1</a></td>
+<td>去重 MIDI 集合</td>
+<td>176,581 个文件；LMD-matched 是较小子集</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2008.07142">POP909</a></td>
+<td>含 melody、bridge、piano 轨的流行钢琴编曲</td>
+<td>909 首歌曲</td>
+</tr>
+</tbody>
+</table>
+<p>文件数、不同作品数、演奏次数与片段数不同。报告训练/测试集时说明清洗、去重及歌曲/艺术家隔离。</p>
+<h3 id="15-开放问题">1.5 开放问题<a class="headerlink" href="#15-开放问题" title="Permanent link">&para;</a></h3>
+<p>长曲式、主题再现、多轨协调、表现性演奏时序与和声控制仍是重要问题。符号结构不能直接指定录音音色和制作，也没有单一表示能同等覆盖所有音乐维度。</p>
+<h2 id="2-音频级音乐生成">2. 音频级音乐生成<a class="headerlink" href="#2-音频级音乐生成" title="Permanent link">&para;</a></h2>
+<h3 id="21-编解码器与连续自编码器">2.1 编解码器与连续自编码器<a class="headerlink" href="#21-编解码器与连续自编码器" title="Permanent link">&para;</a></h3>
+<p>离散编解码器将波形转为语言模型使用的 token 序列；连续自编码器为扩散/流模型提供潜在序列。因此“音频生成必须有离散 codec”不正确。</p>
+<table>
+<thead>
+<tr>
+<th>编解码器</th>
+<th>已核验的设计与设置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/abs/2107.03312">SoundStream</a>（2021）</td>
+<td>卷积编解码器、残差向量量化（RVQ）、对抗训练及量化器 dropout；支持多种码率</td>
+</tr>
+<tr>
+<td><a href="https://github.com/facebookresearch/encodec">EnCodec</a>（2022）</td>
+<td>卷积/循环编解码器、RVQ、多尺度 STFT 对抗训练；原始发布含 24 kHz 单声道与 48 kHz 立体声</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2306.06546">DAC</a>（2023）</td>
+<td>改进 RVQGAN，使用周期激活与改进的码本学习；包括高保真 44.1 kHz 压缩</td>
+</tr>
+</tbody>
+</table>
+<p>原始 EnCodec 配置中，24 kHz 模型为 <strong>75 Hz</strong> 帧率，支持 1.5/3/6/12/24 kbps；48 kHz 模型为 <strong>150 Hz</strong>，支持 3/6/12/24 kbps。激活码本数随码率变化。<strong>MusicGen 使用另外训练的 32 kHz、50 Hz EnCodec 配置</strong>，并非直接套用上述两种配置。</p>
+<p>RVQ 逐级量化残差。前后码本的信息可能不同，但没有保证“这一层是和声、那一层是音色”的标签。帧率表示时间位置数；每秒总 token 数还取决于码本数和声道组织方式。</p>
+<h3 id="22-jukeboxopenai2020">2.2 Jukebox（OpenAI，2020）<a class="headerlink" href="#22-jukeboxopenai2020" title="Permanent link">&para;</a></h3>
+<p><a href="https://cdn.openai.com/papers/jukebox.pdf">Jukebox</a> 使用三层 VQ-VAE 和自回归先验/上采样器，以艺术家/流派元数据为条件；歌词条件模型还接收文本。论文训练数据为 120 万首歌曲，并描述了 60 万首英文歌子集。</p>
+<p>44.1 kHz <strong>单声道</strong>波形按 <strong>8、32、128 倍</strong>降采样，对应底层、中层、顶层约 <strong>5,512.5、1,378.1、344.5 token/s</strong>。这些是降采样因子，而非 8/34/65 Hz 的 token 速率。每层码本有 2,048 项。</p>
+<p>生成由顶层逐级条件上采样。滑动窗口支持多分钟输出，但顶层上下文约 24 秒；能生成几分钟不代表能组织重复副歌或全曲曲式。采样计算成本高。代码与 checkpoint 见<a href="https://github.com/openai/jukebox">官方仓库</a>，用途应核对相应许可。</p>
+<h3 id="23-musiclmgoogle2023">2.3 MusicLM（Google，2023）<a class="headerlink" href="#23-musiclmgoogle2023" title="Permanent link">&para;</a></h3>
+<p><a href="https://arxiv.org/html/2301.11325v1">MusicLM</a> 结合三种独立预训练的表示：</p>
+<ol>
+<li><strong>MuLan</strong> 提供音乐-文本条件。生成器训练时使用量化的 MuLan <strong>音频</strong>嵌入，推理时换为 <strong>文本</strong>嵌入。</li>
+<li><strong>w2v-BERT 特征经 k-means 聚类</strong>得到 25 Hz 的语义 token。</li>
+<li><strong>SoundStream</strong> 提供声学 token：本系统中为 24 kHz 单声道、50 Hz 帧率、12 层 RVQ。</li>
+</ol>
+<p>自回归阶段依次预测语义、粗声学和细声学 token。语义 token 不是 SoundStream 的第一层码本。系统展示了文本/旋律条件和多分钟样例。原论文未发布模型权重；后续消费端访问是另一个问题。</p>
+<p>MusicLM 引入 <strong>MusicCaps</strong>：5,521 个带人工描述的十秒样本。它是评测资源，不是生成器的 280,000 小时训练集合。参见<a href="https://arxiv.org/abs/2301.11325">原论文</a>。</p>
+<h3 id="24-musicgenmeta2023">2.4 MusicGen（Meta，2023）<a class="headerlink" href="#24-musicgenmeta2023" title="Permanent link">&para;</a></h3>
+<p><a href="https://arxiv.org/abs/2306.05284">MusicGen</a> 用单个自回归 Transformer 建模 codec 流。发布模型以冻结的 T5 文本编码器为条件；旋律版本增加 chroma 特征。</p>
+<p>单声道设置使用 32 kHz 音频、4 个 50 Hz 码本及延迟交错。一个自回归步骤中，不同码本对应<strong>错开的 codec 时刻</strong>，不是都对应同一个音频帧。相比展开所有码本 token，这减少了顺序模型步数。</p>
+<p><a href="https://github.com/facebookresearch/audiocraft/blob/main/docs/MUSICGEN.md">官方文档</a> 列出 300M、1.5B、3.3B 模型规模，20,000 小时授权训练音乐（含内部集合及 Shutterstock/Pond5），以及独立的立体声版本。立体声使用左右声道的独立码流。标准训练上下文为 30 秒，支持的实现可进行续写/扩展。</p>
+<p>Chroma 合并八度信息，也可能包含和声内容；它是旋律引导，不是精确乐谱或歌词控制。代码与权重条款不同：AudioCraft 代码为 MIT，发布的 MusicGen 权重在<a href="https://github.com/facebookresearch/audiocraft/blob/main/model_cards/MUSICGEN_MODEL_CARD.md">模型卡</a> 中使用 CC-BY-NC 4.0。“开放权重”不等于不限用途的商业授权。</p>
+<p><a href="https://arxiv.org/abs/2401.04577">MAGNeT</a> 使用掩码式非自回归音频 token 建模，是相关生成方法，不是对不变的 MusicGen checkpoint 换一个更快采样器。</p>
+<h3 id="25-audioldm-与-audioldm-2">2.5 AudioLDM 与 AudioLDM 2<a class="headerlink" href="#25-audioldm-与-audioldm-2" title="Permanent link">&para;</a></h3>
+<p><strong>AudioLDM</strong>（2023）在 VAE 的 mel 频谱潜在空间中训练扩散模型，再由 VAE 解码和 HiFi-GAN 声码器生成波形。训练时使用 CLAP 音频嵌入，采样时可换为 CLAP 文本嵌入。AudioMAE 并不是 AudioLDM 1 的定义性 VAE 组件。原设置面向音效、音乐等短通用音频。<a href="https://arxiv.org/abs/2301.12503">论文</a>。</p>
+<p><strong>AudioLDM 2</strong>（2023 年预印；2024 年期刊版）引入基于 AudioMAE 的 <strong>language of audio（LOA）</strong>。GPT-2 式模型从条件模态预测 LOA，潜在扩散再以 LOA 为条件生成音频。这比“联合微调 GPT-2 改善文本理解”更具体。应区分语音、音乐和通用音频 checkpoint；采样率与时长依赖 checkpoint 和实现。<a href="https://arxiv.org/abs/2308.05734">论文</a>。</p>
+<h3 id="26-stable-audio-版本">2.6 Stable Audio 版本<a class="headerlink" href="#26-stable-audio-版本" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>官方记录的行为</th>
+<th>区别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stable Audio 1.0（2023 年 9 月）</td>
+<td>发布时提供免费版 45 秒、Pro 90 秒生成</td>
+<td>47 秒不是其通用上限（<a href="https://stability.ai/news-updates/stable-audio-using-ai-to-generate-music">发布说明</a>）</td>
+</tr>
+<tr>
+<td>Stable Audio 2.0（2024 年 4 月）</td>
+<td>最长 3 分钟、44.1 kHz 立体声，支持文本/音频条件</td>
+<td>商业发布，使用授权 AudioSparx 数据；不是 Open 1.0 checkpoint（<a href="https://stability.ai/news/stable-audio-2-0">公告</a>）</td>
+</tr>
+<tr>
+<td>Stable Audio Open 1.0（2024 年 6 月）</td>
+<td>最长 47 秒、44.1 kHz 立体声；连续自编码器、T5、DiT</td>
+<td>独立开放权重模型，有各自许可和能力边界（<a href="https://huggingface.co/stabilityai/stable-audio-open-1.0">模型卡</a>）</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://arxiv.org/html/2407.14358v1">Stable Audio Open 论文</a> 报告<strong>总计 486,492 条录音</strong>：Freesound 472,618 条加 FMA 13,874 条，约 7,300 小时，源素材许可包括 CC0/CC-BY/CC-Sampling+。不是“48.6 万录音再加 7 万音乐”。自编码器约为每秒 21.5 潜在帧。Creative Commons 授权作品仍可能受版权保护，不能描述为“没有版权数据”。</p>
+<p>截至核对日期，官方文档已经介绍 <strong>Stable Audio 3.0</strong>。旧稿“Stable Audio 3 在 2025 年开发中”的预测已过时；这个独立产品系列应查询<a href="https://stability.ai/guides/stable-audio-3-prompt-guide">官方版本指南</a>。不能将上述历史参数直接用于后续版本。</p>
+<h3 id="27-yue2025">2.7 YuE（2025）<a class="headerlink" href="#27-yue2025" title="Permanent link">&para;</a></h3>
+<p><a href="https://arxiv.org/abs/2503.08638">YuE</a> 由 Ruibin Yuan 等提出，是基于 LLaMA2 的长篇歌词到歌曲模型系列。论文描述了轨道解耦下一 token 预测、渐进结构条件、多任务/多阶段万亿 token 规模训练，并展示最长五分钟样例。</p>
+<p>它还研究音频参考/上下文条件，以及 MARBLE 上的表示评测。作者报告相对选定专有系统有竞争力的结果；这不是独立确认的普遍排名，也不能证明“首个超越 Suno/Udio”。</p>
+<p>Checkpoint、阶段、上下文和硬件要求应查<a href="https://github.com/multimodal-art-projection/YuE">官方仓库</a>。10 GB 显存不是标准管线的通用要求；内存和延迟取决于实现、卸载、精度及输出时长。</p>
+<h3 id="28-商业歌曲生成器">2.8 商业歌曲生成器<a class="headerlink" href="#28-商业歌曲生成器" title="Permanent link">&para;</a></h3>
+<p><strong>Suno 与 Udio</strong> 提供文本/歌词条件歌曲生成，但本文所引来源没有公开其完整架构与训练方案。不能从听感推断 AR/扩散组件、训练数据规模或通用质量排名。</p>
+<p>Suno 官方记录为 <strong>v5 于 2025-09-23 发布</strong>、<strong>v5.5 于 2026-03-26 发布</strong>、<strong>v6 于 2026-09-09 发布</strong>。因此“v5 预计发布”已过时。参见 <a href="https://suno.com/release-notes/introducing-v5-the-world-s-best-music-model">v5 发布</a> 与<a href="https://suno.com/release-notes">版本记录</a>。</p>
+<p>对于 <a href="https://www.udio.com/">Udio</a>，应区分新生成片段与续写后完整歌曲的时长。产品限制、访问、编辑和导出能力需同时注明版本/套餐及访问日期。本文不采用无依据的通用两分钟上限，也不声称其输出天然更像人类。</p>
+<h3 id="29-其他研究系统">2.9 其他研究系统<a class="headerlink" href="#29-其他研究系统" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>系统</th>
+<th>已核验的贡献</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/abs/2412.21037">TangoFlux</a>（2024 年预印）</td>
+<td>流匹配文本到音频和 CLAP 排序偏好优化；音频任务范围比音乐更广</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2308.01546">MusicLDM</a>（2023 年预印，ICASSP 2024）</td>
+<td>音乐适配潜在扩散、节拍同步音频/潜在 mixup；新颖性改善不保证绝无复现</td>
+</tr>
+<tr>
+<td><a href="https://proceedings.mlr.press/v235/prajwal24a.html">MusicFlow</a>（ICML 2024）</td>
+<td>语义和声学特征的级联流匹配，掩码条件支持填充和续写</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2409.06029">SongCreator</a>（2024）</td>
+<td>双序列语言模型，通过可配置注意力掩码处理人声/伴奏任务</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2506.00045">ACE-Step</a>（2025 年报告）</td>
+<td>扩散、音乐适配 DCAE、线性 Transformer，以及训练时的 MERT/m-HuBERT 表示对齐</td>
+</tr>
+</tbody>
+</table>
+<p>ACE-Step 报告在其设置下用 A100 约 20 秒生成最长四分钟音乐。这是作者报告的测试结果，不是脱离硬件的延迟承诺。MERT/m-HuBERT 是表示对齐教师，不是音频 codec。比较能力时应将该<a href="https://ace-step.github.io/">项目</a>及报告与后续 ACE-Step 版本区分。</p>
+<h2 id="3-歌声合成">3. 歌声合成<a class="headerlink" href="#3-歌声合成" title="Permanent link">&para;</a></h2>
+<p>乐谱条件 SVS 根据歌词、音符与时序预测歌声，需要处理长元音、音符过渡、发音对齐和表现性音高。它不同于改变录音中的歌手声音，也不同于根据文字描述生成整首歌。</p>
+<table>
+<thead>
+<tr>
+<th>系统</th>
+<th>正确描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/abs/2006.06261">XiaoiceSing</a>（2020）</td>
+<td>FastSpeech 式非自回归频谱/F0/时长预测，原系统使用 WORLD</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2105.02446">DiffSinger</a>（2021 年预印，AAAI 2022）</td>
+<td>Liu、Li、Ren、Chen、Zhao；以浅起点进行乐谱条件 mel 扩散，再经声码器</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2110.08813">VISinger</a>（2021 年预印，ICASSP 2022）</td>
+<td>Yongmao Zhang 等；含音高/时长建模的变分/流/对抗端到端合成</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2211.02903">VISinger 2</a>（2022 年预印，INTERSPEECH 2023）</td>
+<td>DSP 谐波/噪声合成引导波形解码，改善相位处理</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2510.09016">DiTSinger</a>（2025）</td>
+<td>扩散 Transformer 扩展与字级时间范围约束的隐式对齐</td>
+</tr>
+<tr>
+<td><a href="https://github.com/openvpi/DiffSinger">OpenVPI DiffSinger</a></td>
+<td>社区框架，能力取决于版本和声音库</td>
+</tr>
+</tbody>
+</table>
+<p>应分别评估对齐有声帧的音高、相对乐谱/音素标注的时序、歌词可懂度、自然度、表现力和歌手身份。更正后的数据集及指标定义见<a href="../music-singing-synthesis-zh/">SVS 笔记</a>。</p>
+<h2 id="4-可控生成">4. 可控生成<a class="headerlink" href="#4-可控生成" title="Permanent link">&para;</a></h2>
+<h3 id="41-条件模态">4.1 条件模态<a class="headerlink" href="#41-条件模态" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>预期控制</th>
+<th>局限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自由文本</td>
+<td>流派、配器、情绪、制作</td>
+<td>有歧义，通常不足以表达音符级要求</td>
+</tr>
+<tr>
+<td>旋律/chroma</td>
+<td>音高类变化和旋律引导</td>
+<td>Chroma 丢失八度，不能唯一确定音符/和弦排列</td>
+</tr>
+<tr>
+<td>乐谱/和弦/节拍序列</td>
+<td>显式音乐内容或时间目标</td>
+<td>依赖标注与支持词表</td>
+</tr>
+<tr>
+<td>参考音频</td>
+<td>风格、音色、续写或编辑上下文</td>
+<td>可能混合身份、风格与内容</td>
+</tr>
+<tr>
+<td>段落描述和边界</td>
+<td>随时间变化的属性</td>
+<td>边界遵循与过渡质量要单独测试</td>
+</tr>
+<tr>
+<td>情绪标签/连续坐标</td>
+<td>感知效价/唤醒度等情绪</td>
+<td>标注和解释随听者/文化变化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Mustango</strong> 预测或条件化速度、节拍位置、调性、和弦等音乐信息，并使用音乐信息感知的扩散去噪器。其 <strong>MusicBench</strong> 是音乐-文本训练资源，不是人类偏好排行榜。<a href="https://arxiv.org/abs/2311.08355">论文</a>。</p>
+<h3 id="42-时变控制">4.2 时变控制<a class="headerlink" href="#42-时变控制" title="Permanent link">&para;</a></h3>
+<p><a href="https://www.isca-archive.org/interspeech_2025/yang25f_interspeech.html">TVC-MusicGen</a>（INTERSPEECH 2025）用自监督结构信息，使生成受段落边界与描述控制。研究在语言模型和扩散模型上测试此方法；名称并不表示只涉及 Meta 原始 MusicGen checkpoint。</p>
+<p><a href="https://arxiv.org/abs/2510.18416">SegTune</a>（2025 年预印；后修订为 ACL 2026 论文）是非自回归歌曲生成框架，以局部提示对应时间段，以全局提示控制整体风格。时长预测器生成句级时间戳歌词。局部控制仍需检验歌词对齐、过渡及属性相互影响。</p>
+<h3 id="43-剩余挑战">4.3 剩余挑战<a class="headerlink" href="#43-剩余挑战" title="Permanent link">&para;</a></h3>
+<p>精确和弦排列、转调、曲式、多重控制、实时编辑及非西方音乐系统需要超越更丰富的文字提示。应区分“接受某控制输入”和“可靠遵循控制”，只评估实际指定的音乐约束。</p>
+<h2 id="5-视频到音乐生成">5. 视频到音乐生成<a class="headerlink" href="#5-视频到音乐生成" title="Permanent link">&para;</a></h2>
+<h3 id="51-代表模型">5.1 代表模型<a class="headerlink" href="#51-代表模型" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>模态和贡献</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/abs/2111.08380">CMT</a>（2021）</td>
+<td><strong>Controllable Music Transformer</strong>：将视频时序/运动连接到符号音乐节奏、密度与强度，不是“Contrastive Multimodal Transformer”</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2311.00968">Video2Music</a>（2023）</td>
+<td>情感多模态 Transformer，使用语义、场景、运动和情绪特征，生成符号/和弦内容后动态渲染</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2311.11255">M²UGen</a>（2023 年预印）</td>
+<td>多模态编码器和 LLM 连接音乐生成器，支持理解、生成/编辑</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2410.12957">MuVi</a>（2024）</td>
+<td>视觉适配、音乐-视觉对比预训练和流匹配生成，处理语义与节奏对齐</td>
+</tr>
+</tbody>
+</table>
+<p>MuVi 的完整标题为 <em>Video-to-Music Generation with Semantic Alignment and Rhythmic Synchronization</em>。</p>
+<h3 id="52-评测">5.2 评测<a class="headerlink" href="#52-评测" title="Permanent link">&para;</a></h3>
+<p>分别评价语义匹配、情绪一致、时间同步和音频/音乐质量。注明视觉事件定义、节拍提取器、时间容差与负样本对。好配乐不一定在每个剪辑点都落一拍，同步目标取决于任务。</p>
+<p>视觉/音频嵌入分数不能单独证明精细时序或叙事适配。指标和基准名称需对应具体论文与实现，不能默认存在通用“CMMD = 对比音乐-视频度量”标准。</p>
+<h2 id="6-人类偏好对齐">6. 人类偏好对齐<a class="headerlink" href="#6-人类偏好对齐" title="Permanent link">&para;</a></h2>
+<p>RLHF 类方法从听者偏好学习奖励，再按奖励优化生成。DPO 类方法从偏好/非偏好样本对、相对参考策略进行优化；用于连续扩散或流模型时需要相应目标函数，不能直接照搬语言模型损失。</p>
+<p><a href="https://arxiv.org/abs/2506.19085">人类偏好基准研究</a> 提供模型比较和指标分析，但本身不能证明训练出的奖励能泛化。<a href="https://arxiv.org/abs/2511.15038">Aligning Generative Music AI with Human Preferences: Methods and Challenges</a> 是 2025 年预印本，录用于 <strong>AAAI 2026 Senior Member Track</strong>。</p>
+<p>区分真实听者比较与 CLAP 排序等代理标签。奖励优化可能改善一个属性，却减少多样性或利用评审弱点。保留独立听测、未见提示/风格与源素材重叠检查。</p>
+<h2 id="7-评测">7. 评测<a class="headerlink" href="#7-评测" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>指标 / 协议</th>
+<th>衡量内容</th>
+<th>重要边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FAD</td>
+<td>参考/生成音频嵌入拟合分布的距离，越低越接近</td>
+<td>需要参考集合但不需成对录音；不测提示对齐</td>
+</tr>
+<tr>
+<td>CLAP / MuLan 相似度</td>
+<td>学到的提示-音频关联</td>
+<td>粗语义，不是精确音符或歌词</td>
+</tr>
+<tr>
+<td>分类器 KL</td>
+<td>已定义标签分布的差异</td>
+<td>必须说明成对还是总体协议</td>
+</tr>
+<tr>
+<td>FMD</td>
+<td>符号音乐嵌入分布差异</td>
+<td>不是波形保真度</td>
+</tr>
+<tr>
+<td>音高 / 和弦 / 节拍遵循</td>
+<td>与音乐条件的一致程度</td>
+<td>需要目标控制和可靠提取</td>
+</tr>
+<tr>
+<td>MOS / 成对偏好</td>
+<td>听者评分或选择</td>
+<td>需要明确人群、任务、设计及不确定性</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://www.kaggle.com/datasets/googleai/musiccaps">MusicCaps</a> 是短片段文本到音乐评测资源；<a href="https://huggingface.co/datasets/disco-eth/AIME">AIME</a> 包含偏好数据。MARBLE 衡量音乐理解表示，不直接评价歌曲质量。</p>
+<p>没有单一指标能证明质量、原创性、结构或文化适切性。FAD 依赖编码器、参考集、样本量和预处理；逐曲 FAD 变体需单独验证，不是普遍最好的听感代理。公式、协议与来源见<a href="../music-evaluation-zh/">评测笔记</a>。</p>
+<h2 id="8-架构对比">8. 架构对比<a class="headerlink" href="#8-架构对比" title="Permanent link">&para;</a></h2>
+<p>以下时长是论文/版本设置或展示样例，不是统一的架构极限。</p>
+<table>
+<thead>
+<tr>
+<th>系统</th>
+<th>生成方式</th>
+<th>表示 / 条件</th>
+<th>文档记录的范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jukebox（2020）</td>
+<td>层次 AR</td>
+<td>三层 VQ-VAE；元数据/歌词</td>
+<td>44.1 kHz 单声道，窗口式多分钟生成</td>
+</tr>
+<tr>
+<td>MusicLM（2023）</td>
+<td>语义/粗/细 AR</td>
+<td>w2v-BERT + SoundStream；MuLan</td>
+<td>24 kHz 单声道，多分钟样例</td>
+</tr>
+<tr>
+<td>MusicGen（2023）</td>
+<td>单阶段 AR</td>
+<td>32 kHz EnCodec；T5/chroma</td>
+<td>30 秒上下文；单声道及独立立体声版本</td>
+</tr>
+<tr>
+<td>AudioLDM（2023）</td>
+<td>潜在扩散</td>
+<td>Mel VAE；CLAP</td>
+<td>通用短音频</td>
+</tr>
+<tr>
+<td>AudioLDM 2（2023–2024）</td>
+<td>LOA 预测 + 潜在扩散</td>
+<td>AudioMAE/GPT-2 及声学解码</td>
+<td>语音/音乐/通用音频变体</td>
+</tr>
+<tr>
+<td>Stable Audio 2.0（2024）</td>
+<td>潜在扩散</td>
+<td>商业模型；文本/音频输入</td>
+<td>最长 3 分钟，44.1 kHz 立体声</td>
+</tr>
+<tr>
+<td>Stable Audio Open 1.0（2024）</td>
+<td>DiT 潜在扩散</td>
+<td>连续自编码器；T5</td>
+<td>最长 47 秒，44.1 kHz 立体声</td>
+</tr>
+<tr>
+<td>YuE（2025）</td>
+<td>轨道解耦 AR</td>
+<td>音乐 token；歌词/风格/参考</td>
+<td>最长五分钟样例</td>
+</tr>
+<tr>
+<td>ACE-Step（2025 报告）</td>
+<td>线性 Transformer 扩散</td>
+<td>音乐 DCAE；歌词/文本</td>
+<td>报告中最长四分钟</td>
+</tr>
+<tr>
+<td>MusicFlow（2024）</td>
+<td>级联流匹配</td>
+<td>语义与声学特征</td>
+<td>文本条件、填充、续写</td>
+</tr>
+<tr>
+<td>SongCreator（2024）</td>
+<td>双序列 LM</td>
+<td>人声/伴奏流和注意力掩码</td>
+<td>多种歌曲生成/编辑任务</td>
+</tr>
+<tr>
+<td>Suno / Udio</td>
+<td>此处未明确</td>
+<td>服务提供文本/歌词控制</td>
+<td>随版本和套餐变化</td>
+</tr>
+</tbody>
+</table>
+<p>代码可用、权重可用、训练数据可用及许可是不同维度，简单“开源：是/否”会遮蔽这些区别。</p>
+<h2 id="9-开放问题与研究实践">9. 开放问题与研究实践<a class="headerlink" href="#9-开放问题与研究实践" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>长篇音乐：</strong> 在完整输出中评价动机发展、重复段落、过渡与结尾，而非只看标称时长。</li>
+<li><strong>精确控制：</strong> 测量旋律、和声、曲式、配器与表现力的遵循及相互影响。</li>
+<li><strong>效率：</strong> 区分首段音频延迟、吞吐量及总生成时间。部分系统在合适硬件上快于音频时长，但这不等于交互式流式生成。</li>
+<li><strong>数据与原创性：</strong> 独立检查训练/测试重叠及近邻复现。授权数据和开放权重不自动证明输出新颖。</li>
+<li><strong>文化覆盖：</strong> 由合适听者和标注评测支持的语言、律制、乐器及传统。</li>
+<li><strong>证据：</strong> 区分论文发现、官方产品规格、作者报告的测试与假设，避免未验证的排行榜、会场、硬件和架构断言。</li>
+</ul>
+<blockquote>
+<p>相关：<a href="../music-singing-synthesis-zh/">歌声合成</a>、<a href="../music-evaluation-zh/">评测</a>、<a href="../music-understanding-mir-zh/">音乐理解</a>、<a href="../audio-engineering-zh/">音频工程</a>。</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="页脚" >
+        
+          
+          <a href="../music-understanding-mir/" class="md-footer__link md-footer__link--prev" aria-label="上一页: English">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                上一页
+              </span>
+              <div class="md-ellipsis">
+                English
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../music-generation/" class="md-footer__link md-footer__link--next" aria-label="下一页: English">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                下一页
+              </span>
+              <div class="md-ellipsis">
+                English
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      CC BY 4.0 · CacinieP
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.indexes", "navigation.top", "navigation.footer", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../../assets/mathjax-config.js"></script>
+      
+        <script src="../../../assets/mathjax/tex-chtml.js"></script>
+      
+    
+  </body>
+</html>

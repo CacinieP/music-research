@@ -1,0 +1,7 @@
+.md-grid { max-width: 1480px; }
+.md-typeset { font-size: .86rem; line-height: 1.8; }
+.md-typeset h1 { font-weight: 650; letter-spacing: -.02em; }
+.md-typeset h2 { padding-top: .7rem; border-top: 1px solid var(--md-default-fg-color--lightest); }
+.md-typeset table:not([class]) { font-size: .74rem; }
+.md-typeset .arithmatex { overflow-x: auto; }
+.md-typeset pre { line-height: 1.55; }

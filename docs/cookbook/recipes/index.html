@@ -1,0 +1,2351 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="乐理、音频工程、MIR、音乐生成与评测的中英文研究笔记">
+      
+      
+      
+        <link rel="canonical" href="https://caciniep.github.io/music-research/docs/cookbook/recipes/">
+      
+      
+        <link rel="prev" href="../../../references/">
+      
+      
+        <link rel="next" href="../">
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>代码示例 - 音乐研究 · Music Research</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.e53b48f4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/reading.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#music-ai-cookbook" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../.." title="音乐研究 · Music Research" class="md-header__button md-logo" aria-label="音乐研究 · Music Research" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            音乐研究 · Music Research
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              代码示例
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CacinieP/music-research" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CacinieP/music-research
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="音乐研究 · Music Research" class="md-nav__button md-logo" aria-label="音乐研究 · Music Research" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    音乐研究 · Music Research
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CacinieP/music-research" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CacinieP/music-research
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    开始阅读
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    笔记目录
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../notes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    研究笔记
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            研究笔记
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    乐理基础
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            乐理基础
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-theory-fundamentals-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-theory-fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    音频工程
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            音频工程
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/audio-engineering-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/audio-engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    音乐理解 · MIR
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            音乐理解 · MIR
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-understanding-mir-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-understanding-mir/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    音乐生成
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            音乐生成
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-generation-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    音乐评测
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            音乐评测
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-evaluation-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    歌声合成
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            歌声合成
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-singing-synthesis-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-singing-synthesis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    风格与流派
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            风格与流派
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-styles-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-styles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/edge-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    端侧部署
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/model-reproduction-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    复现指南
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/music-copyright-compliance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    版权与合规
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../surveys/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    文献导读
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            文献导读
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../surveys/reading-guide-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../surveys/reading-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    English
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+          
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../references/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    参考文献
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            参考文献
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../references/README-zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    中文
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    实践
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            实践
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    代码示例
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    代码示例
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setup-环境配置" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup 环境配置
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-feature-extraction-特征提取" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Feature extraction 特征提取
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-audio-codecs-音频编解码器" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Audio codecs 音频编解码器
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Audio codecs 音频编解码器">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#encodec-via-audiocraft--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      EnCodec via AudioCraft — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dac--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      DAC — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-music-generation-音乐生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Music generation 音乐生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Music generation 音乐生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#musicgen--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      MusicGen — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stable-audio-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stable Audio Open
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-source-separation-音源分离" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Source separation 音源分离
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-music-understanding-音乐理解" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Music understanding 音乐理解
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Music understanding 音乐理解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mert--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      MERT — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clap--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      CLAP — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beat-chord-and-key-baselines--cpu-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beat, chord and key baselines — CPU examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-evaluation-评测" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Evaluation 评测
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-singing-voice-synthesis-歌声合成" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Singing voice synthesis 歌声合成
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-midi-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. MIDI processing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-data-pipeline-and-common-pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Data pipeline and common pitfalls
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../src/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    代码与算力
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    数据集
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../thoughts/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    研究随笔
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            研究随笔
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../thoughts/personal-thoughts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    随笔
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../PUBLISHING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    构建与发布
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../review-2026-09-19/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    审校记录
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setup-环境配置" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup 环境配置
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-feature-extraction-特征提取" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Feature extraction 特征提取
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-audio-codecs-音频编解码器" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Audio codecs 音频编解码器
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Audio codecs 音频编解码器">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#encodec-via-audiocraft--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      EnCodec via AudioCraft — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dac--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      DAC — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-music-generation-音乐生成" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Music generation 音乐生成
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Music generation 音乐生成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#musicgen--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      MusicGen — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stable-audio-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stable Audio Open
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-source-separation-音源分离" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Source separation 音源分离
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-music-understanding-音乐理解" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Music understanding 音乐理解
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Music understanding 音乐理解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mert--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      MERT — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clap--api-checked-model-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      CLAP — API-checked model example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beat-chord-and-key-baselines--cpu-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beat, chord and key baselines — CPU examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-evaluation-评测" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Evaluation 评测
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-singing-voice-synthesis-歌声合成" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Singing voice synthesis 歌声合成
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-midi-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. MIDI processing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-data-pipeline-and-common-pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Data pipeline and common pitfalls
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="music-ai-cookbook">Music AI Cookbook<a class="headerlink" href="#music-ai-cookbook" title="Permanent link">&para;</a></h1>
+<p>API review: 2026-09-19. CPU examples are tested with synthetic audio and MIDI. Model examples below are checked against linked upstream APIs; model weights, GPU inference, training and listening quality have <strong>not</strong> been run as part of this review. Each model needs its own compatible environment and checkpoint licence.</p>
+<h2 id="setup-环境配置">Setup 环境配置<a class="headerlink" href="#setup-环境配置" title="Permanent link">&para;</a></h2>
+<p>For the CPU examples, run from the repository root:</p>
+<div class="highlight"><pre><span></span><code>python3.13<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-examples.txt
+python<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>scripts<span class="w"> </span>-p<span class="w"> </span><span class="s1">'test_examples.py'</span>
+</code></pre></div>
+<p>Install AudioCraft, DAC, LAION CLAP and other model stacks in separate environments following their official instructions. A single unpinned <code>pip install</code> command for every framework is not a reproducible environment. Keep Torch and TorchAudio versions compatible, and record package versions and checkpoint revisions.</p>
+<h2 id="1-feature-extraction-特征提取">1. Feature extraction 特征提取<a class="headerlink" href="#1-feature-extraction-特征提取" title="Permanent link">&para;</a></h2>
+<p>Feature arrays are CPU-tested. The optional plotting lines use Matplotlib (<code>pip install matplotlib==3.10.7</code>) and are API-checked separately.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">librosa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">librosa.display</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'input.wav'</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="mi">22050</span><span class="p">,</span> <span class="n">mono</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">mel</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">melspectrogram</span><span class="p">(</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+    <span class="n">n_mels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">fmax</span><span class="o">=</span><span class="n">sr</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">power</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">mel_db</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">power_to_db</span><span class="p">(</span><span class="n">mel</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
+<span class="n">chroma</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">chroma_stft</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+<span class="n">chroma_cqt</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">chroma_cqt</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">cqt</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">84</span><span class="p">,</span> <span class="n">bins_per_octave</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">C_db</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">amplitude_to_db</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">C</span><span class="p">),</span> <span class="n">ref</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">librosa</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">specshow</span><span class="p">(</span><span class="n">C_db</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">x_axis</span><span class="o">=</span><span class="s1">'time'</span><span class="p">,</span> <span class="n">y_axis</span><span class="o">=</span><span class="s1">'cqt_note'</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'cqt.png'</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+</code></pre></div>
+<p><code>n_fft</code> controls the frequency grid and window support; increasing it by zero-padding alone does not create finer true resolving power. <code>hop_length/sr</code> is the frame spacing, not the complete temporal resolution. <code>fmax</code> must not exceed Nyquist. With default C1 and 12 bins per octave, 84 CQT centers run from C1 through B7; C8 would be the 85th center.</p>
+<p>These are analysis settings, not a universal preprocessor for pretrained models. Follow each model's sample rate, channel count and normalization. <a href="https://librosa.org/doc/latest/feature.html">librosa feature API</a></p>
+<p>When passing a precomputed CQT to <code>chroma_cqt(C=...)</code>, pass its magnitude and the same <code>bins_per_octave</code>: <code>librosa.cqt</code> defaults to 12, while <code>chroma_cqt</code> defaults to 36. Omitting that match can assign a tone to the wrong pitch class.</p>
+<h2 id="2-audio-codecs-音频编解码器">2. Audio codecs 音频编解码器<a class="headerlink" href="#2-audio-codecs-音频编解码器" title="Permanent link">&para;</a></h2>
+<h3 id="encodec-via-audiocraft--api-checked-model-example">EnCodec via AudioCraft — API-checked model example<a class="headerlink" href="#encodec-via-audiocraft--api-checked-model-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchaudio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">audiocraft.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompressionModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">audiocraft.data.audio_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_audio</span>
+
+<span class="n">codec</span> <span class="o">=</span> <span class="n">CompressionModel</span><span class="o">.</span><span class="n">get_pretrained</span><span class="p">(</span><span class="s1">'facebook/encodec_24khz'</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="n">wav</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'input.wav'</span><span class="p">)</span>
+<span class="n">wav</span> <span class="o">=</span> <span class="n">convert_audio</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">codec</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">codec</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span>
+<span class="n">wav</span> <span class="o">=</span> <span class="n">wav</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">():</span>
+    <span class="n">codes</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">codec</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">wav</span><span class="p">)</span>
+    <span class="n">decoded</span> <span class="o">=</span> <span class="n">codec</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">codes</span><span class="p">,</span> <span class="n">scale</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">wav</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+<span class="n">seconds</span> <span class="o">=</span> <span class="n">wav</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">codec</span><span class="o">.</span><span class="n">sample_rate</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'codes shape:'</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">codes</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>  <span class="c1"># batch, codebooks, frames</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'code indices per second:'</span><span class="p">,</span> <span class="n">codes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">codes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">seconds</span><span class="p">)</span>
+<span class="n">torchaudio</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">'reconstructed.wav'</span><span class="p">,</span> <span class="n">decoded</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">codec</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">)</span>
+</code></pre></div>
+<p>Use the codebook count times the frame rate for aggregate code indices per second. <code>n_frames * 75</code> is not tokens/second. Scale metadata must be passed back to the decoder when present. <a href="https://github.com/facebookresearch/audiocraft/blob/main/audiocraft/models/encodec.py">AudioCraft codec interface</a></p>
+<h3 id="dac--api-checked-model-example">DAC — API-checked model example<a class="headerlink" href="#dac--api-checked-model-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">dac</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">audiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioSignal</span>
+
+<span class="n">codec</span> <span class="o">=</span> <span class="n">dac</span><span class="o">.</span><span class="n">DAC</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">dac</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="s1">'44khz'</span><span class="p">))</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="n">signal</span> <span class="o">=</span> <span class="n">AudioSignal</span><span class="p">(</span><span class="s1">'input.wav'</span><span class="p">)</span>
+<span class="c1"># DAC's standard model is mono. Explicitly convert stereo input for this example.</span>
+<span class="n">signal</span><span class="o">.</span><span class="n">audio_data</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">audio_data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">signal</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">codec</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">)</span>
+<span class="n">length</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">audio_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">codec</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">audio_data</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">)</span>
+    <span class="n">z</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">latents</span><span class="p">,</span> <span class="n">commitment_loss</span><span class="p">,</span> <span class="n">codebook_loss</span> <span class="o">=</span> <span class="n">codec</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">decoded</span> <span class="o">=</span> <span class="n">codec</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">z</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">length</span><span class="p">]</span>
+<span class="n">AudioSignal</span><span class="p">(</span><span class="n">decoded</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="n">codec</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">'dac_reconstructed.wav'</span><span class="p">)</span>
+</code></pre></div>
+<p>The native API uses <code>dac.utils.download</code>, <code>DAC.load</code>, a sample-rate argument to <code>preprocess</code>, and five outputs from <code>encode</code>. <code>preprocess</code> validates the rate and pads to the codec hop; resample first and remove the padding after decoding. For long files use the upstream chunked <code>compress</code>/<code>decompress</code> workflow. <a href="https://github.com/descriptinc/descript-audio-codec">DAC documentation</a></p>
+<p>For reconstruction SNR, first align time, sample rate, channels, duration and gain; then use <code>aligned_snr</code> from <a href="../../../src/audio_baselines.py">audio_baselines.py</a>. SNR measures sample error, not perceptual quality. FAD compares embedding distributions and does not replace paired codec listening tests.</p>
+<h2 id="3-music-generation-音乐生成">3. Music generation 音乐生成<a class="headerlink" href="#3-music-generation-音乐生成" title="Permanent link">&para;</a></h2>
+<h3 id="musicgen--api-checked-model-example">MusicGen — API-checked model example<a class="headerlink" href="#musicgen--api-checked-model-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torchaudio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">audiocraft.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MusicGen</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">MusicGen</span><span class="o">.</span><span class="n">get_pretrained</span><span class="p">(</span><span class="s1">'facebook/musicgen-small'</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_generation_params</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">cfg_coef</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">waveforms</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">([</span><span class="s1">'A gentle piano melody with sustained chords'</span><span class="p">])</span>
+<span class="n">torchaudio</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">'generated.wav'</span><span class="p">,</span> <span class="n">waveforms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">)</span>
+
+<span class="c1"># Melody conditioning requires a melody-capable checkpoint and a different API.</span>
+<span class="n">melody_model</span> <span class="o">=</span> <span class="n">MusicGen</span><span class="o">.</span><span class="n">get_pretrained</span><span class="p">(</span><span class="s1">'facebook/musicgen-melody'</span><span class="p">)</span>
+<span class="n">melody_model</span><span class="o">.</span><span class="n">set_generation_params</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">melody</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'melody.wav'</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">melody_model</span><span class="o">.</span><span class="n">generate_with_chroma</span><span class="p">(</span>
+    <span class="p">[</span><span class="s1">'Acoustic guitar with a steady pulse'</span><span class="p">],</span> <span class="n">melody</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">sr</span><span class="o">*</span><span class="mi">8</span><span class="p">)],</span> <span class="n">sr</span><span class="p">)</span>
+<span class="n">torchaudio</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">'melody_conditioned.wav'</span><span class="p">,</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">melody_model</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">)</span>
+</code></pre></div>
+<p>Run the text and melody examples separately if memory is limited. Melody conditioning transfers chroma information; it is not identical to audio continuation. Use <code>generate_continuation</code> for continuation. Guidance trades conditioning and diversity empirically; larger values do not guarantee better output. <a href="https://github.com/facebookresearch/audiocraft/blob/main/docs/MUSICGEN.md">MusicGen API</a></p>
+<h3 id="stable-audio-open">Stable Audio Open<a class="headerlink" href="#stable-audio-open" title="Permanent link">&para;</a></h3>
+<p>Use the <a href="https://huggingface.co/stabilityai/stable-audio-open-1.0">official model card</a> and <a href="https://github.com/Stability-AI/stable-audio-tools">stable-audio-tools</a>. The original cookbook's <code>modeling_audiocraft.Model.from_pretrained(...).generate(...)</code> was not the official interface and has been removed. Model access and licence acceptance may be required. Keep model configuration, sample size, conditioning and sampler parameters tied to the selected release.</p>
+<h2 id="4-source-separation-音源分离">4. Source separation 音源分离<a class="headerlink" href="#4-source-separation-音源分离" title="Permanent link">&para;</a></h2>
+<p>The <a href="https://github.com/facebookresearch/demucs">Demucs CLI</a> is a documented entry point:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>demucs<span class="w"> </span>-n<span class="w"> </span>htdemucs<span class="w"> </span>--two-stems<span class="w"> </span>vocals<span class="w"> </span>input.wav
+</code></pre></div>
+<p>It writes <code>vocals.wav</code> and <code>no_vocals.wav</code> under its output directory. The <code>--two-stems</code> option still uses the separation model internally; it is not a new two-source architecture or a guarantee of lower memory.</p>
+<p>For evaluation, load references and estimates in an explicit, matching stem order:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">soundfile</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">museval</span>
+
+<span class="n">stems</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'vocals'</span><span class="p">,</span> <span class="s1">'drums'</span><span class="p">,</span> <span class="s1">'bass'</span><span class="p">,</span> <span class="s1">'other'</span><span class="p">]</span>
+<span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">sf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">'reference_stems'</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s1">.wav'</span><span class="p">,</span> <span class="n">always_2d</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+          <span class="n">sf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">'estimated_stems'</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s1">.wav'</span><span class="p">,</span> <span class="n">always_2d</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+         <span class="k">for</span> <span class="n">stem</span> <span class="ow">in</span> <span class="n">stems</span><span class="p">]</span>
+<span class="n">rates</span> <span class="o">=</span> <span class="p">{</span><span class="n">rate</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">rate</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">}</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rates</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'All references and estimates must have the same sample rate'</span><span class="p">)</span>
+<span class="n">sr</span> <span class="o">=</span> <span class="n">rates</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+<span class="n">reference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">])</span>
+<span class="n">estimate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">])</span>
+<span class="k">if</span> <span class="n">reference</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">estimate</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Reference and estimate lengths/channels must match'</span><span class="p">)</span>
+<span class="n">sdr</span><span class="p">,</span> <span class="n">isr</span><span class="p">,</span> <span class="n">sir</span><span class="p">,</span> <span class="n">sar</span> <span class="o">=</span> <span class="n">museval</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">estimate</span><span class="p">,</span> <span class="n">win</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">hop</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'v4'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">stems</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">sdr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))))</span>
+</code></pre></div>
+<p>This prints the median of one-second-window SDRs for each stem of one track, not a dataset-wide score. Record the BSS Eval mode, sample rate, windows, silence handling and track/stem aggregation. Do not assume a <code>.sdr</code> property or silently mix these scores with SI-SDR. Explicit filename alignment avoids depending on filesystem enumeration order. <a href="https://github.com/sigsep/sigsep-mus-eval">museval implementation</a></p>
+<p>BS-RoFormer checkpoints differ in instruments, band partitioning and implementation. Use a checkpoint-compatible repository, not the original cookbook's fictitious universal <code>bsroformer</code>/AudioSep commands. <a href="https://arxiv.org/abs/2309.02612">BS-RoFormer paper</a></p>
+<h2 id="5-music-understanding-音乐理解">5. Music understanding 音乐理解<a class="headerlink" href="#5-music-understanding-音乐理解" title="Permanent link">&para;</a></h2>
+<h3 id="mert--api-checked-model-example">MERT — API-checked model example<a class="headerlink" href="#mert--api-checked-model-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">librosa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoModel</span><span class="p">,</span> <span class="n">Wav2Vec2FeatureExtractor</span>
+
+<span class="n">checkpoint</span> <span class="o">=</span> <span class="s1">'m-a-p/MERT-v1-330M'</span>
+<span class="c1"># The checkpoint uses custom model code; inspect and pin its revision for reproducibility.</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="n">processor</span> <span class="o">=</span> <span class="n">Wav2Vec2FeatureExtractor</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">)</span>
+<span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'input.wav'</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">processor</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="n">mono</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">processor</span><span class="p">(</span><span class="n">y</span><span class="p">[:</span><span class="mi">5</span><span class="o">*</span><span class="n">sr</span><span class="p">],</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">return_tensors</span><span class="o">=</span><span class="s1">'pt'</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">():</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">)</span><span class="o">.</span><span class="n">last_hidden_state</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</code></pre></div>
+<p>The feature extractor receives waveform samples, not a filename. The official checkpoint belongs to <code>m-a-p</code>, not <code>microsoft/mert-330m</code>. Pooling hidden states is a feature baseline, not a trained genre classifier. <a href="https://huggingface.co/m-a-p/MERT-v1-330M">MERT model card</a></p>
+<h3 id="clap--api-checked-model-example">CLAP — API-checked model example<a class="headerlink" href="#clap--api-checked-model-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">laion_clap</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">laion_clap</span><span class="o">.</span><span class="n">CLAP_Module</span><span class="p">(</span><span class="n">enable_fusion</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_ckpt</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">():</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_audio_embedding_from_filelist</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="s1">'input.wav'</span><span class="p">],</span> <span class="n">use_tensor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_text_embedding</span><span class="p">([</span><span class="s1">'A solo piano performance'</span><span class="p">],</span> <span class="n">use_tensor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">cosine_similarity</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</code></pre></div>
+<p>Microsoft CLAP and LAION CLAP have different packages, checkpoints and APIs. This example explicitly uses LAION CLAP. Report checkpoint and preprocessing with every similarity score. <a href="https://github.com/LAION-AI/CLAP">LAION CLAP</a></p>
+<h3 id="beat-chord-and-key-baselines--cpu-examples">Beat, chord and key baselines — CPU examples<a class="headerlink" href="#beat-chord-and-key-baselines--cpu-examples" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">librosa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.audio_baselines</span><span class="w"> </span><span class="kn">import</span> <span class="n">chord_templates</span><span class="p">,</span> <span class="n">estimate_key</span>
+
+<span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'input.wav'</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="mi">22050</span><span class="p">)</span>
+<span class="n">tempo</span><span class="p">,</span> <span class="n">beat_frames</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">beat</span><span class="o">.</span><span class="n">beat_track</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Tempo: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">tempo</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> BPM'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">librosa</span><span class="o">.</span><span class="n">frames_to_time</span><span class="p">(</span><span class="n">beat_frames</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">))</span>
+<span class="n">chroma</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">chroma_cqt</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">)</span>
+<span class="n">labels</span><span class="p">,</span> <span class="n">templates</span> <span class="o">=</span> <span class="n">chord_templates</span><span class="p">()</span>
+<span class="n">strength</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">chroma</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">scores</span> <span class="o">=</span> <span class="n">templates</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">chroma</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">strength</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">))</span>
+<span class="n">chords</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">level</span> <span class="o">&gt;</span> <span class="mf">1e-8</span> <span class="k">else</span> <span class="s1">'N'</span>
+          <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">strength</span><span class="p">)]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">chords</span><span class="p">[:</span><span class="mi">10</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Global key baseline:'</span><span class="p">,</span> <span class="n">estimate_key</span><span class="p">(</span><span class="n">chroma</span><span class="p">))</span>
+</code></pre></div>
+<p>Templates use C=0, G major = G–B–D, A minor = A–C–E. They do not cover seventh chords, inversions, tuning variation or reliable segmentation. The key baseline implements profile correlations; <code>librosa.feature.key_detect</code> does not exist. An uninformative chroma vector returns no key. Correlation is not a calibrated confidence score. <a href="https://librosa.org/doc/latest/generated/librosa.beat.beat_track.html">librosa beat API</a>, <a href="https://www.music21.org/music21docs/moduleReference/moduleAnalysisDiscrete.html">music21 key profiles</a></p>
+<h2 id="6-evaluation-评测">6. Evaluation 评测<a class="headerlink" href="#6-evaluation-评测" title="Permanent link">&para;</a></h2>
+<p>For FAD, the documented toolkit CLI is:</p>
+<div class="highlight"><pre><span></span><code>fadtk<span class="w"> </span>clap-laion-audio<span class="w"> </span>real_audio_dir<span class="w"> </span>generated_audio_dir
+</code></pre></div>
+<p>Report embedding model, reference set, durations, sample counts and aggregation. The original <code>FAD(...).precision()</code> / <code>.recall()</code> calls were not documented FADtk APIs and have been removed; distribution precision/recall requires a separately defined estimator. <a href="https://github.com/microsoft/fadtk">FADtk</a></p>
+<p>Descriptive audio statistics can be computed independently:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">librosa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.audio_baselines</span><span class="w"> </span><span class="kn">import</span> <span class="n">pitch_class_entropy</span>
+
+<span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'input.wav'</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="mi">22050</span><span class="p">)</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">beats</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">beat</span><span class="o">.</span><span class="n">beat_track</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">)</span>
+<span class="n">intervals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">librosa</span><span class="o">.</span><span class="n">frames_to_time</span><span class="p">(</span><span class="n">beats</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">))</span>
+<span class="n">interval_cv</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">intervals</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">/</span><span class="n">intervals</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">intervals</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">)</span>
+<span class="n">chroma</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">chroma_cqt</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">)</span>
+<span class="n">onsets</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">onset</span><span class="o">.</span><span class="n">onset_detect</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Beat-interval coefficient of variation:'</span><span class="p">,</span> <span class="n">interval_cv</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Pitch-class entropy (bits):'</span><span class="p">,</span> <span class="n">pitch_class_entropy</span><span class="p">(</span><span class="n">chroma</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Detected onsets per second:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">onsets</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">/</span><span class="n">sr</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Spectral centroid (Hz):'</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">spectral_centroid</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+</code></pre></div>
+<p>Entropy requires nonnegative values normalized to total probability one. Uniform 12-class mass has entropy <code>log2(12)</code>; zero mass has undefined entropy. Chroma entropy is not itself “tonal stability,” detected onsets are not necessarily notes, and intentional rubato is not a quality defect. Very few detected beats make interval variation unreliable.</p>
+<h2 id="7-singing-voice-synthesis-歌声合成">7. Singing voice synthesis 歌声合成<a class="headerlink" href="#7-singing-voice-synthesis-歌声合成" title="Permanent link">&para;</a></h2>
+<p>Use the versioned setup and inference instructions from <a href="https://github.com/openvpi/DiffSinger">OpenVPI DiffSinger</a> or <a href="https://github.com/svc-develop-team/so-vits-svc">so-vits-svc</a>. DiffSinger synthesis and singing voice conversion are different tasks. Input phonemes, pitch, duration units, dictionaries, speaker identifiers and checkpoints must agree. The original universal <code>from diffsinger import DiffSinger</code> recipe and unverified training commands have been removed.</p>
+<h2 id="8-midi-processing">8. MIDI processing<a class="headerlink" href="#8-midi-processing" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pretty_midi</span>
+<span class="n">pm</span> <span class="o">=</span> <span class="n">pretty_midi</span><span class="o">.</span><span class="n">PrettyMIDI</span><span class="p">(</span><span class="s1">'input.mid'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pm</span><span class="o">.</span><span class="n">get_piano_roll</span><span class="p">(</span><span class="n">fs</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">instrument</span> <span class="ow">in</span> <span class="n">pm</span><span class="o">.</span><span class="n">instruments</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">instrument</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">instrument</span><span class="o">.</span><span class="n">program</span><span class="p">,</span> <span class="n">note</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="n">note</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">note</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">note</span><span class="o">.</span><span class="n">velocity</span><span class="p">)</span>
+</code></pre></div>
+<p>Modern MidiTok uses Symusic scores:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">miditok</span><span class="w"> </span><span class="kn">import</span> <span class="n">REMI</span><span class="p">,</span> <span class="n">TokenizerConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">symusic</span><span class="w"> </span><span class="kn">import</span> <span class="n">Score</span>
+
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">REMI</span><span class="p">(</span><span class="n">TokenizerConfig</span><span class="p">(</span><span class="n">use_programs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_tempos</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="p">(</span><span class="n">Score</span><span class="p">(</span><span class="s1">'input.mid'</span><span class="p">))</span>
+<span class="n">reconstructed</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+<span class="n">reconstructed</span><span class="o">.</span><span class="n">dump_midi</span><span class="p">(</span><span class="s1">'output.mid'</span><span class="p">)</span>
+</code></pre></div>
+<p>Tokenization quantizes time and velocity and may discard unsupported metadata; decoding is not guaranteed to reproduce the input bytes. <a href="https://github.com/Natooz/MidiTok">MidiTok</a>, <a href="https://craffel.github.io/pretty-midi/">pretty_midi</a></p>
+<h2 id="9-data-pipeline-and-common-pitfalls">9. Data pipeline and common pitfalls<a class="headerlink" href="#9-data-pipeline-and-common-pitfalls" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.audio_baselines</span><span class="w"> </span><span class="kn">import</span> <span class="n">preprocess_audio</span>
+
+<span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'raw_audio'</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'*.wav'</span><span class="p">):</span>
+    <span class="n">preprocess_audio</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'processed'</span><span class="p">)</span> <span class="o">/</span> <span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                     <span class="n">target_sr</span><span class="o">=</span><span class="mi">16000</span><span class="p">,</span> <span class="n">target_duration</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
+</code></pre></div>
+<p>This CPU function creates output directories and preserves finite silent audio. It performs mono conversion, resampling, trim/pad and peak scaling. Mono averaging can cancel antiphase stereo material; peak or RMS scaling is not perceptual loudness normalization. Keep preprocessing identical across compared systems, and do not normalize away gain errors when testing gain preservation.</p>
+<p>For STFT reconstruction, retain complex values and use matching window, hop, centering and length in the inverse. Magnitude-only inversion needs phase estimation and is not exact; a vocoder must match its conditioning features.</p>
+<p><code>torch.cuda.empty_cache()</code> only releases unused cached allocations, not live tensors. Delete all references to model outputs and model objects when freeing memory. Gradient checkpointing is primarily a training technique, not a blanket inference-memory solution.</p>
+<p>Download datasets from their <a href="../../../datasets/">official entries</a>, with explicit version and licence. Large audio archives are optional inputs, not prerequisites for this repository's CPU verification.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="页脚" >
+        
+          
+          <a href="../../../references/" class="md-footer__link md-footer__link--prev" aria-label="上一页: English">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                上一页
+              </span>
+              <div class="md-ellipsis">
+                English
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../" class="md-footer__link md-footer__link--next" aria-label="下一页: 示例目录">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                下一页
+              </span>
+              <div class="md-ellipsis">
+                示例目录
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      CC BY 4.0 · CacinieP
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.indexes", "navigation.top", "navigation.footer", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../../assets/mathjax-config.js"></script>
+      
+        <script src="../../../assets/mathjax/tex-chtml.js"></script>
+      
+    
+  </body>
+</html>
