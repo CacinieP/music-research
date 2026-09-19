@@ -1,6 +1,6 @@
 # Personal Thoughts on AI Music Research
 
-Informal reflections, observations, and opinions accumulated while building this knowledge base. Not peer-reviewed — take as one researcher's perspective.
+Informal reflections, observations, and opinions accumulated while building this knowledge base. Factual overstatements were reviewed on 2026-09-19; personal predictions below remain opinions. Not peer-reviewed — take as one researcher's perspective.
 
 ---
 
@@ -24,11 +24,11 @@ Before researching this area, I assumed style was primarily about notes and chor
 
 ### 2.3 SVS is harder than it looks
 
-Singing voice synthesis sounds like "just another generation task" until you look closely. The pitch range is 2+ octaves (vs. speech's narrow range), vibrato is not optional, phoneme timing must match musical rhythm, and the voice must sustain notes for seconds while maintaining timbral consistency. Current SVS systems sound *almost* good, but there's always something slightly off — an artifact on sustained notes, a pitch wobble, a timbre shift between notes. The "uncanny valley" of singing is real.
+Singing voice synthesis sounds like "just another generation task" until you look closely. Pitch range and sustained phonation depend on singer and style; vibrato can be an important expressive choice rather than a universal requirement, phoneme timing must match musical rhythm, and the voice must sustain notes for seconds while maintaining timbral consistency. Current SVS systems sound *almost* good, but there's always something slightly off — an artifact on sustained notes, a pitch wobble, a timbre shift between notes. The "uncanny valley" of singing is real.
 
 ### 2.4 Western music dominates everything
 
-Every benchmark, every pre-training dataset, every tokenization scheme assumes 12-TET and Western harmonic conventions. A model trained on MAESTRO (piano Western classical) will fail on a Chinese guzheng piece not because the architecture is wrong but because the representation space has no concept of non-Western pitch collections. This isn't a technical problem that more data will solve — it requires rethinking the fundamental representation.
+Many widely used benchmarks overrepresent Western repertoire. MAESTRO is a piano dataset, so transfer to guzheng is not assured. Fixed pitch-class representations can exclude tuning detail, whereas waveform-based models need not assume 12-TET. Dataset coverage, representation and evaluation all matter; this is not proof that every model fails on non-Western music.
 
 ---
 
@@ -55,16 +55,16 @@ Every benchmark, every pre-training dataset, every tokenization scheme assumes 1
 
 ## 4. What's Actually Hard 什么真的难
 
-Ranked by difficulty based on current state of the art:
+My tentative priorities, not an empirical ranking across all current systems:
 
 | Rank | Task | Why it's hard |
 |------|------|---------------|
-| 1 | **Jazz generation** | Harmony + rhythm + improvisation + interaction. No model captures all four simultaneously. |
-| 2 | **Expressive long-form coherence** | Maintaining musical interest across 3+ minutes without repetition or drift. Current models degrade significantly beyond 30–60 seconds. |
+| 1 | **Jazz generation** | Harmony + rhythm + improvisation + interaction. Joint evaluation of all four remains difficult. |
+| 2 | **Expressive long-form coherence** | Maintaining musical interest across 3+ minutes without repetition or drift. Some models generate minutes of audio; maintaining structure and interest must be evaluated over the full duration. |
 | 3 | **Cross-cultural generation** | Requires rethinking representation, training data, and evaluation entirely. Not just a data problem. |
-| 4 | **Text-to-music alignment** | Models follow *some* of the prompt but miss nuance. "Sad" could mean slow tempo, minor key, low dynamics, or specific orchestration. Current systems capture 1–2 dimensions at best. |
+| 4 | **Text-to-music alignment** | Models follow *some* of the prompt but miss nuance. "Sad" could mean slow tempo, minor key, low dynamics, or specific orchestration. The number and type of attributes followed vary by model and prompt. |
 | 5 | **SVS naturalness** | The "almost good" problem. Close but not quite there — requires better modeling of vocal physiology and musical phrasing simultaneously. |
-| 6 | **Multi-track coherent generation** | Generating piano + drums + bass + melody together with proper mixing. Current systems either generate single stems or mix them poorly. |
+| 6 | **Multi-track coherent generation** | Generating piano + drums + bass + melody together with proper mixing. Joint stem consistency and controllable mixing remain useful evaluation targets. |
 
 ---
 
@@ -72,7 +72,7 @@ Ranked by difficulty based on current state of the art:
 
 ### 5.1 Representations matter more than architectures
 
-Given the choice between a better tokenizer and a bigger model, I'd pick the tokenizer every time. The representation determines what the model *can* learn. A Transformer with perfect data and mediocre architecture will outperform a SOTA architecture with bad representation. This is why I spent so much time on the [music-theory-fundamentals](docs/notes/music-theory-fundamentals.md) and [audio-engineering](docs/notes/audio-engineering.md) notes — understanding the signal is prerequisite to understanding the model.
+Given the choice between a better tokenizer and a bigger model, I'd pick the tokenizer every time. The representation determines what the model *can* learn. A Transformer with perfect data and mediocre architecture will outperform a SOTA architecture with bad representation. This is why I spent so much time on the [music-theory-fundamentals](../notes/music-theory-fundamentals.md) and [audio-engineering](../notes/audio-engineering.md) notes — understanding the signal is prerequisite to understanding the model.
 
 ### 5.2 Evaluation is product, not afterthought
 
@@ -96,7 +96,7 @@ The best research questions are not found by reading papers — they're found by
 
 ### On Diffusion vs. Autoregressive for Music
 
-Diffusion models produce higher-quality audio but are slow to generate. Autoregressive models are faster but suffer from error accumulation. **The field will converge on a hybrid approach**: diffusion for quality refinement, autoregressive for structure. We're already seeing this in models like ACE-Step and YuE.
+Diffusion and autoregressive systems have different latency and control trade-offs; neither family is universally faster or higher quality. **My hypothesis is that hybrid systems will remain useful**, but this is a prediction. ACE-Step and YuE should be described using their actual versioned architectures rather than treated as proof of one universal hybrid design.
 
 ### On Text-to-Music vs. Symbolic Generation
 
@@ -123,13 +123,13 @@ AI will not replace musicians. But **musicians who use AI will replace musicians
 ### 7.2 What I'd do differently
 
 - **Started with a scope document**: I should have written "this repository covers X, Y, Z and explicitly does NOT cover A, B, C" before writing anything. The scope naturally expanded, which is fine, but a written scope would have prevented some early ambiguity.
-- **More emphasis on reproducibility**: The [model-reproduction-guide](docs/notes/model-reproduction-guide.md) is the thinnest note. Reproducibility is the most important practical skill in research and deserves more space.
+- **More emphasis on reproducibility**: The [model-reproduction-guide](../notes/model-reproduction-guide.md) is the thinnest note. Reproducibility is the most important practical skill in research and deserves more space.
 - **Earlier focus on evaluation**: I wrote about generation and MIR first, then evaluation. Evaluation should have been introduced alongside each topic, not as a standalone section. The metric-humanness gap affects everything.
 
 ### 7.3 What's still missing
 
 - **Experiment logs**: Actual numbers from running models, comparison tables with real measurements, "I tried X and got Y" records. This is the hardest to maintain but the most valuable for research.
-- **Code**: Working examples, not just snippets. A notebook that end-to-end generates music, evaluates it, and visualizes the results.
+- **Code**: The cookbook now includes tested CPU baselines, but full model reproduction and end-to-end GPU experiment logs are still missing.
 - **Community**: This is a personal knowledge base. Opening it to contributions (issues, PRs, discussions) would make it better but requires moderation overhead.
 
 ---
@@ -145,7 +145,7 @@ AI will not replace musicians. But **musicians who use AI will replace musicians
 ### Papers (the foundational kind)
 
 - **Huang et al. "Music Transformer" (ICLR 2019)** — The paper that made transformer-based music generation work. Understanding the relative attention modification is key to understanding all subsequent work.
-- **Defossez et al. "HiFi-GAN" (NeurIPS 2020)** — The vocoder that made neural audio synthesis practical. Everything downstream (MusicGen, Stable Audio) builds on this.
+- **Kong, Kim and Bae, "HiFi-GAN" (NeurIPS 2020)** — An influential GAN vocoder for mel-to-waveform synthesis; not every later music model directly uses it. [Paper](https://arxiv.org/abs/2010.05646)
 - **Borsos et al. "AudioLM" (2022)** — The paper that established the "discrete token → language model" paradigm that dominates current generation.
 - **Wu et al. "CLAP" (2023)** — The paper that made text-conditioned audio understanding practical. Foundation for zero-shot evaluation.
 

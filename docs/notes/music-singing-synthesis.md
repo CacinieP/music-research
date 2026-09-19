@@ -1,288 +1,196 @@
 # Singing Voice Synthesis (SVS): Technical Research Notes
 
-State of the field in singing voice synthesis as of 2025--2026. Covers acoustic modeling, singing-specific representations, controllable singing generation, singing voice conversion, datasets, and evaluation.
+Research notes checked on 2026-09-19. Covers score-conditioned singing, acoustic models, waveform generation, controllability, voice conversion, datasets, and evaluation.
+
+> 中文版：[music-singing-synthesis-zh.md](music-singing-synthesis-zh.md)
 
 ---
 
-## 1. What Is SVS? SVS 是什么
+## 1. Task Definition
 
-Singing voice synthesis (歌声合成) generates singing audio from symbolic input (lyrics + musical score) or text. It sits at the intersection of TTS, music generation, and audio synthesis.
+In score-conditioned **singing voice synthesis**, lyrics and musical notes specify what should be sung. A system predicts pronunciation timing and expressive acoustics, then produces a singing waveform. Text-to-song models may also compose melody and accompaniment; that broader task does not imply exact score control.
 
-**Why SVS is distinct from TTS**:
+| Aspect | Typical speech synthesis | Score-conditioned singing synthesis |
+|--------|--------------------------|-------------------------------------|
+| Pitch | Linguistic intonation and expression | Note targets plus expressive deviations |
+| Timing | Linguistic prosody | Musical timing plus phoneme-level articulation |
+| Sustained sound | Usually shorter vowels | Long vowels and note transitions are central |
+| Ornamentation | Speech-dependent pitch movement | May include vibrato, portamento, and melisma |
+| Control | Text, voice, prosody | Lyrics, notes, timing, voice, and expression |
 
-| Dimension | TTS | SVS |
-|-----------|-----|-----|
-| Pitch range | Narrow (speaking pitch) | Wide (musical pitch, 2+ octaves) |
-| Duration | Prosodic, language-dependent | Musical (note durations, tied to score) |
-| Vibrato | Minimal | Essential artistic expression |
-| Phonation | Continuous speech | Sustained notes, vocal runs, melisma |
-| F0 control | Coarse | Fine-grained (semitones + cents) |
-| Style | Conversational | Artistic, genre-dependent |
+These are tendencies, not hard boundaries. Singing need not span two octaves or use vibrato. **Melisma** means several notes on one syllable. Music generation also includes monophonic or instrumental-only outputs, so “music generation always produces full arrangements” is too narrow.
 
-**Why SVS is distinct from music generation**:
+## 2. Pipeline Architecture
 
-Music generation produces full arrangements. SVS focuses on the *singing voice* as a distinct timbral and expressive entity, with lyrics as a primary conditioning signal.
-
----
-
-## 2. Pipeline Architecture 管线架构
-
-A typical SVS system:
-
-```
-Input: Lyrics + Musical Score (pitch, duration, phonemes)
-    ↓
-Frontend: Text/phoneme processing + score parsing
-    ↓
-Acoustic Model: Generates acoustic features (mel-spectrogram, F0, s/δ)
-    ↓
-Vocoder: Converts acoustic features to waveform
-    ↓
-Output: Singing audio
+```text
+Lyrics + notes + tempo / timing
+    → language-specific pronunciation and score frontend
+    → note–syllable–phoneme alignment and duration modeling
+    → acoustic model (spectral features, F0, voicing or other controls)
+    → compatible vocoder / waveform decoder
+    → singing audio
 ```
 
-### 2.1 Frontend
+End-to-end models can train several of these stages jointly. This does not remove the need to model timing or synthesize a waveform.
 
-- **Lyrics-to-phoneme conversion**: Grapheme-to-phoneme (G2P) for language-specific pronunciation.
-- **Score parsing**: Extract note pitch, duration, and phoneme boundaries from musicXML, MIDI, or custom formats.
-- **Prosody prediction**: Some systems predict singing-specific prosody (phrase boundaries, breath marks).
+### 2.1 Frontend and Alignment
 
-### 2.2 Acoustic Model
+- Convert lyrics to phonemes with language-specific pronunciation rules; handle lexical tone, pronunciation variants, and cross-language phones explicitly.
+- Parse note pitch, onset, duration, rests, ties, slurs, tempo, and lyrics where present.
+- Standard MusicXML/MIDI input does not generally contain phoneme-to-audio boundaries. These must be annotated, aligned, predicted, or supplied in a specialized format.
+- Handle one syllable over multiple notes and multiple phonemes within a note. Consonants may precede the notated vowel onset, so allocating equal phoneme durations is usually inappropriate.
+- Reserve time for breaths and phrase boundaries where the training representation and system support them.
 
-Generates time-aligned acoustic features:
+### 2.2 Acoustic Features
 
-| Feature | Description | Role |
-|---------|-------------|------|
-| **Mel-spectrogram** | Time-frequency representation | Primary output, feeds vocoder |
-| **F0 (fundamental frequency)** | Pitch contour over time | Controls singing pitch |
-| **s/δ** | Voiced/unvoiced flag + duration delta | Breathiness, phonation control |
+| Feature | Meaning | Important distinction |
+|---------|---------|-----------------------|
+| Mel-spectrogram / spectral envelope | Time-frequency energy or timbral shape | The required representation depends on the decoder |
+| F0 | Fundamental frequency in voiced frames | Note pitch is a target; performed F0 includes transitions and ornamentation |
+| Voiced/unvoiced flag | Whether periodic voicing is detected or requested | Not identical to silence or breathiness |
+| Aperiodicity, energy, breathiness controls | Noise, level, or expression-related features | Model-specific; no standard universal “s/δ” feature |
+| Phoneme duration | Alignment of pronunciation to time | A timing variable, not a phonation flag |
 
-### 2.3 Vocoder
+### 2.3 Waveform Generation
 
-Converts mel-spectrogram to waveform:
+| Method | Architecture / role |
+|--------|---------------------|
+| WORLD | Signal-processing vocoder using F0, spectral envelope, and aperiodicity |
+| HiFi-GAN / neural source-filter variants | Convolutional adversarial waveform generation; some variants explicitly use F0 |
+| DiffWave | Iterative diffusion waveform model; speed and quality depend on checkpoint and sampling |
+| Vocos | Convolutional backbone with Fourier-domain output and inverse STFT; not a Transformer vocoder by default |
+| SoundStream / EnCodec / DAC decoders | Reconstruct audio from their own learned codec representations; not drop-in mel vocoders |
 
-| Vocoder | Type | Notes |
-|---------|------|-------|
-| **HiFi-GAN** | GAN-based | Standard baseline, fast inference |
-| **DiffWave** | Diffusion-based | Higher quality, slower |
-| **Vocos** | Transformer-based | Recent, good quality-speed tradeoff |
-| **SoundStream / EnCodec** | Neural codec | Used in end-to-end systems |
+[Vocos paper and implementation](https://github.com/gemelo-ai/vocos) document its Fourier-based approach. Vocoder performance must be measured on the target singing range and sampling rate; a speech-trained checkpoint can fail on sustained or very high notes.
 
----
+## 3. Representative Models
 
-## 3. Key Models 关键模型
+### 3.1 Earlier Methods and XiaoiceSing
 
-### 3.1 Classical Approaches (Pre-2020)
+Unit concatenation and statistical parametric systems predate modern neural SVS. HMM/DNN systems model acoustic features and timing from linguistic and musical inputs; their expressiveness and smoothing depend on the system and data.
 
-- **HMM-based SVS** (2000s–2010s): Hidden Markov Models trained on singing databases. Produced robotic but intelligible singing. Limited expressiveness.
-- **Statistical parametric**: Used DNNs to predict mel-spectrogram + F0 from phoneme/note sequences. Improved naturalness but still "singing-speech" quality.
+[XiaoiceSing](https://arxiv.org/abs/2006.06261) (Lu et al., INTERSPEECH 2020) uses a **FastSpeech-style non-autoregressive** architecture. It predicts spectral features, F0, and durations with singing-specific pitch and duration constraints; the original system uses WORLD. It should not be described as an autoregressive attention decoder with HiFi-GAN.
 
-### 3.2 Neural Vocoder Era (2019--2022)
+### 3.2 DiffSinger
 
-Introduction of HiFi-GAN and other high-quality neural vocoders enabled significantly better output quality from the same acoustic models.
+[DiffSinger: Singing Voice Synthesis via Shallow Diffusion Mechanism](https://arxiv.org/abs/2105.02446) is by Jinglin Liu, Chengxi Li, Yi Ren, Feiyang Chen, and Zhou Zhao; preprint 2021, AAAI 2022.
 
-### 3.3 Diffusion-Based SVS (2022--Present)
+The acoustic model denoises mel-spectrograms conditioned on the score. Shallow diffusion starts from an intermediate noise level applied to a simpler decoder's prediction, using a learned/estimated boundary, and shortens the reverse process. A vocoder then synthesizes audio. This is not an unconditional promise of superior quality with any step count.
 
-Diffusion models generate mel-spectrograms by iterative denoising:
+The [OpenVPI DiffSinger implementation](https://github.com/openvpi/DiffSinger) extends the original framework. Multi-speaker/language support, variance controls, accelerated sampling, and supported vocoders depend on the repository version and trained voicebank; community features should not be attributed automatically to the original paper.
 
-| Model | Description |
-|-------|-------------|
-| **DiffSinger (2021, updated 2022)** | Diffusion-based mel-spectrogram generation. Landmark open-source SVS system. Supports multi-speaker, multi-language. Architecture: U-Net diffusion conditioned on phoneme + pitch + duration. |
-| **Grad-TTS** | Score-based diffusion for TTS, adapted for singing |
-| **SingSong (Google, 2023)** | Separates singing voice from music, then re-synthesizes. Diffusion-based approach. |
+### 3.3 VISinger and VISinger 2
 
-### 3.4 End-to-End and Large Model Approaches (2024--2026)
+[VISinger](https://arxiv.org/abs/2110.08813) (Yongmao Zhang et al.; preprint 2021, ICASSP 2022) adapts VITS to singing: variational inference, normalizing flows, adversarial waveform decoding, frame-level priors, pitch prediction, and a note-aware duration model. End-to-end training still contains explicit duration modeling.
 
-| Model | Description |
-|-------|-------------|
-| **ACE Singer (ACE Studio)** | Commercial SVS system with DAW integration, multi-language, multiple synthesis engines |
-| **OpenDiffSinger** | Open-source DiffSinger fork with community extensions (multi-speaker, multi-language, fast inference) |
-| **Music-SOM (2024)** | Singing-oriented model with style control |
-| **Singing voice in foundation models** | Some music foundation models (ACE-Step, MusicGen extended) include singing voice generation capability |
-| **RDCM-based models (2025)** | Recurrent Diffusion Composition Models for long-form singing with structural coherence |
+[VISinger 2](https://arxiv.org/abs/2211.02903) (Yongmao Zhang et al.; preprint 2022, INTERSPEECH 2023) adds harmonic/noise DSP synthesis to guide waveform decoding and address phase-related artifacts, generating 44.1 kHz singing.
 
-**对 AI 的意义**：SVS is converging with general audio generation. MusicGen, AudioLDM 2, and other text-to-music models can produce singing-like audio, but lack the fine-grained control (phoneme-level timing, exact pitch) that dedicated SVS systems provide. The frontier is *controllable* singing within general generation frameworks.
+### 3.4 DiTSinger and Commercial Tools
 
----
+[DiTSinger](https://arxiv.org/abs/2510.09016) (2025) studies diffusion Transformers and implicit phoneme alignment constrained by character-level spans, together with a synthetic-data construction pipeline. “Implicit alignment” does not mean that all musical timing information is absent.
 
-## 4. Singing-Specific Representations 歌声专用表示
+Commercial score/lyrics editors such as [ACE Studio](https://acestudio.ai/) and [Synthesizer V](https://dreamtonics.com/synthesizerv/) are relevant engineering systems, but product claims are not peer-reviewed architecture descriptions. Language, voicebank, plug-in, and licensing support should be checked for the exact product version.
 
-### 4.1 Score Representations
+### 3.5 Adjacent Tasks: SingSong and Full-Song Models
 
-| Format | Description | AI relevance |
-|--------|-------------|-------------|
-| **MusicXML** | Standard sheet music format | Pitch + duration + lyrics + dynamics |
-| **MIDI** | Note events + timing | Pitch and timing, but no lyrics/phonemes |
-| **SVS-specific formats** | Custom (e.g., DS format in DiffSinger) | Phoneme-level alignment + pitch + duration |
+[SingSong](https://arxiv.org/abs/2301.12662) (Donahue et al., 2023) generates **instrumental accompaniment from input singing**. It adapts AudioLM and uses source-separated vocal/instrumental pairs for training. It is neither a diffusion SVS model nor a singing extraction-and-resynthesis method.
 
-### 4.2 Pitch Representation
+Lyrics-to-song models such as YuE and ACE-Step produce vocals with accompaniment; see [music generation](music-generation.md). MusicGen's chroma conditioning is not a guarantee of intelligible lyrics, exact notes, or phoneme timing. Do not equate singing-like audio with a validated SVS interface.
 
-| Representation | Description | Use |
-|----------------|-------------|-----|
-| **MIDI note number** | Discrete semitone | Coarse conditioning |
-| **Continuous F0** | Fundamental frequency in Hz | Fine pitch control |
-| **F0 in cents** | Semitones + cents deviation | Microtonal expressiveness |
-| **Pitch contour** | Normalized pitch trajectory | Pitch shape modeling |
+## 4. Singing Representations and Controls
 
-**Vibrato modeling**: Vibrato is typically 5--7 Hz with depth of 20--50 cents. Most SVS systems model vibrato implicitly (learned from data) rather than explicitly.
+### 4.1 Score and Pitch
 
----
+| Representation | What it can provide |
+|----------------|---------------------|
+| MusicXML | Notes, durations, notation, lyrics, and expression marks when encoded |
+| Standard MIDI File | Note events and timing; optional lyric/text meta events, but no required phoneme alignment |
+| System-specific formats | Explicit phones, note assignment, durations, F0 and variance curves as supported |
 
-## 5. Controllable Singing Generation 可控歌声生成
+For equal temperament with A4 = 440 Hz,
 
-### 5.1 Controllable Dimensions
+$$
+f(n)=440\,2^{(n-69)/12},\qquad
+c(f_1,f_2)=1200\log_2(f_1/f_2),\quad f_1,f_2>0.
+$$
 
-| Dimension | Control method | Notes |
-|-----------|---------------|-------|
-| **Pitch** | F0 conditioning, pitch shift | Most fundamental control |
-| **Timbre** | Speaker embedding, reference audio | Identity of singer |
-| **Style** | Genre/emotion tags, style embedding | Pop vs. opera vs. folk |
-| **Expressiveness** | Vibrato depth, breathiness, dynamics | Artistic control |
-| **Language** | Phoneme set, G2P model | Multi-lingual support |
-| **Duration** | Note duration, tempo | Tempo control |
-| **Vocal technique** | Belting, falsetto, vocal fry | Advanced control |
+MIDI note number $n$ specifies a semitone grid. A continuous F0 curve represents vibrato, glides, and intonation between notes. Cents express a **ratio to a stated reference**, not an absolute frequency unit; the formula is undefined for unvoiced frames represented by zero.
 
-### 5.2 Controllable Generation Methods
+Vibrato rate and extent vary with singer, genre, register, and definition of extent (amplitude versus peak-to-peak). Avoid treating “5–7 Hz and 20–50 cents” as a universal target. Straight-tone singing can be intentional.
 
-| Approach | Method | Trade-off |
-|----------|--------|-----------|
-| **Score conditioning** | Pitch + phoneme + duration as input | Precise but needs accurate score |
-| **Reference audio** | Encode reference singer's timbre + style | Natural timbre but less controllable |
-| **Text + pitch** | Text lyrics + pitch contour | Intuitive but coarse |
-| **Disentangled representations** | Separate pitch/timbre/style in latent space | Most flexible, hardest to train |
+### 4.2 Control Dimensions
 
----
+| Dimension | Possible conditioning | Limitation |
+|-----------|-----------------------|------------|
+| Pitch and timing | Notes, F0, tempo, phone durations | Controls can conflict or exceed the singer's trained range |
+| Singer identity | Singer embedding or reference recording | Identity/style leakage and domain mismatch |
+| Style and emotion | Labels, reference audio, continuous controls | Labels do not guarantee perceptually independent factors |
+| Breathiness and dynamics | Model-specific variance curves | A voiced/unvoiced switch alone is insufficient |
+| Technique | Falsetto, belting, growl, vocal fry labels or examples | Requires relevant data and evaluation |
+| Language | Pronunciation frontend and training coverage | Shared phone symbols do not guarantee pronunciation transfer |
 
-## 6. Singing Voice Conversion 歌声转换
+## 5. Singing Voice Conversion (SVC)
 
-Singing voice conversion (SVC) changes the singer's identity while preserving pitch and lyrics:
+SVC changes a recorded singer's identity/timbre while aiming to preserve lyrical content and timing. Pitch may be preserved or intentionally transposed; this must be specified. It takes a source performance, unlike score-conditioned SVS.
 
-| Method | Description | Limitation |
-|--------|-------------|-----------|
-| **Acoustic feature conversion** | Convert mel-spectrogram/F0 with singer-specific models | Requires parallel data |
-| **Diffusion-based conversion** | Diffusion model conditioned on target speaker | Better quality, needs speaker embeddings |
-| **Content-style disentanglement** | Separate content (pitch/lyrics) from style (timbre) in latent space | Most flexible, challenging to train |
-| **So-VITS-SVC** | Open-source VITS-based SVC, widely used | Popular but quality varies by speaker |
+Feature mapping, content/pitch/singer disentanglement, adversarial decoders, and diffusion are possible components. Some methods need parallel recordings; many use non-parallel data and self-supervised content features. Neither a diffusion architecture nor a target-speaker embedding guarantees better quality.
 
-**Key challenge**: Preserving pitch accuracy and phoneme timing during voice conversion. Many SVC systems introduce pitch drift or timing artifacts.
+[So-VITS-SVC](https://github.com/svc-develop-team/so-vits-svc) is a community implementation family; identify the exact version/fork. Evaluate content preservation, pitch, pronunciation timing, artifacts, and target-singer similarity separately.
 
----
+## 6. Public Singing Datasets
 
-## 7. Datasets 数据集
+Counts below refer to the cited release, and distinguish songs, recordings, and singers.
 
-### 7.1 Public SVS Datasets
+| Dataset | Language | Singers | Content |
+|---------|----------|---------|---------|
+| [Opencpop](https://wenet-e2e.github.io/opencpop/) | Mandarin | 1 | 100 songs, 3,756 utterances, about 5.2 hours; note/phoneme annotations |
+| [M4Singer](https://openreview.net/forum?id=qiDmAaG6mP) | Mandarin | 20 | 700 songs, about 30 hours; annotated scores and SATB voice types |
+| [NUS-48E](https://smcnus.comp.nus.edu.sg/archive/pdf/2012-2013/2013_05-Pub-NUS-48E.pdf) | English | 12 | 48 sung recordings of 20 unique songs; about 115 minutes singing plus 54 minutes spoken lyrics |
+| [JSUT-song](https://sites.google.com/site/shinnosuketakamichi/publication/jsut-song) | Japanese | 1 | 27 children's songs, about 25 minutes, 48 kHz |
+| [Tohoku Kiritan](https://www.jstage.jst.go.jp/article/ast/42/3/42_E2074/_article) | Japanese | 1 | 50 songs, about 57 minutes of studio vocals |
 
-| Dataset | Language | Speakers | Content | Notes |
-|---------|----------|----------|---------|-------|
-| **Opencpop** | Chinese | 1 | ~100 songs, pop | Popular for Chinese SVS research |
-| **M4Singer** | Chinese | 8 | 92 songs, pop/folk | Multi-speaker Chinese |
-| **NUS48E** | English | 4 | 48 song excerpts | Multi-style |
-| **JSUT Song** | Japanese | 1 | 100 songs | Japanese SVS benchmark |
-| **Kiritan** | Japanese | 5 | 163 songs | Multi-speaker Japanese |
-| **VCTK** | English | 110 | Speech (not singing) | Often used for pre-training |
-| **MUSAN** | — | — | Noise/music augmentation | Data augmentation |
+VCTK is speech data, and MUSAN contains speech/music/noise for auxiliary uses; neither is a score-aligned SVS corpus. A corpus suitable for SVC may require new score annotations for supervised SVS. Read each release's usage and redistribution conditions separately.
 
-### 7.2 Data Challenges
+Split by song and, for unseen-singer evaluation, by singer. Segmenting the same recording across training and test sets causes leakage. Source-separated vocals can increase coverage but retain accompaniment leakage, artifacts, and uncertain timing; they are not equivalent to clean studio stems.
 
-- **Alignment**: Phoneme-to-audio alignment for singing is harder than speech (sustained notes, vibrato, melisma).
-- **Multi-lingual scarcity**: High-quality singing data exists primarily for Chinese, Japanese, and English. Low-resource languages are underserved.
-- **Copyright**: Singing datasets derived from commercial recordings have licensing restrictions.
+## 7. Evaluation
 
----
+### 7.1 Objective Metrics
 
-## 8. Evaluation 评测
+| Metric | Required specification |
+|--------|------------------------|
+| F0 RMSE | Hz or log-frequency/cents, alignment, pitch extractor, voiced-frame mask, and octave-error treatment |
+| F0 correlation | Common voiced frames; correlation does not detect a constant pitch offset and is undefined for zero variance |
+| Voicing error | Separate voiced/unvoiced accuracy or error, rather than hiding unvoiced frames in pitch RMSE |
+| Note/phoneme timing | Target annotations, onset/offset tolerances, and handling of melisma |
+| Mel / STFT error or MCD | Aligned reference, feature definition, normalization, coefficient selection and any time warping |
+| Lyric error | Validated singing transcription, WER/CER or phone error, plus manual intelligibility checks |
+| Singer similarity | Embedding model validated on singing; compare against reference singer recordings |
 
-### 8.1 Objective Metrics
+On jointly voiced, aligned frames $V$, one possible cents RMSE is
 
-| Metric | Description |
-|--------|-------------|
-| **F0 RMSE** | Root mean square error of pitch contour (cents) |
-| **F0 correlation** | Pearson correlation between predicted and ground-truth F0 |
-| **Mel-spectrogram L1/L2** | Spectrogram reconstruction quality |
-| **MCD** | Mel-cepstral distortion — voice quality similarity |
-| **Phoneme accuracy** | Intelligibility of lyrics |
-| **Speaker similarity** | Cosine similarity of speaker embeddings (for timbre) |
+$$
+\operatorname{RMSE}_{\mathrm{cent}}=
+\sqrt{\frac{1}{|V|}\sum_{t\in V}
+\left(1200\log_2\frac{\hat f_0(t)}{f_0(t)}\right)^2}.
+$$
 
-### 8.2 Subjective Metrics
+Report an undefined/missing result if $|V|=0$, not a perfect zero. F0 error against a performed reference and deviation from an ideal note are different measurements: expressive vibrato can increase the latter without indicating poor singing.
 
-| Metric | Description |
-|--------|-------------|
-| **MOS** | Overall quality rating |
-| **PEMO** | Perceptual evaluation (same as audio quality) |
-| **Pitch accuracy** | Human-rated pitch correctness |
-| **Naturalness** | How natural the singing sounds |
-| **Speaker similarity** | How similar to target singer |
+### 7.2 Listening Tests
 
-### 8.3 Benchmark Challenges
+Rate naturalness, audio quality, pronunciation, musical timing, expression, and singer similarity separately where relevant. MOS and pairwise preference are methods; **PEMO-Q is an objective model, not a subjective listening protocol**. Listen to both isolated vocals and their musical context when the claim concerns integration into a song.
 
-| Challenge | Description |
-|-----------|-------------|
-| **SVS Challenge (ISCS 2022/2023)** | Annual challenge with multiple tracks (singing voice synthesis, conversion) |
-| **Vocals-based SVS** | Using source-separated vocals as training data |
+Specify listener population, randomization, examples, confidence intervals, and independent test songs/singers. Objective spectral and pitch errors measure particular deviations; their correlation with overall preference must be established for the evaluated setting. See [evaluation methodology](music-evaluation.md).
 
----
+## 8. Open Problems
 
-## 9. Open Problems 开放问题
+- Maintaining voice identity, intelligibility, and expressive phrasing through full songs.
+- Learning controllable techniques and emotion without changing singer identity unintentionally.
+- Generalizing to unseen singers from a short reference, with a clear distinction between zero-shot inference and fine-tuning.
+- Robust phoneme/note alignment across languages, sustained vowels, and melisma.
+- Low-latency interaction: report first-audio latency as well as total real-time factor and hardware.
+- Evaluation across styles and cultures; common datasets such as Opencpop do not create a universal protocol for all SVS tasks.
+- Integrating lead vocals, harmonies, and accompaniment with control over each part.
 
-### 9.1 Technical Challenges
-
-- **Long-form coherence**: Maintaining consistent timbre and pitch accuracy over full songs (3--5 minutes). Most systems evaluate on 10--30s clips.
-- **Expressive control**: Fine-grained control over vibrato, breathiness, dynamics, and vocal technique remains limited.
-- **Zero-shot singing**: Generating singing in a new voice without any training data from that voice.
-- **Multi-track singing**: Generating backing instruments + singing together with proper mixing.
-- **Real-time SVS**: Low-latency singing synthesis for interactive applications (karaoke, games).
-
-### 9.2 Data and Cultural Challenges
-
-- **Low-resource languages**: Most SVS research focuses on Chinese, Japanese, and English. Languages with limited singing data are underserved.
-- **Singing style diversity**: Opera, folk, pop, rap-singing, and other styles require different modeling approaches.
-- **Phoneme alignment**: Accurate phoneme-to-audio alignment for singing is fundamentally harder than speech due to sustained notes and melisma.
-
-### 9.3 Evaluation Challenges
-
-- **No standard benchmark**: Unlike MIR (GTZAN, MAESTRO), there is no universally accepted SVS benchmark dataset and evaluation protocol.
-- **Subjective preference dominates**: Objective metrics (F0 RMSE, MCD) correlate poorly with human preference for singing quality.
-- **Missing dimensions**: Current evaluation rarely measures musicality, stylistic authenticity, or emotional impact.
-
----
-
-## 10. SVS and the Broader Music AI Ecosystem SVS 与更广泛的 AI 音乐生态
-
-SVS does not exist in isolation:
-
-| Related field | Connection |
-|---------------|-----------|
-| **TTS** | Shared pipeline (frontend → acoustic model → vocoder). SVS can benefit from TTS advances in expressiveness. |
-| **Music generation** | SVS is the "vocal layer" in full song generation (Suno, Udio). |
-| **Source separation** | Singing voice extraction (vocals isolation) provides training data for SVS. |
-| **Audio codecs** | Neural codecs (EnCodec, DAC) are enabling end-to-end singing generation in token space. |
-| **Singing voice conversion** | SVC enables voice changing for existing recordings — related to voice conversion in speech. |
-
-**Frontier**: The boundary between SVS and text-to-music is blurring. Models like MusicGen can sing (sort of), and dedicated SVS models are incorporating more musical context. The future likely involves unified models that can generate *any* musical audio including singing, with fine-grained control derived from specialized representations.
-
----
-
-## 11. Key References
-
-### Foundational
-
-| Paper | Year | Contribution |
-|-------|------|-------------|
-| DiffSinger | 2021 | Landmark diffusion-based SVS, open-source |
-| OpenDiffSinger | 2022--25 | Community fork with extensions |
-| So-VITS-SVC | 2022 | Popular VITS-based voice conversion |
-| SingSong (Google) | 2023 | Diffusion-based singing extraction + synthesis |
-
-### Recent
-
-| Paper | Year | Contribution |
-|-------|------|-------------|
-| ACE Singer (ACE Studio) | 2024--25 | Commercial multi-language SVS with DAW integration |
-| Music-SOM | 2024 | Style-controllable singing generation |
-| RDCM | 2025 | Recurrent diffusion for long-form singing |
-| DiffSinger Acceleration | 2025 | Faster inference via distillation |
-| SVS Challenge results | 2022--25 | Annual community benchmarks |
-
----
-
-> This document covers singing voice synthesis. For related topics, see [music-generation.md](music-generation.md) (general generation), [music-understanding-mir.md](music-understanding-mir.md) (source separation for vocals), [audio-engineering.md](audio-engineering.md) (vocoders, acoustic features), and [music-evaluation.md](music-evaluation.md) (evaluation methodology).
+> Related: [music generation](music-generation.md), [source separation and MIR](music-understanding-mir.md), [audio engineering](audio-engineering.md), and [evaluation](music-evaluation.md).

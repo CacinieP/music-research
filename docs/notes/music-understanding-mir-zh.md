@@ -1,55 +1,41 @@
-# 音乐理解 / 音乐信息检索 (MIR)
-
-截至 2025--2026 年领域现状。聚焦技术架构、数据集、基准测试与开放性问题。
+# 音乐理解 / 音乐信息检索（MIR）
 
 > English version: [music-understanding-mir.md](music-understanding-mir.md)
 
+涵盖方法、数据集、评测定义与开放问题。内容于 **2026-09-19** 对照一手论文、数据集发布说明和评测文档核对。公开结果均应结合具体实验条件理解，本文不声称提供完整的最新 SOTA 排名。
+
 ---
 
-## 1. 自动标注与分类
+## 1. 自动标签与分类
 
 ### 问题定义
 
-自动为音频录音分配描述性标签（流派、情绪、乐器编制、声学特征）。通常表述为在 50--100+ 个标签词表上的多标签分类问题。
+为录音分配流派、配器、情绪或声学属性标签。标签任务通常是多标签分类，固定流派基准也可以是多类单标签分类。标签词表由数据集与任务决定，并不存在通用的 50–100 标签限制。
 
-### 关键架构
+### 代表架构
 
-#### 基于 CNN（2016--2020）
-- **Choi et al., "Automatic Tagging Using Deep Convolutional Neural Networks," ISMIR 2016.** 在 mel-spectrogram 上使用 2D 卷积的 FCN。确立了深度学习可以超越手工特征用于标注任务。
-- **Won et al., "Data-driven Hybrid Approaches," ISMIR 2020.** 比较了 ResNet、SENet（squeeze-and-excitation）等 CNN 架构用于音乐标注。基于 ResNet 风格架构、包含 4--5 个卷积块的标注 CNN 仍是强基线。
+- **CNN**：在时频特征上提取局部模式并聚合为片段级预测。卷积和循环网络仍是有用基线，扩大感受野也可以捕获长程上下文。
+- **Music Tagging Transformer**（Won、Choi、Serra，ISMIR 2021）：卷积前端后接时间自注意力，使用 noisy-student 半监督训练；作者还提出了按艺术家隔离的 Million Song Dataset 划分。它并非简单的纯图像 patch Transformer。[论文](https://arxiv.org/abs/2111.13457)、[官方实现](https://github.com/minzwon/semi-supervised-music-tagging-transformer)
+- **LAION-CLAP**（Wu 等，2022 年预印本 / ICASSP 2023）：音频与文本双编码器通过对比学习对齐，支持检索与提示驱动的零样本分类。LAION-Audio-630K 是通用音频集合，并非全是音乐。[论文](https://arxiv.org/abs/2211.06687)
+- **CLaMP 3**（Wu 等，Findings of ACL 2025）：对齐符号乐谱、演奏表示、音频与多语言文本，以文本连接未对齐的模态。不能据此扩展成任意图像理解能力。[论文](https://aclanthology.org/2025.findings-acl.133/)
 
-#### 基于 Transformer（2021--）
-- **Won, Chun, Nieto, Serra, "Semi-Supervised Music Tagging Transformer," ISMIR 2021.** 将 Vision Transformer（ViT）风格架构应用于音频频谱图。浅层捕获局部声学特征；深层自注意力层建模全局时间结构。半监督训练利用未标注数据。在 MagnaTagATune 上取得 ROC-AUC **~0.914**，超越 CNN 基线。
-- 核心洞察：Transformer 能捕获 CNN 因感受野有限而遗漏的长程时间依赖（如歌曲结构、重复动机）。
+### 数据集与协议
 
-#### CLAP / 对比式音频-语言模型（2023--）
-- **Wu et al., "Large-scale Contrastive Language-Audio Pretraining," arXiv 2211.06687, 2022 (CLAP).** 双编码器对比学习，将音频和文本对齐到共享潜在空间。在约 63 万音频-文本对上训练。支持使用自然语言提示进行零样本音频分类。并非音乐专用，但广泛应用于音乐任务。代码：[github.com/LAION-AI/CLAP](https://github.com/LAION-AI/CLAP)。
-- **T-CLAP (2024):** 时序增强 CLAP，改进音频中的时间推理能力。
-- **CLaMP 3 (ACL 2025 Findings, [aclanthology.org/2025.findings-acl.133](https://aclanthology.org/2025.findings-acl.133/)):** 通过对比学习将所有主要音乐模态（乐谱、MIDI、音频、图像、文本）对齐到共享表示空间。支持跨模态和跨语言检索。在多项 MIR 任务上达到当前 SOTA。代码：[github.com/sanderwood/clamp3](https://github.com/sanderwood/clamp3)。
+| 数据集 | 范围 | 评测注意事项 |
+|---|---|---|
+| MagnaTagATune | 约 2.59 万个音乐短片段；常用前 50 标签子集 | 原始标签词表更大，需明确过滤和划分 |
+| MTG-Jamendo | 清洗后的基础集合为 55,609 曲目、195 标签 | 公开划分保留 55,525 曲目、183 标签；流派/乐器/情绪和 top-50 子集不同 |
+| GTZAN | 1,000 个片段、十种流派标签 | 重复片段、艺术家重叠和标签问题影响评测 |
+| FMA | 完整发布包含 106,574 曲目 | small/medium/large/full 的时长与标签不同，不能混用 |
+| NSynth | 305,979 个独立音符、11 个乐器家族 | 乐器家族、具体乐器身份和声源类型分类是不同任务 |
 
-### 代表性数据集
+来源：[MagnaTagATune](https://mirg.city.ac.uk/datasets/magnatagatune/index1.html)、[MTG-Jamendo 发布说明](https://github.com/MTG/mtg-jamendo-dataset)、[FMA 发布说明](https://github.com/mdeff/fma)、[NSynth 发布说明](https://magenta.tensorflow.org/datasets/nsynth)。
 
-| 数据集 | 规模 | 标签 | 备注 |
-|--------|------|------|------|
-| **MagnaTagATune** | ~25,863 个片段（各 30s） | 50 个标签 | 标准基准。标签噪声较大（众包标注）。Law et al., 2009 整理。 |
-| **MTG-Jamendo** | ~55,000 首完整曲目 | 700+ 标签（流派、情绪、乐器） | 质量更高，逐曲标注。Bogdanov et al., 2019。 |
-| **GTZAN** | 1,000 首曲目（各 30s） | 10 个流派类别 | 规模小但广泛用于流派分类。Tzanetakis & Cook, 2002。 |
-| **FMA (Free Music Archive)** | ~106,574 首曲目 | 流派层级（8/16/161 个流派） | Defferrard et al., 2017。更大规模的流派分类。 |
-| **NSynth** | ~305,000 个单音 | 乐器（11 个族）、音高、力度 | Google Magenta, Engel et al., 2017。音级标注，非曲级。 |
+报告 ROC-AUC 和 PR-AUC/average precision 时应明确平均方式。正标签稀少时，只看 ROC-AUC 可能掩盖检索精确率不足。比较系统前应固定标签子集、艺术家划分、片段长度和预训练数据规则。单个很高的 GTZAN 准确率不足以证明流派识别已经解决。[GTZAN 数据审计](https://arxiv.org/abs/1306.1461)
 
-### 近似 SOTA 性能
+### 开放问题
 
-- **MagnaTagATune (ROC-AUC):** Music Tagging Transformer ~0.914；基础模型（MERT 微调、CLAP）推至 0.92--0.93。
-- **MTG-Jamendo (ROC-AUC):** ~0.92--0.94，取决于标签子集。
-- **GTZAN 流派分类（准确率）:** 现代模型 >93%；该数据集存在已知问题（重复、长度不一致）。
-- **NSynth 乐器分类（准确率）:** CNN/Transformer 在 mel-spectrogram 上 >95%；在该数据集上已接近解决。
-
-### 开放性问题
-
-- **标签噪声：** MagnaTagATune 标签为众包标注，一致性差。具有专家标注的新基准正在出现（如 MGPHot, 2025）。
-- **长篇音乐：** 大多数模型处理固定长度片段（10--30s）。处理具有可变结构的完整曲目尚欠探索。
-- **细粒度标签：** 流派分类体系具有文化特异性和争议性。基于语言模型的少样本和零样本标注（CLAP, CLaMP 3）是有前景的方向。
-- **跨文化偏差：** 在西方流行音乐上训练的模型难以泛化到非西方音乐传统。
+噪声或缺失标签、文化特定的流派分类、长录音、稀有乐器与分布偏移。语言提示敏感性、未见流派表现应与监督标签任务分别评估。
 
 ---
 
@@ -57,656 +43,276 @@
 
 ### 问题定义
 
-将原始音频转换为符号化音符表示（类 MIDI）：起始时间、结束时间、音高、力度，以及可选的乐器标签。被称为"音乐版的语音识别"。
+把音频转换为符号事件，包括音高、起音、止音，以及可选的力度、乐器和踏板事件。音高轮廓、钢琴卷帘和完整 MIDI 转录是不同输出。
 
-### 钢琴转录
+### 钢琴与多乐器模型
 
-由于有对齐的 MIDI/音频数据集，这是研究最充分的场景。
+| 模型 | 核心思路 | 来源 |
+|---|---|---|
+| Onsets and Frames（Hawthorne 等，ISMIR 2018） | 联合预测起音与帧级活动，起音检测限制音符何时开始 | [论文](https://arxiv.org/abs/1710.11153) |
+| 高分辨率钢琴转录（Kong 等，2020 年预印本 / TASLP 2021） | 回归起音/止音时间，解码精细音符与踏板事件 | [论文](https://arxiv.org/abs/2010.01815) |
+| MT3（Gardner 等，ICLR 2022） | T5 风格编码器/解码器将频谱片段映射为事件 token 序列，跨转录数据集联合训练 | [论文](https://arxiv.org/abs/2111.03017)、[代码](https://github.com/magenta/mt3) |
 
-#### 关键模型
+MT3 使用不同 token 类型表示时间、音高、乐器和音符状态，并不是一个 token 打包音符的全部属性。其多乐器配置不会仅因事件词表有力度相关状态，就能恢复完整的表现性力度。
 
-- **Onsets and Frames (Hawthorne et al., "Onsets and Frames: Dual-Objective Piano Transcription," ISMIR 2018).**
-  - 架构：频谱图上的 CNN 馈入两个独立的 LSTM 堆栈——一个用于起始检测，一个用于帧级音高分类。起始检测结果调节帧预测。
-  - 在 MAPS 上训练：MAESTRO 测试集 note-level F1 ~50%。在 MAESTRO 上训练：note-level F1 ~67%。
-  - Google Magenta 实现。相较之前的 HMM 方法有重大飞跃。
+**2025 AMT Challenge** 报告被 **NeurIPS 2025 的 AI for Music Workshop** 接收，2026 年 3 月上传 arXiv。报告共有八支有效参赛队，其中两支超过 MT3 基线，复调和音色变化仍有困难。这不是 NeurIPS 主会基准论文。[挑战报告](https://arxiv.org/abs/2603.27528)
 
-- **高分辨率钢琴转录 (Kong et al., 2020--2021).**
-  - 架构：基于回归的起始/结束检测 + 音高分类，使用高分辨率特征图的 CNN。
-  - 报告在 MAESTRO 测试集上 note-level F1 ~90--93%（含偏移容忍）。首批突破 90% 的模型之一。
-  - 采用回归预测起始/结束时间，而非二值分类。
+鼓转录预测击打时刻和鼓件类别。ENST-Drums 等打击乐数据集的标签映射与录音条件不同，比较时需统一鼓件词表和起音容差。
 
-- **基于 Transformer 的钢琴转录 (Hawthorne et al., 2022).**
-  - 将 Transformer 编码器应用于频谱图，联合预测起始/结束/音高/力度。在 MAESTRO 上进一步提升。
+### 代表数据集
 
-- **Onsets and Velocities (2023).** 轻量级模型，以更高效的架构在 MAESTRO v3 上达到 SOTA 起始检测性能。
+| 数据集 | 内容 | 重要区别 |
+|---|---|---|
+| MAPS | 带对齐符号标签的钢琴录音与合成钢琴 | 按录音条件与音乐内容划分 |
+| MAESTRO | 约 200 小时钢琴演奏，MIDI 紧密对齐 | 版本不同；v3 从 v2 中移除了六段含弦乐伴奏的录音 |
+| MusicNet | 330 个古典合奏录音 | 乐器/音符标签存在对齐不确定性 |
+| Slakh2100 | 2,100 个合成多轨混音 | 合成音频不等于真实合奏录音 |
+| URMP | 44 段小型合奏表演 | 分离及合成演奏，附乐器标注 |
 
-#### 现代系统（2023--2025）在 MAESTRO 上的钢琴转录 note-level F1 已达 93--97%（frame-level F1 >95%）。
+来源：[MAESTRO 发布说明](https://magenta.tensorflow.org/datasets/maestro)、[MusicNet](https://homes.cs.washington.edu/~thickstn/musicnet.html)、[Slakh](http://www.slakh.com/)、[URMP](https://labsites.rochester.edu/air/projects/URMP.html)。
 
-### 多乐器转录
+### 评测：区分 F1 定义
 
-- **MT3 (Gardner et al., "MT3: Multi-Task Multitrack Music Transcription," ICLR 2022, [arXiv 2111.03017](https://arxiv.org/abs/2111.03017)).**
-  - 架构：T5 编码器-解码器 Transformer。将转录视为序列到序列任务：输入音频频谱图，输出音符事件的 token 序列。每个音符 token 包含乐器标签 + 音高 + 起始/结束/力度。
-  - 同时在多个数据集上训练（多任务），使单一模型能转录任意乐器组合。
-  - 基于 Google 的 T5X 框架。代码：[github.com/magenta/mt3](https://github.com/magenta/mt3)。
-  - 无需为每种乐器训练独立模型。
+- **帧级 F1**：比较每帧活动音高。
+- **不含止音的音符 F1**：匹配音高与起音。
+- **含止音的音符 F1**：进一步要求结束时间符合容差。
+- **力度/乐器感知指标**：增加匹配条件，应明确标明。
 
-- **2025 AMT Challenge (NeurIPS 2025, [arxiv.org/html/2603.27528v1](https://arxiv.org/html/2603.27528v1)).**
-  - 多乐器转录社区基准。新测试集，云端评估。
-  - MT3 作为基线。多个团队提交了改进方案。
-  - 将评估从钢琴扩展到真实多乐器混合。
+`mir_eval.transcription` 的默认音符匹配使用 50 ms 起音容差、50 音分音高容差。启用止音评分时，止音容差为 `max(50 ms, 参考音符时长的 20%)`。设置 `offset_ratio=None` 可忽略止音。在相同预测和匹配协议下，增加止音条件不可能提高 F1。[评测文档](https://mir-eval.readthedocs.io/latest/api/transcription.html)
 
-- **YourMT3+ (2024).** 基于 MT3 构建的多任务多轨模型训练工具包。
+作为**历史实例**，Kong 等报告其 MAESTRO 评测中 **起音 F1 为 96.72%**。这不是含止音音符 F1 96.72%，也不是当前所有钢琴转录系统的通用分数。数据集版本和比较协议见[原论文](https://arxiv.org/abs/2010.01815)。
 
-- **CountEM (ISMIR 2025).** 使用音符事件直方图作为监督信号，无需精确时间对齐的 MIDI。降低了对昂贵对齐数据的依赖。
+### 开放问题
 
-### 鼓转录
-
-- 专注于转录鼓击（底鼓、军鼓、踩镲等）的独立子领域，需输出起始时间和鼓件标签。
-- 数据集：ENST-Drums, RBMA-13, SoundBrush。
-- 在 mel-spectrogram 上使用 CNN 和 CRNN 方法；通常表述为帧级多标签分类。
-- 由于数据集较小且音色变化更大，进展不如钢琴转录。
-
-### 代表性数据集
-
-| 数据集 | 内容 | 规模 | 备注 |
-|--------|------|------|------|
-| **MAPS** | 钢琴（合成 + 录制） | ~240 首作品 | 对齐的 MIDI/音频。Emiya et al., 2010。首个标准基准。 |
-| **MAESTRO** | 钢琴（真实演奏） | ~200 小时, ~1,282 场演奏 | 来自 International Piano-e-Competition 的对齐 MIDI/音频。Hawthorne et al., 2019。钢琴转录的金标准。 |
-| **MusicNet** | 多种乐器（合奏） | 330 首录音 | Thickstun et al., 2017。多乐器，但对齐质量参差不齐。 |
-| **SLAKH** | 多乐器（合成） | ~2,100 个混合 | Manilow et al., 2019。由独立合成的乐器轨构建。 |
-| **URMP** | 多乐器（二重奏到五重奏） | 44 场演奏 | Li et al., 2018。规模小但高质量的多乐器数据。 |
-
-### 近似 SOTA 性能
-
-- **钢琴 (MAESTRO, 含偏移的 note-level F1):** 顶级系统达 93--97%。Frame-level F1 >95%。
-- **钢琴 (MAESTRO, 不含偏移的 note-level F1):** 较低，约 85--90%，因为偏移检测更难。
-- **多乐器 (MT3 on Slakh):** 起始 F1 因乐器而异：钢琴/小提琴 ~80--85%，贝斯/吉他 ~70--75%。整体低于纯钢琴。
-- **鼓：** 起始 F1 ~75--85%，取决于鼓件和数据集。
-
-### 开放性问题
-
-- **真实混合中的多乐器转录** 仍远未解决。重叠谐波、房间声学和多样的音色使其比纯钢琴难得多。
-- **表现性演奏转录：** 力度、发音、踏板（延音、弱音踏板）、微时序。
-- **人声转录：** 在有伴奏的情况下追踪歌声的音高仍具挑战性。
-- **训练数据瓶颈：** 对齐的 MIDI/音频采集成本高。自监督和弱监督方法（CountEM）是有前景的方向。
-- **泛化能力：** 在一个数据集上训练的模型在不同乐器或录音条件下往往性能显著下降。
+真实合奏混音、重叠谐波、歌声、表现性力度与奏法、踏板、标签对齐和跨录音条件泛化。钢琴基准高分不代表同等的多乐器性能。
 
 ---
 
-## 3. 源分离
+## 3. 音源分离
 
 ### 问题定义
 
-将混合音频信号分解为其组成声源（如人声、鼓、贝斯、其他）。最常见的表述为 4 轨分离（人声、鼓、贝斯、其他），遵循 MUSDB18 基准。
+从混合音频估计声源波形。MUSDB18 标准四轨为人声、鼓、贝斯和 **other（其他）**。other 可以包含多种乐器，四轨分离不等于完整的单乐器隔离。
 
-### 关键模型
+### 代表模型
 
-#### 频谱图域方法
-- **Spleeter (Henaff et al., "Spleeter: A Fast and Efficient Music Source Separation Tool," ISMIR 2019).** 在 mel-spectrogram 上运行的 U-Net。为每个音轨预测幅度掩码。速度快（100x 实时），但质量受限于频谱图相位重建。在 Deezer 内部数据集上预训练。代码：[github.com/deezer/spleeter](https://github.com/deezer/spleeter)。
+- **Spleeter**（Hennequin、Khlif、Voituret、Moussallam；JOSS 2020，软件于 2019 年发布）：在 **线性频率 STFT 幅度** 上做 U-Net 风格分离，预测掩码并使用混合音频相位重建波形。它不以梅尔频谱图为输入。吞吐量取决于硬件与配置。[论文](https://joss.theoj.org/papers/10.21105/joss.02154)、[代码](https://github.com/deezer/spleeter)
+- **Demucs / Hybrid Demucs**：波形编码器/解码器，后续结合频谱分支。[官方仓库](https://github.com/facebookresearch/demucs)
+- **HT Demucs**（Rouard、Massa、Défossez；ICASSP 2023）：时域和频谱分支通过自注意力、交叉注意力交互。[论文](https://arxiv.org/abs/2211.08553)
+- **BSRNN**（Luo、Yu；2022 年预印本 / TASLP 2023）：频谱划分为子带，并交替进行序列级和频带级循环建模，不只是各频带独立 RNN 后最终拼接。[论文](https://arxiv.org/abs/2209.15174)
+- **BS-RoFormer**（Lu、Wang、Kong、Hung；2023 年预印本）：频带划分、层级注意力、旋转位置编码与复数掩码估计。论文报告的是 **SDX23** 音乐分离赛道获胜，不能写成原始 BSRNN 论文赢得 URGENT 2025。[论文](https://arxiv.org/abs/2309.02612)
 
-#### 波形域方法
-- **Demucs (Defossez et al., "Music Source Separation in the Waveform Domain," arXiv 1911.13254, 2019).** 直接在原始波形上运行的 U-Net 风格编码器-解码器。瓶颈层使用双向 LSTM。SDR 超越 SOTA 0.3+ dB。无需频谱图域。
+### 数据集
 
-- **Hybrid Demucs (Defossez et al., 2021).** 结合频谱和波形分支。频谱分支处理精细频率结构；波形分支处理时间模式。所有音轨 SDR 均有提升。
+| 数据集 | 发布信息 | 用途 |
+|---|---|---|
+| MUSDB18 | 150 首：**100 训练、50 测试**；立体声、44.1 kHz | 四轨基准，原版为有损压缩发布 |
+| MUSDB18-HQ | 相同曲目与划分，未压缩 WAV 声源 | 不应混淆 HQ 训练/评测和压缩版预处理 |
+| MoisesDB | 多轨录音，乐器层级更细 | 比固定四轨更精细的声源定义 |
+| Slakh2100 | 合成多轨混音 | 可控混音与联合符号任务 |
 
-#### 混合 Transformer 方法
-- **HT Demucs (Rouard & Massa, "Hybrid Transformers for Music Source Separation," ICASSP 2023).** 在 Hybrid Demucs 基础上增加 Transformer 层，用于时间和频率域的长程上下文建模。微调版本在 MUSDB18-HQ 上达到 SDR ~9.2--10.5 dB。代码：[github.com/facebookresearch/demucs](https://github.com/facebookresearch/demucs)。
+训练集可继续划分训练/验证；验证曲目不能代替独立的 50 首测试曲目。[MUSDB18 官方说明](https://sigsep.github.io/datasets/musdb.html)、[MoisesDB](https://github.com/moises-ai/moises-db)
 
-#### 频带分割架构族（2023--）
-- **BandSplit RNN (BSRNN) (Luo et al., "Music Source Separation with Band-Split RNN," ICASSP 2023, [arXiv 2209.15174](https://arxiv.org/abs/2209.15174)).**
-  - 将频谱划分为不重叠的频带。每个频带由共享 RNN 处理。频带级特征随后合并。
-  - 赢得 URGENT 2025 挑战赛。
-  - 核心洞察：独立处理频带后再合并，能同时捕获局部频谱模式和全局结构。
+### 指标与公开实例
 
-- **BS-RoFormer (Band-Split RoPE Transformer)（当前 SOTA）.**
-  - 用 Rotary Position Embedding (RoPE) 注意力 / Transformer 层替换 BSRNN 的 RNN 模块。
-  - **MUSDB18-HQ 上当前整体 SOTA**: L=12 配置下 SDR 达 **~12.0 dB（中位数）** 和 **~13.3 dB（均值）**。
-  - 赢得相关竞赛，领跑所有公开排行榜。
+BSS Eval 分解估计误差，计算 SDR（信号失真比）、SIR（信号干扰比）、SAR（信号伪影比），对声源声像还可计算 ISR（声像空间失真比）。SI-SDR、整曲 SDR、逐窗 BSS Eval SDR 是不同指标。需明确实现/版本、允许的滤波、窗口、静音参考处理、跨曲目聚合和跨声源平均方式。[museval](https://github.com/sigsep/sigsep-mus-eval)
 
-- **Band-SCNet (Interspeech 2025).** 因果、轻量级模型，实时场景下 SDR 达 7.79 dB。
+| 公开系统 | 报告结果 | 条件 |
+|---|---|---|
+| HT Demucs | 9.20 dB SDR | 论文中的稀疏注意力、按声源微调配置，使用额外 800 首训练音乐 |
+| 较小的 BS-RoFormer | 平均 SDR 9.80 dB | 论文中的 MUSDB18-HQ 基准，不使用额外训练数据 |
 
-#### 其他值得关注的模型
-- **SCNet:** 稀疏压缩网络。MUSDB18-HQ 上 SDR ~9.0--9.7 dB。
+这些是文献实例，不是相同数据条件下的排名。跨曲目均值、中位数和跨声源平均值不能互换，比较必须保留原文的聚合协议。[HT Demucs 论文](https://arxiv.org/abs/2211.08553)、[BS-RoFormer 论文](https://arxiv.org/abs/2309.02612)
 
-### 评估指标（BSS Eval 框架）
+### 开放问题
 
-由 **Vincent et al., "Performance Measurement in Blind Audio Source Separation," IEEE Trans. Audio, 2006** 定义。实现在 `museval`（[github.com/sigsep/sigsep-mus-eval](https://github.com/sigsep/sigsep-mus-eval)）。
-
-| 指标 | 全称 | 衡量内容 |
-|------|------|----------|
-| **SDR** | Source-to-Distortion Ratio | 整体分离质量（全局）。越高越好。单位：dB。 |
-| **SIR** | Source-to-Interference Ratio | 其他声源的抑制程度。衡量来自其他乐器的串音/泄漏。 |
-| **SAR** | Source-to-Artifact Ratio | 算法引入的伪影水平（金属声、音乐噪声、颤抖感）。 |
-| **ISR** | Image-to-Spatial Distortion Ratio | 分离声源的空间保真度（立体声）。 |
-
-SDR 是主要指标。MUSDB18-HQ 上的典型值：SOTA 模型整体 SDR ~9--12 dB；人声通常最容易（SDR ~10--14 dB），贝斯最难（SDR ~6--9 dB）。
-
-### 代表性数据集
-
-| 数据集 | 规模 | 音轨 | 备注 |
-|--------|------|------|------|
-| **MUSDB18** | 150 首完整歌曲 | 4 轨（人声、鼓、贝斯、其他） | 标准基准。Rafii et al., 2017。50 开发集 + 100 测试集。 |
-| **MUSDB18-HQ** | 同 150 首，44.1 kHz | 同上 | 更高质量版本。报告 SDR 数值的标准。 |
-| **MoisesDB** | 更大的多轨数据集 | 可变音轨数 | 作为下一代基准正在兴起。 |
-| **Slakh2100** | 2,100 个合成混合 | 多轨 MIDI 合成 | Manilow et al., 2019。学术环境中用于训练/评估。 |
-
-### SOTA 性能概览（MUSDB18-HQ, 整体 SDR dB）
-
-| 模型 | 中位数 SDR | 均值 SDR | 备注 |
-|------|-----------|----------|------|
-| **BS-RoFormer (L=12)** | ~12.0 | ~13.3 | 当前 SOTA |
-| **BS-RoFormer (L=6)** | ~9.8 | ~11.3 | |
-| **HT Demucs (fine-tuned)** | ~9.2 | ~10.5 | 强基线，广泛使用 |
-| **BSRNN** | 与 HT Demucs 相当 | | URGENT 2025 冠军 |
-| **Spleeter** | ~5--6 | | 速度快但质量较低 |
-
-### 开放性问题
-
-- **真实音频的泛化能力：** 在 MUSDB18（主要是西方流行/摇滚）上训练的模型在非西方音乐、古典、电子等类型上性能下降。
-- **超过 4 轨的分离：** 分离"其他"中的单独乐器（如分离两把吉他）。开放混音场景。
-- **实时/低延迟分离：** Band-SCNet（SDR 7.79 dB）显示了与离线模型之间的质量差距。
-- **伪影感知：** SDR 不能完全反映感知质量。某些 SDR 较低的模型听起来更好。更好的评估指标正在研究中（见 "SDR -- Half-Baked or Well Done?", MERL, 2019，以及 "Musical Source Separation Bake-Off", 2025）。
-- **结合歌词条件的歌声分离：** 使用语言信息指导分离。
+分离相似乐器、处理未见编曲、保留立体声相位与瞬态、减少伪影和满足流式延迟约束。SDR 不能完整描述感知质量；最难分离的声源取决于模型和数据，并不存在“贝斯总最难”的规则。“Open-unmix”是具体基线项目名，不是任意声源分离场景的术语。
 
 ---
 
-## 4. 音乐情感识别 (MER)
+## 4. 音乐情感识别（MER）
 
-### 问题定义
+### 任务与方法
 
-预测音乐的情感内容，可以是分类标签（快乐、悲伤、愤怒、放松等），也可以是效价-唤醒度 (valence-arousal, V-A) 环状模型上的连续值 (Russell, 1980)。
+区分**从音乐中感知的情绪**和**音乐在听众身上诱发的情绪**。目标可以是离散类别，也可以是效价（愉悦程度）与唤醒度（激活程度）的连续数值，按整曲或随时间标注。听众背景与标注指令决定模型学习的对象。
 
-### 方法
+CNN、循环网络、Transformer 和预训练嵌入均可用于分类或回归。歌词和元数据可能增加信息，但多模态收益必须在相同划分上比较，不能预先保证。分类准确率与连续维度相关系数衡量不同任务，不能直接排序。
 
-#### 维度式（效价-唤醒度回归）
-- 从音频特征回归连续的效价（积极/消极）和唤醒度（平静/激昂）分数。
-- 通常在 mel-spectrogram 或学习的音频表示上使用 CNN、LSTM 或 Transformer。
-- 使用 MSE、Pearson 相关系数 (r) 或 R² 评估。
-- 典型 Pearson r：效价 0.3--0.7（更难），唤醒度 0.4--0.8（更容易），取决于模型和数据集。
+### 代表数据集
 
-#### 分类式（情感类别分类）
-- 分入离散情感类别（如 4 类：快乐、悲伤、愤怒、放松）。
-- 可达到比细粒度维度预测更高的准确率。
-- 方法：频谱图上的 CNN 分类器，通常从音乐标注模型迁移学习。
+| 数据集 | 内容 | 标注范围 |
+|---|---|---|
+| DEAM | 1,802 个片段/完整歌曲 | 静态和连续效价/唤醒度 |
+| PMEmo | 794 首歌曲，含选定副歌片段 | 静态/动态效价-唤醒度和 **皮电活动（EDA）**，并非通用 EEG/ECG 数据集 |
+| Emotify | 四种流派、400 个一分钟片段 | 九种 GEMS 情感类别，标注诱发情绪 |
 
-#### 多模态（音频 + 歌词 + 元数据）
-- **BEE-MER (SMC 2025):** 双模态嵌入集成，结合音频和歌词表示用于静态 MER。
-- **Music2Emo** ([huggingface.co/amaai-lab/music2emo](https://huggingface.co/amaai-lab/music2emo)): 统一多任务框架，整合分类和维度标签。
-- 文本（歌词）提供语义内容；音频提供声学表达。两者结合提升性能。
+来源：[DEAM — Aljanaki、Yang、Soleymani，PLOS ONE 2017](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0173392)、[PMEmo 官方介绍](https://www.next.zju.edu.cn/cn/archive/pmemo/)、[Emotify 官方标注](https://www2.projects.science.uu.nl/memotion/emotifydata/)。PMEmo 数据集论文发表于 **ICMR 2018**，不是 ICASSP 2018。
 
-#### 基于 Transformer 的 MER
-- **Transformer 编码器方法 (ACM 2025):** 直接将 Transformer 编码器应用于音乐特征，映射到情感状态。
-- **半监督多任务 MER (TISMIR 2025):** 利用大量带有弱情感标签的未标注音乐；在分类和维度目标上进行多任务学习。
+### 评测与限制
 
-### 代表性数据集
+连续任务可报告 MSE/MAE、Pearson 相关系数或一致性相关系数；分类任务使用考虑类别分布的指标。需统一标签尺度、时间对齐、标注者聚合和划分规则。不要把同一歌曲的相邻片段分散到训练集与测试集。
 
-| 数据集 | 规模 | 标注 | 备注 |
-|--------|------|------|------|
-| **DEAM** | ~1,800 首歌曲 | 逐秒连续 V-A（动态） | Aljanaki et al., 2017。通过二维情感平面众包标注。维度 MER 的标准基准。 |
-| **PMEmo** | ~794 首歌曲 | 静态 + 动态 V-A；包含生理信号（EEG, ECG, GSR） | Zhang et al., 2018。更丰富的标注。 |
-| **Emotify** | 400 首曲目 | 8 种分类情感 | 众包分类标签。 |
-| **MER-Arena** | 新兴 (2025) | 偏好对比 | 新的评估范式。 |
-
-### 开放性问题
-
-- **主观性：** 情感感知高度个人化和文化依赖。标注者间一致性低。
-- **文化偏差：** 在西方听众标注上训练的模型无法迁移到其他文化语境。参见 MER 中文化偏差的研究 (JCBI, 2025)。
-- **动态 vs 静态情感：** 大多数模型预测整首曲目的情感，但真实音乐具有时变的情感弧线。动态 MER（逐秒预测）更难且缺乏标准化。
-- **超越效价-唤醒度：** 二维 V-A 模型只捕获了情感体验的一部分。更细致的模型（如 Hevner 模型的 13 种情感，或连续多维空间）尚未充分探索。
-- **标注质量：** 众包情感标注噪声较大，反映标注者的文化背景、音乐训练和聆听环境。
+标注分歧可能反映真实体验差异，并非全是错误。效价-唤醒度并不穷尽音乐情绪，GEMS 提供音乐特定的另一框架。Hevner 的历史情绪形容词圆环不能写成“13 种情绪模型”。本文不声称存在跨数据集通用的相关系数范围。
 
 ---
 
 ## 5. 音乐基础模型
 
-### 概述
+### 模型类别
 
-从任务专用模型到大规模预训练模型的范式转变——后者学习通用音乐音频表示，然后可在下游任务上微调。类似于 NLP 中的 BERT/GPT。
+| 模型 | 核实后的方法/范围 | 来源 |
+|---|---|---|
+| MERT | Li 等，ICLR **2024**；RVQ-VAE 声学教师和 CQT 音乐教师监督掩码预训练；原始版本为 95M/330M | [论文](https://arxiv.org/abs/2306.00107) |
+| MusicFM | Won、Hung、Le；*A Foundation Model for Music Informatics*，2023 年预印本；音乐音频自监督表示学习 | [论文](https://arxiv.org/abs/2311.03318) |
+| JukeMIR | Castellon、Donahue、Liang，ISMIR 2021；研究从 Jukebox 提取的表示 | [Codified Audio Language Modeling Learns Useful Representations for MIR](https://arxiv.org/abs/2107.05677) |
+| CLAP | 音频/文本对比对齐；训练并非仅含音乐 | [论文](https://arxiv.org/abs/2211.06687) |
+| CLaMP 3 | 跨模态、跨语言的音乐共享表示，以文本连接模态 | [论文](https://aclanthology.org/2025.findings-acl.133/) |
 
-### 关键模型
+纯音频预训练本身不能实现文本驱动的零样本分类。MERT 所选教师并非简单的 HuBERT 蒸馏；未指定多模态扩展时，不能把 MusicFM 写成“音频加可选文本”。
 
-#### MERT (Music Audio Representation with Transformer)
-- **Li, Yuan et al., "MERT: Acoustic Music Understanding Model with Large-Scale Self-supervised Training," ICLR 2023 ([arXiv 2306.00107](https://arxiv.org/abs/2306.00107)).**
-- 在约 16 万首音乐曲目上进行自监督预训练。使用掩码音频建模：遮蔽音频的部分区域，训练 Transformer 预测被遮蔽的内容。
-- 引入教师模型（从 HuBERT 等音频模型蒸馏）提供伪标签，使预训练更稳定。
-- 提供 95M 和 330M 参数版本。
-- 在 MIR 基准上评估：微调后在乐器分类、流派分类和音乐标注等多项任务上达到 SOTA。
-- 代码：[github.com/yizhilll/MERT](https://github.com/yizhilll/MERT)。
-- **CultureMERT (ISMIR 2025):** 对 MERT 进行持续预训练以实现跨文化音乐理解，缓解对西方音乐的偏差。
+### 评测模式
 
-#### MusicFM
-- **Won et al., "MusicFM: A Foundation Model for Music Informatics," arXiv 2311.03318, 2023.**
-- 专为音乐信息学设计的自监督基础模型。在大规模音乐数据上预训练。
-- 解决 MIR 中数据稀缺和泛化挑战。
-- 在调性检测任务上持续报告较低性能（这是音频自监督模型的已知难题）。
-- 代码：[github.com/minzwon/musicfm](https://github.com/minzwon/musicfm)。
+- **线性探测**：冻结编码器，训练线性输出头。
+- **冻结特征的下游模型**：训练可能非线性的任务头，不一定是线性探测。
+- **微调**：更新部分或全部预训练参数，并明确数据/算力预算。
+- **零样本**：不做任务训练，使用指定判定规则、提示与候选标签；提示选择过程仍可能泄漏测试信息。
 
-#### JukeMIR
-- 使用从 OpenAI **Jukebox** (Dhariwal et al., 2020) 音乐生成模型提取的表示进行下游 MIR 任务。
-- Jukebox 是在 120 万首歌曲上训练的层次化 VQ-VAE。其内部表示编码了丰富的音乐结构。
-- **Castellon et al., "Codified Audio Audio-Driven MIR," 2021.** 证明了 Jukebox 表示对情感、流派和标签预测有用。
+**MARBLE** 是 Yuan 等的 *Music Audio Representation Benchmark for Universal Evaluation*，发表于 **NeurIPS 2023**。会议版本包含 **12 个数据集、18 个任务**及多种评测设置。早期预印本的数量不同，应明确版本。它同时覆盖序列任务和片段级理解。[会议论文](https://proceedings.neurips.cc/paper_files/paper/2023/file/7cbeec46f979618beafb4f46d8f39f36-Paper-Datasets_and_Benchmarks.pdf)
 
-#### MuQ
-- 较新的自监督音乐音频模型，已在基准研究中与 MusicFM 和 MERT 进行比较。
+### 开放问题
 
-#### SoniDo
-- **"Music Foundation Model as Generic Booster," OpenReview 2024.** 提出 SoniDo 作为新的音频基础模型，描述其在下游音乐任务上的编码能力。
-
-#### LLark (Spotify)
-- **"LLark: A Multimodal Foundation Model for Music," Spotify Research, 2023 ([research.atspotify.com](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music)).**
-- 结合音频和文本的多模态语言模型，用于灵活的音乐理解和推理。
-- 能回答关于音乐内容的问题，执行标注，并用自然语言描述音乐特征。
-
-#### Qwen-Audio
-- Qwen 模型家族的一部分。在 30+ 多样化音频任务上训练，包括分类、语音识别和情感识别。非音乐专用但适用。
-
-### 基准评估：MARBLE
-- **"MARBLE: Music Audio Representation Benchmark for Evaluation," 2024.**
-- 综合性基准，在广泛的 MIR 任务上评估音乐音频表示：标注、乐器识别、流派、情绪、音高、节拍追踪、源分离、调性检测、分段。
-- 实现 MERT、MusicFM、JukeMIR、CLAP 等模型的公平比较。
-
-### 多模态方法
-
-| 方法 | 模态 | 核心思想 |
-|------|------|----------|
-| **CLAP** | 音频 + 文本 | 对比对齐。通过文本提示实现零样本分类。 |
-| **CLaMP 3** | 音频 + MIDI + 乐谱 + 文本 + 图像 | 通用跨模态 MIR。跨所有模态的对比预训练。 |
-| **LLark** | 音频 + 文本 | 基于 LLM 的音乐推理和问答。 |
-| **MusicFM** | 仅音频（可选文本） | 自监督音频表示。 |
-| **MERT** | 仅音频 | 通过掩码建模的自监督音频表示。 |
-| **音频+视频** | 音频 + 视觉 | 音乐视频理解、演奏分析。发展不如音频+文本。 |
-
-### 基础模型的能力
-
-- **线性探测 (Linear probing):** 冻结预训练编码器，在其上训练线性分类器。测试表示质量。
-- **微调 (Fine-tuning):** 在下游任务上更新所有参数。通常达到最佳性能。
-- **零样本 / 少样本:** 使用 CLAP 风格模型在无需任何任务特定训练数据的情况下进行分类。
-- **特征提取:** 使用表示作为下游模型的输入特征。
-
-### 开放性问题
-
-- **调性检测仍然困难：** 所有基础模型（MERT, MusicFM, JukeMIR）在调性检测上报告的性能都较低，表明这些表示未能很好地捕获调性结构。
-- **时间分辨率：** 基础模型通常以 50--75 Hz 的帧率运行，对于细粒度节奏任务可能过粗。
-- **计算成本：** 预训练需要大量 GPU 资源（8--32 块 GPU 运行数周）。
-- **评估方法论：** MARBLE 是一个进步，但在多样化音乐传统和真实场景上的评估仍然有限。
-- **数据污染：** 预训练数据集通常不透明；难以验证与下游评估数据是否有重叠。
+预训练与评测录音重叠、领域迁移、提示/语言覆盖、计算成本和时间分辨率。帧率和强项随检查点及特征层变化。某基准上的调性检测弱项不能证明所有基础模型都不能表示调性；小数据微调也可能过拟合，不保证胜过冻结特征。
 
 ---
 
 ## 6. 节拍/速度追踪与和弦/调性识别
 
-### 节拍与速度追踪
+### 节拍、小节首拍与速度
 
-#### 问题定义
-- **节拍追踪 (Beat tracking):** 检测音乐节拍的时刻（听众会跟随打拍的脉冲）。
-- **强拍追踪 (Downbeat tracking):** 检测强拍的时刻（每小节的第一拍）。
-- **速度估计 (Tempo estimation):** 估计录音的 BPM（每分钟拍数）。
+节拍追踪预测脉冲时刻，小节首拍（downbeat）追踪识别每小节第一拍，速度估计预测节奏速率。它们相关但不同：全局 BPM 正确不代表节拍相位正确，也不代表能追踪变速。
 
-#### 关键模型与演进
+经典起音强度/动态规划方法与 CNN、TCN、RNN、Transformer 激活模型并存，后者常接动态贝叶斯网络（DBN）。**Beat This!**（Foscarin、Schlüter、Widmer；ISMIR 2024）结合卷积和 Transformer，不使用 DBN 后处理；论文在部分比较中 F1 更高但连续性指标较弱，说明一个分数不足以描述表现。[论文](https://arxiv.org/abs/2407.21658)、[代码与数据配置](https://github.com/CPJKU/beat_this)
 
-- **Ellis, "Beat Tracking by Dynamic Programming," JNMR 2007.** 使用起始检测函数和动态规划的经典方法。快速但受限于手工特征。
+常用评测集合有 Ballroom、Hainsworth、SMC、GTZAN 节奏标注、Beatles/Isophonics 和 GiantSteps tempo。需核实具体标注版本与划分，不能假设所有录音都具备相同节奏标注。
 
-- **Bock & Davies, "Temporal Convolutional Networks for Musical Audio Beat Tracking," ISMIR 2020.**
-  - 架构：带膨胀卷积的时间卷积网络 (TCN)。双向处理。
-  - 直接处理 mel-spectrogram。输出节拍/强拍激活函数。
-  - 通常后接动态贝叶斯网络 (DBN) 后处理步骤得到最终节拍时间。
-  - 在大多数标准基准上 F-measure >85%。
+`mir_eval` 节拍 F1 默认容差为 **70 ms**。连续性指标考察更长的正确节拍序列；节拍层级指标可能允许半速/倍速。速度评测应说明是否接受八度速度误差，以及相对容差。[节拍评测](https://mir-eval.readthedocs.io/latest/api/beat.html)
 
-- **Beat Transformer (Zhao et al., "Beat Transformer: Dilated Self-Attention for Joint Beat and Downbeat Tracking," ISMIR 2022).**
-  - 膨胀自注意力机制，使模型能同时关注局部和长程时间模式。
-  - 单一模型联合执行节拍和强拍追踪。
-  - 在部分配置中不再需要单独的 DBN 后处理。
+### 自动和弦估计
 
-- **"Beat This!" (ISMIR 2024, [github.com/CPJKU/beat_this](https://github.com/CPJKU/beat_this)).**
-  - 高精度节拍追踪器，完全消除了对 DBN 后处理的需求。
-  - 当前节拍追踪的首选模型。实现简洁高效。
-  - 在标准基准上达到强 F-measure。
+预测和弦标签和时间区间，例如 `C:maj`、`G:min7` 或无和弦。色度/NNLS 特征加时间解码构成传统基线，神经方法学习频谱特征和和弦序列上下文。大三/小三和弦描述和弦性质，不是全曲的大调/小调调性。
 
-- **双路径 TCN+Transformer (2024).** 结合 TCN（局部时间细节）和 Transformer（全局序列建模）。降低模型复杂度的同时保持精度。
+**McGill Billboard** 作者描述的发布包含 **890 个榜单位置、740 首不同歌曲**的标注，而非约 200 首。构造划分时应明确处理重复榜单条目。Isophonics 也是常用标注集合。[McGill Billboard 项目](https://ddmal.ca/research/The_McGill_Billboard_Project_%28Chord_Analysis_Dataset%29/)
 
-- **Beat-U (MIREX 2025).** 多任务 U 型 Transformer，跨多个时间尺度进行音乐理解。联合处理节拍追踪、强拍追踪及相关序列 MIR 任务。
-
-- **端到端 Transformer 用于演奏 MIDI (SMC 2025).** 编码器-解码器 Transformer，用于 MIDI（非音频）演奏的节拍/强拍追踪。
-
-#### 关键数据集
-
-| 数据集 | 内容 | 备注 |
-|--------|------|------|
-| **Ballroom** | 698 个片段 | 标准节拍追踪基准。舞曲。 |
-| **Beatles** | 178 首 Beatles 曲目 | 标注了节拍与和弦。广泛使用。 |
-| **Hainsworth** | 222 个片段 | 多种流派。 |
-| **SMC (Soleym, MIREX, CMU)** | 210+ 个片段 | 包含困难案例（自由速度、表现性时序）。 |
-| **GTZAN Rhythm** | 1,000 首曲目 | GTZAN 曲目的速度/节拍标注。 |
-| **GiantSteps** | 电子音乐速度标注 | 660 首曲目，主要是电子舞曲。 |
-
-#### 近似 SOTA 性能
-
-- **节拍追踪 F-measure（标准窗口，如 70ms）:** Ballroom 上 85--92%；Beatles 上 80--88%；SMC（更难的集合）上 70--80%。"Beat This!" 和 TCN 模型领先。
-- **强拍追踪 F-measure:** 通常比同一数据集上的节拍追踪低 5--10 个百分点。
-- **速度估计准确率（与真值偏差 4% 以内）:** Ballroom 上 >90%；更多样化数据集上 80--85%。
-
-### 和弦识别 (Automatic Chord Estimation, ACE)
-
-#### 问题定义
-识别录音中每个时间步的和弦标签（如 C:maj, G:min7, F#:dim）。
-
-#### 方法
-
-- **Chordino / NNLS Chroma (Mauch, 2010):** 使用 NNLS 色度特征 + HMM 解码的经典方法。仍然是有用的基线。可作为 Vamp 插件使用。
-
-- **深度学习 (2015--):** 色度或频谱图特征上的 CNN 和 CRNN。ISMIR 2015 的论文（McLeod & Wyse 等）表明深度学习可以匹配或超越基于 HMM 的方法。
-
-- **CNN-LSTM 混合模型:** CNN 提取局部频谱特征；LSTM 建模时间序列上的和弦进程。在标准基准上加权准确率 >80%。
-
-- **基于 Transformer:** 自注意力捕获长程和声上下文（如根据周围的和声进程识别和弦）。在 Billboard 和 Isophonics 数据集上加权准确率达 80--85%+。
-
-- **基础模型特征:** 使用 MERT、MusicFM 或 JukeMIR 表示作为和弦识别的输入特征。提升性能，尤其对复杂和弦（七和弦、减和弦、增和弦）。
-
-- **合成音频训练 (2025, [arxiv.org/html/2508.05878v1](https://arxiv.org/html/2508.05878v1)):** 比较两种在合成音频上训练的 Transformer 模型用于和弦识别，解决数据稀缺问题。
-
-#### 关键数据集
-
-| 数据集 | 内容 | 和弦词表 | 备注 |
-|--------|------|----------|------|
-| **Billboard (McVicar et al.)** | ~200 首 Billboard Hot 100 流行/摇滚歌曲 | 24 个大/小调和弦 + 七和弦 | 标准 ACE 基准。Harte 和弦词表。 |
-| **Isophonics** | Beatles, Queen, Carole King 专辑 | 大调、小调、7, maj7, min7 等 | 广泛使用。 |
-| **Robbie Williams** | 55 首 Robbie Williams 曲目 | 大调、小调、7, maj7 等 | |
-| **ChoTo** | 多种 | 大/小调 | 较小的基准。 |
-
-#### 近似 SOTA 性能
-
-- **加权准确率 (Billboard, 大/小调):** SOTA 系统达 80--87%。
-- **加权准确率 (Isophonics, 大/小调):** 82--88%。
-- **扩展和弦词表（七和弦等）:** 性能显著下降至 60--75%。
+需报告和弦词表简化方式、按时长加权的重叠分数、转位与无和弦片段的处理，以及划分。`majmin`、`triads`、`tetrads` 和仅根音评分衡量不同条件；没有词表和协议的“80% 和弦准确率”信息不足。[和弦评测](https://mir-eval.readthedocs.io/latest/api/chord.html)
 
 ### 调性检测
 
-- 估计录音的全局调性（如 C 大调、A 小调）。
-- **经典方法：** Krumhansl-Schmuckler 调性查找算法，使用调性轮廓。
-- **深度学习：** 色度特征上的 CNN 分类器；基础模型探测。
-- **数据集：** GiantSteps Key（电子音乐）、meters.tsv（古典）。
-- **SOTA 准确率：** 标准数据集上 ~70--85%。仍然是一个挑战性任务，尤其是对基础模型而言（如上所述）。
+估计全局或局部主音与调式。调性轮廓匹配和学习分类器是不同路线。GiantSteps Key 是已知数据集，`meters.tsv` 这样的文件名本身不足以构成可核实的调性基准。
 
-### 开放性问题
+区分精确准确率与 MIREX 风格加权分数：后者对五度关系、关系大小调和平行大小调等关联调性给部分分。无调性、转调、调律变化与非西方调式体系可能不符合固定 24 调任务的假设。[调性评测](https://mir-eval.readthedocs.io/latest/api/key.html)
 
-- **表现性时序：** 在有自由速度、速度变化和表现性时序的音乐（古典、爵士）上，节拍追踪性能显著下降。
-- **复杂节拍：** 5/4、7/8 和不规则节拍被大多数在 4/4 流行音乐上训练的模型处理得不好。
-- **层次化节奏：** 联合建模节拍、强拍和更高层级的节奏结构（乐句、段落）。
-- **和弦词表：** 大多数系统处理大/小调很好，但在复杂和弦（九和弦、十一和弦、变化和弦、斜线和弦）上表现不佳。
-- **调性检测：** 令人意外的是，基础模型在这方面并不突出。调中心估计可能需要超越通用音频特征的专门表示。
-- **数据标注：** 和弦标签具有主观性（尤其对于模糊和声）。标注者间一致性为可达到的准确率设定了上限。
+### 开放问题
 
----
-
-## 跨领域趋势（2024--2026）
-
-1. **自监督预训练占主导地位。** MERT、MusicFM 及相关模型表明，在大规模音乐音频上进行自监督学习产生的表示在几乎所有 MIR 任务上都具有良好的迁移性。
-
-2. **频带分割架构引领源分离。** BSRNN 和 BS-RoFormer 代表当前前沿，在 MUSDB18-HQ 上 SDR ~12 dB。独立处理频带的范式已被证明非常有效。
-
-3. **Transformer 正在所有任务中取代 RNN/CNN。** 节拍追踪、和弦识别、源分离和转录都在向基于 Transformer 的架构迁移。趋势是从 HMM/DBN 后处理的混合模型转向端到端神经方法。
-
-4. **多模态基础模型 (CLAP, CLaMP 3) 实现零样本 MIR。** 文本-音频对齐允许在无需任务特定训练数据的情况下进行分类，将 MIR 拓展到开放词表和跨语言场景。
-
-5. **评估方法论正在演进。** MARBLE（基础模型基准评估）、2025 AMT Challenge（多乐器转录）以及新的专家标注基准正在提高评估标准。
-
-6. **文化偏差日益受到关注。** 在西方流行音乐上训练的模型无法泛化到其他音乐传统。CultureMERT 等努力旨在解决这一问题。
-
-7. **数据仍然是瓶颈。** 对于转录、源分离和情感识别，高质量标注数据稀缺且采集成本高。自监督、弱监督和合成数据生成是关键研究方向。
-
----
+弹性速度、不规则拍号、拍号变化、模糊和声、扩展/转位和弦与合适的调性体系。应直接评测这些场景，而非从固定拍号流行音乐基准外推。
 
 ---
 
 ## 7. 音乐推荐
 
-### 问题定义
-
-基于音频内容、用户偏好或上下文向用户推荐音乐。音频推荐是 MIR 的直接应用——需要从音频中提取有意义的表示并计算相似度。
-
 ### 方法
 
-#### 基于内容的过滤
+基于内容的检索使用手工特征或学习的音频嵌入；协同过滤从交互历史学习；混合推荐结合内容、交互和上下文。音频相似性可帮助新曲目冷启动，但不等价于听众偏好。
 
-| 方法 | 特征 | 备注 |
-|------|------|------|
-| 手工特征 | MFCC、色度、频谱特征 + 距离度量 | 经典方法，可解释但有限 |
-| 嵌入向量 | 预训练嵌入（MERT、CLAP、MusicFM）+ 最近邻 | 当前标准 |
-| 度量学习 | 从偏好数据学习距离函数 | 适合细粒度相似性 |
+余弦相似度是有用的嵌入基线。FAISS、ScaNN 等近似最近邻系统可提升大规模检索效率，但索引和相似度函数需针对实际嵌入/任务验证。元数据和曲库使用权是与音频分析分开的要求。
 
-#### 音频嵌入用于推荐
-
-现代推荐系统使用预训练音频嵌入：
-- **MERT 嵌入**：自监督音乐表示，编码和声、节奏、音色信息
-- **CLAP 嵌入**：音频-文本联合空间，支持基于文本的音乐搜索
-- **MusicFM 嵌入**：大规模预训练表示，迁移到推荐任务
-
-**相似度计算**：嵌入上的余弦相似度是标准。大规模目录下需用近似最近邻（FAISS、ScaNN）。
-
-#### 混合系统
-
-| 系统 | 内容信号 | 协同信号 | 备注 |
-|------|---------|---------|------|
-| Spotify（内部） | 音频特征 + NLP | 用户收听历史 | 行业标准，专有 |
-| Spotify 公开 API | 音频特征（舞蹈性、能量、效价） | — | 有限但可访问 |
+不能假设新应用普遍可访问 Spotify 的 audio-features、audio-analysis 或 recommendations 端点。Spotify 于 2024 年 11 月宣布对新的 Web API 使用场景施加限制，当前权限需按实际应用核实。[官方变更公告](https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api)
 
 ### 评测
 
-| 指标 | 描述 |
-|------|------|
-| **Precision@K** | Top-K 推荐中相关项目的比例 |
-| **Recall@K** | Top-K 中检索到的相关项目比例 |
-| **NDCG@K** | 归一化折损累计增益 |
-| **覆盖率** | 可推荐目录的比例 |
-| **惊喜度** | 推荐的新颖性 |
+| 指标 | 含义 |
+|---|---|
+| Precision@K | 前 K 个返回项目中相关项目的比例 |
+| Recall@K | 所有相关项目中被前 K 个结果检索到的比例 |
+| NDCG@K | 按理想排序归一化的折损相关性增益 |
+| 覆盖率 | 指定策略下得到曝光/推荐的曲库比例 |
+| 惊喜度 | 相对预期基线，有用且意外的发现；不只是新颖性 |
 
-### 开放问题
-
-- **冷启动**：无收听历史的新曲目推荐
-- **长尾**：推荐数据集中在流行曲目；小众音乐服务不足
-- **上下文感知**：时间、活动、情绪作为额外信号
-- **跨文化**：在西方音乐上训练的推荐系统对非西方听众效果差
+使用按时间划分，记录候选集合与负采样规则，并区分离线排序和线上参与度。流行度偏差、反馈循环、新听众冷启动、长尾覆盖与文化/上下文差异仍需关注。
 
 ---
 
 ## 8. 翻唱检测与版本识别
 
-### 问题定义
+### 任务与方法
 
-识别两个录音是否是同一底层音乐作品的不同表演版本。翻唱是对现有歌曲的新演奏/新编曲。
+在调性、速度、乐器或编曲变化下，识别同一底层作品的不同演奏版本。这与识别重复或近乎相同的录音不同。
 
-### 为什么重要
+**Chromaprint/AcoustID** 面向 **近乎相同的音频识别**，不是任意移调、变速下的通用翻唱识别。版本识别可以使用色度/和声序列及显式对齐、移调处理，也可以通过同作品/不同作品监督学习嵌入。孪生网络或 triplet 训练可以学习有用的不变性，但不保证自动获得。[Chromaprint 声明的范围](https://github.com/acoustid/chromaprint)
 
-- **音乐版权管理**：识别未授权翻唱用于版税分配
-- **音乐发现**：找到用户喜欢的歌曲的不同版本
-- **文化分析**：研究音乐作品如何跨表演演变
+### 数据集与评测
 
-### 方法
+- **Covers80**：80 对、160 段录音，是规模较小的历史基准。[数据集](https://labrosa.ee.columbia.edu/projects/coversongs/covers80/)
+- **Da-TACOS**：15,000 曲目的基准子集，以及独立的 10,000 曲目翻唱分析子集。发布内容为特征与元数据，**不包含音频文件**。[官方发布](https://github.com/MTG/da-tacos)
+- **SecondHandSongs**：作品/表演版本元数据，可支持标签构建；作品数、表演版本数与可下载音频是不同概念。
 
-#### 传统方法（2020 年前）
+报告 mAP、MRR 或 recall/hit rate@K 时，应明确查询/候选库划分、相关版本和自身匹配排除规则。测试对未见作品的泛化时，应按作品划分。高相似度只能提供候选匹配，不能判定所有权或授权状态。
 
-- **Chromaprint / AcoustID**：基于色度的指纹。对速度变化和调性移调鲁棒。
-- **翻唱识别系统**：色度 + 动态时间规整（DTW）进行对齐不变比较。
-
-#### 深度学习方法
-
-| 方法 | 描述 |
-|------|------|
-| **色度图上的 2D-CNN** | 学习对编曲变化鲁棒的色度模式 |
-| **孪生网络** | 学习翻唱对的相似度度量 |
-| **Triplet loss** | 用锚-正（同作品）和锚-负（不同作品）训练 |
-| **自监督预训练** | 在大规模音频语料上预训练，微调用于翻唱检测 |
-
-### 数据集
-
-| 数据集 | 内容 | 规模 | 备注 |
-|---------|------|------|------|
-| **SecondHandSongs** | 众包翻唱元数据 | ~1M 作品 | 最大元数据来源 |
-| **Covers80** | 80 原唱+翻唱对 | 160 曲目 | 经典小基准 |
-| **Da-TACOS** | 翻唱+原唱对 | ~17K | 大规模基准 |
-| **Covers2001** | 查询-翻唱对 | ~1K 查询 | 标准评测集 |
-
-### 评测指标
-
-| 指标 | 描述 |
-|------|------|
-| **平均排名** | 正确匹配的平均排名 |
-| **mAP** | 查询的平均精度均值 |
-| **MRR** | 平均倒数排名 |
-| **Top-K 准确率** | 正确翻唱在 Top-K 中的查询比例 |
-
-### 开放问题
-
-- **编曲变化**：同一首歌完全不同的配器（管弦乐→电子）
-- **结构变化**：翻唱可能重新排序段落、增删段落
-- **串烧**：多个歌合成一个表演
-- **哼唱查询**：从哼唱查询找翻唱
+结构变化、串烧、现场版本和大幅重编仍然困难。哼唱检索是相关任务，但输入分布不同。
 
 ---
 
 ## 9. 主旋律提取
 
-### 问题定义
+### 任务与方法
 
-从复调音乐中提取主导旋律的音高轮廓。聚焦歌声时叫"声乐旋律提取"，更广的范围叫"音高追踪"。
+估计主旋律随时间变化的基频，并判断各时刻是否存在旋律。它不会直接输出分离的人声波形或卡拉 OK 伴奏，后两者属于音源分离。
 
-### 为什么重要
+- **MELODIA / Salamon 与 Gómez（2012）**：通过谐波显著性与音高轮廓选择提取复调旋律。[作者方法与资源](https://www.justinsalamon.com/melody-extraction.html)
+- **神经显著性或序列模型**：从时频特征预测音高/旋律存在性，可结合时间解码或音源分离。
+- **pYIN（Mauch 与 Dixon，ICASSP 2014）**：面向单音输入的概率基频估计，本身不是完整的复调主旋律提取器。[论文](https://webspace.eecs.qmul.ac.uk/s.e.dixon/pub/2014/MauchDixon-PYIN-ICASSP2014.pdf)
+- **CREPE（Kim 等，ICASSP 2018）**：神经单音音高追踪器；在分离轨上使用它不能消除音源分离误差。[官方实现](https://github.com/marl/crepe)
 
-- **下游任务**：翻唱检测、哼唱查询、音乐转录、歌声分析的前置输入
-- **音乐制作**：自动旋律分离用于混音、卡拉 OK 伴奏生成
-- **音乐教育**：学习用的音高可视化
-
-### 方法
-
-#### 传统方法
-
-- **SALAMI** + 音高追踪：音源分离 + 对分离的旋律源做 F0 估计
-- **P. Rao (2010)**：基于音高显著性函数的旋律提取
-
-#### 深度学习方法
-
-| 方法 | 架构 | 备注 |
-|------|------|------|
-| **CNN-based** | CNN 在 mel 频谱图上逐帧预测音高 | 快但时序上下文有限 |
-| **CRNN** | CNN 特征 + LSTM 时序建模 | 时序连贯性更好 |
-| **Transformer-based** | 对频谱图帧的自注意力 | 最先进，捕捉长程关系 |
-| **无分割** | 端到端音高追踪，无需音符分割 | 当前趋势 |
-
-### 关键系统
-
-| 系统 | 年份 | 备注 |
-|------|------|------|
-| **Melodia** | 2013 | 经典音高轮廓提取，广泛使用 |
-| **DeepSalience** | 2018 | 深度学习的音高显著性 |
-| **MelodyCNN** | 2019 | CNN 旋律提取 |
-| **pYIN** | 2015 | 概率 YIN，标准基线 |
+[SALAMI](https://ddmal.ca/research/salami/annotation/) 提供音乐结构标注，并非音源分离或旋律提取算法。
 
 ### 评测
 
-| 指标 | 描述 |
-|------|------|
-| **RPA** (原始音高准确率) | 估计音高在真实值 ±50 音分内的帧比例 |
-| **RCA** (原始色度准确率) | RPA 忽略八度错误 |
-| **OA** (整体准确率) | RPA + 正确有声/无声决策 |
-| **VR** (有声召回率) | 正确识别为有声的帧比例 |
-| **VF** (有声误报率) | 错误标记为有声的无声帧比例 |
+| 指标 | 二值旋律存在性标注下的定义 |
+|---|---|
+| 原始音高准确率（RPA） | 参考旋律存在帧中，估计音高落入容差内的比例，常用 50 音分 |
+| 原始色度准确率（RCA） | 允许八度等价后的音高准确率 |
+| 整体准确率（OA） | 旋律存在且音高正确的帧，加上正确判断无旋律的帧，再除以全部帧 |
+| 有声召回率（VR） | 正确检测的有声帧数，除以参考有声帧数 |
+| 有声误报率（VFA） | 被误判为有声的帧数，除以参考无声帧数 |
 
-典型 SOTA：MIREX 数据集上 RPA ~80–85%。复杂混响（管弦乐、高度复调）下性能下降。
+OA 不是“RPA 加一个有声分数”，分母和正确条件均不同。需说明音高容差、时间网格对齐、有声约定和数据集。该评测术语中的“有声”也适用于乐器，表示旋律存在，不一定是人声。[旋律评测文档](https://mir-eval.readthedocs.io/latest/api/melody.html)
 
 ### 开放问题
 
-- **复杂混响中的旋律**：旋律不是最响的音源时（如全乐队中的轻柔人声）
-- **复调旋律**：多条旋律线（如巴赫对位）
-- **非声乐旋律**：器乐旋律（萨克斯、吉他主音）有不同的音色特征
-- **实时提取**：交互式应用的低延迟旋律提取
+密集混音中的弱旋律、多条同时存在的旋律线、八度错误、器乐音色多样性、表现性装饰音和实时约束。不存在一个单一“MIREX 数据集”的 RPA 能概括所有这些场景。
 
 ---
 
 ## 10. 跨领域 MIR 挑战
 
-### 10.1 MIR 中的文化偏倚
-
-所有主要 MIR 基准（GTZAN、MAESTRO、MUSDB18）都由西方流行和古典音乐主导。后果：
-
-- **泛化差**：在西方音乐上训练的模型在非西方传统上表现差
-- **测量偏倚**：评测结果不代表全球音乐多样性
-- **强化循环**：在西方数据上训练的 AI 生成音乐进一步强化西方风格
-
-**应对 effort**：CultureMERT（多语言/文化预训练）、多样化基准集合、社区主导的数据集创建。
-
-### 10.2 评测瓶颈
-
-MIR 评测受限于：
-- **标签质量**：众包标签（MagnaTagATune）有噪声。专家标注昂贵
-- **数据集规模**：许多 MIR 数据集小（数百到数千例），限制模型容量
-- **基准饱和**：部分任务（GTZAN 流派分类、MAESTRO 钢琴转录）接近性能上限
-- **缺乏标准化**：不同论文用不同的训练/测试划分、指标和预处理
-
-### 10.3 从实验室到生产
-
-| 挑战 | 描述 |
-|-----------|-------------|
-| **实时需求** | 生产系统需要低延迟（部分应用 <100ms） |
-| **鲁棒性** | 必须处理噪声录音、手机麦克风、压缩音频 |
-| **可扩展性** | 数十亿曲目需要处理；高效推理至关重要 |
-| **持续学习** | 新音乐风格、语言和艺术家不断出现 |
-| **可解释性** | 为什么模型把这个标记为"爵士"？需要可解释性 |
-
----
+1. **代表性**：常用数据集只覆盖有限的音乐传统、乐器、录音条件与听众。应分领域测量迁移能力，而非声称每个模型对所有非西方音乐都会失败。
+2. **数据泄漏**：按任务需要隔离艺术家、作品、录音和衍生片段。检查与预训练数据的重叠，模型选择过程不使用测试集。
+3. **可比较的评测**：公开数据版本、划分、指标实现、阈值、聚合方式与额外数据。相似的百分比或分贝值可能对应不同任务。
+4. **部署**：区分批处理吞吐量、流式支持与实测端到端延迟，测试真实编解码格式、麦克风、噪声和录音长度。
+5. **标注与不确定性**：保留有意义的分歧。模型输出是估计，尤其在流派、情绪、和声及模糊旋律任务中。
 
 ## 11. MIR 任务全景
 
-| 任务 | 输入 | 输出 | 当前 SOTA | 开放挑战 |
-|------|------|------|----------|---------|
-| 自动标签 | 音频 | 标签 | ~0.93 ROC-AUC | 细粒度、跨文化 |
-| 转录 | 音频 | MIDI 音符 | 93–97% F1（钢琴） | 多乐器真实混响 |
-| 音源分离 | 混合音频 | 分离轨道 | ~12 dB SDR | >4 轨、实时 |
-| 情绪识别 | 音频 | 唤醒/效价 | 中等 | 标准化评测 |
-| 节拍追踪 | 音频 | 节拍时间 | 85–92% F1 | 弹性速度、复杂节拍 |
-| 和弦识别 | 音频 | 和弦标签 | 80–87% | 复杂和弦、模糊和声 |
-| 调性检测 | 音频 | 调性标签 | 70–85% | 基础模型弱点 |
-| 音乐推荐 | 音频+用户 | 曲目列表 | 行业实践 | 冷启动、长尾 |
-| 翻唱检测 | 音频对 | 匹配/无 | 中等 | 编曲变化 |
-| 旋律提取 | 音频 | 音高轮廓 | 80–85% RPA | 复杂混响 |
+| 任务 | 输出 | 评测重点 | 主要挑战 |
+|---|---|---|---|
+| 自动标签 | 标签/分数 | 分标签 ROC/PR 指标及划分 | 稀有标签与领域迁移 |
+| 转录 | 符号事件 | 区分起音、止音、帧、乐器、力度条件 | 真实多乐器混音 |
+| 音源分离 | 声源波形 | 明确 SDR 协议并结合听音测试 | 相似声源与伪影 |
+| 情绪识别 | 标签或轨迹 | 标注目标及听众/数据划分 | 主观性与上下文 |
+| 节拍追踪 | 节拍/小节首拍时刻 | F1、连续性与节拍层级约定 | 弹性速度与不规则拍号 |
+| 和弦识别 | 带标签时间区间 | 词表与时长权重 | 模糊/扩展和声 |
+| 调性检测 | 主音/调式 | 精确分数与加权分数的区别 | 转调与调性体系假设 |
+| 推荐 | 排序项目 | 候选集、相关性、用户/时间划分 | 冷启动与流行度偏差 |
+| 版本识别 | 匹配录音排序 | 按作品隔离的检索协议 | 编曲与结构变化 |
+| 旋律提取 | 基频/旋律存在性轮廓 | 分别报告音高与有声指标 | 密集或多条旋律 |
 
-## 关键参考文献（按领域分类）
-
-### 自动标注
-- Choi et al., "Automatic Tagging Using Deep Convolutional Neural Networks," ISMIR 2016.
-- Won, Chun, Nieto, Serra, "Semi-Supervised Music Tagging Transformer," ISMIR 2021.
-- Wu et al., "Large-scale Contrastive Language-Audio Pretraining" (CLAP), arXiv 2211.06687, 2022.
-- Wu et al., "CLaMP 3: Universal Music Information Retrieval Across Unaligned Modalities and Unseen Languages," ACL 2025 Findings.
-
-### 音乐转录
-- Hawthorne et al., "Onsets and Frames: Dual-Objective Piano Transcription," ISMIR 2018.
-- Kong et al., "High-Resolution Piano Transcription," 2020--2021.
-- Gardner et al., "MT3: Multi-Task Multitrack Music Transcription," ICLR 2022 (arXiv 2111.03017).
-- "Advancing Multi-Instrument Music Transcription: Results from the 2025 AMT Challenge," NeurIPS 2025 (arXiv 2603.27528).
-
-### 源分离
-- Henaff et al., "Spleeter," ISMIR 2019.
-- Defossez et al., "Music Source Separation in the Waveform Domain" (Demucs), arXiv 1911.13254, 2019.
-- Luo et al., "Music Source Separation with Band-Split RNN" (BSRNN), ICASSP 2023 (arXiv 2209.15174).
-- Rouard & Massa, "Hybrid Transformers for Music Source Separation" (HT Demucs), ICASSP 2023.
-- Vincent et al., "Performance Measurement in Blind Audio Source Separation" (BSS Eval), IEEE Trans. Audio, 2006.
-
-### 音乐情感
-- Russell, "A Circumplex Model of Affect," J. Personality & Social Psychology, 1980.
-- Aljanaki et al., "DEAM: Developing an Emotion Annotation Dataset for Music," ISMIR 2017.
-- Zhang et al., "PMEmo: A Multimodal Dataset for Perceived Emotion Recognition," ICASSP 2018.
-- "BEE-MER: Bimodal Embeddings Ensemble for Music Emotion Recognition," SMC 2025.
-
-### 基础模型
-- Li, Yuan et al., "MERT: Acoustic Music Understanding Model with Large-Scale Self-supervised Training," ICLR 2023 (arXiv 2306.00107).
-- Won et al., "MusicFM: A Foundation Model for Music Informatics," arXiv 2311.03318, 2023.
-- Castellon et al., "Codified Audio Audio-Driven MIR" (JukeMIR), 2021.
-- "MARBLE: Music Audio Representation Benchmark for Evaluation," 2024.
-- "Foundation Models for Music: A Survey," arXiv 2408.14340, 2024.
-
-### 节拍/速度/和弦
-- Ellis, "Beat Tracking by Dynamic Programming," JNMR 2007.
-- Bock & Davies, "Temporal Convolutional Networks for Musical Audio Beat Tracking," ISMIR 2020.
-- Zhao et al., "Beat Transformer: Dilated Self-Attention for Joint Beat and Downbeat Tracking," ISMIR 2022.
-- "Beat This!" ISMIR 2024 ([github.com/CPJKU/beat_this](https://github.com/CPJKU/beat_this)).
-- Harte et al., "Symbolic Representation of Musical Chords," ISMIR 2005 (chord vocabulary).
-- Mauch, "Automatic Chord Transcription from Audio," PhD Thesis, 2010 (Chordino).
+相关笔记：[音乐生成](music-generation-zh.md)、[音频工程](audio-engineering-zh.md)、[音乐理论基础](music-theory-fundamentals-zh.md)、[音乐风格](music-styles-zh.md)。

@@ -5,6 +5,10 @@
 
 Music understanding & generation research repository.
 
+[在线阅读 / GitHub Pages](https://caciniep.github.io/music-research/) · [GitHub Wiki](https://github.com/CacinieP/music-research/wiki) · [审校记录](docs/review-2026-09-19.md)
+
+Content reviewed on 2026-09-19 against primary papers and official documentation. CPU examples have numerical checks; model inference and published benchmark results are not independently reproduced in this repository.
+
 This is a curated research workspace for audio engineering, MIR, generative music, music foundation models, edge deployment, and copyright/compliance. It is meant to be useful both as a reading map and as a starting point for reproducible experiments.
 
 ## Scope
@@ -19,7 +23,7 @@ This is a curated research workspace for audio engineering, MIR, generative musi
 - **Music Styles & Genre** — genre taxonomy, style dimensions, style-conditioned generation, cross-cultural style
 - **Music Evaluation** — human evaluation protocols, automatic metrics (FAD, CLAP Score, perceptual), evaluation gaps
 - **Singing Voice Synthesis** — acoustic modeling, controllable singing, voice conversion, datasets
-- **Cookbook** — runnable code recipes for common music AI tasks
+- **Cookbook** — tested CPU examples and API-checked model recipes
 - **Thoughts** — personal reflections on the field
 
 ## Directory Structure
@@ -40,7 +44,7 @@ docs/
   surveys/              — literature reviews
     reading-guide.md    — survey reading guide: key AI music surveys annotated
   cookbook/             — practical code recipes
-    recipes.md          — runnable code for common music AI tasks
+    recipes.md          — tested CPU examples and API-checked model recipes
 datasets/               — public dataset catalog
 src/                    — code structure guide & tool recommendations
 references/             — curated paper lists and resources
@@ -53,9 +57,9 @@ references/             — curated paper lists and resources
 | Music Understanding / MIR | [music-understanding-mir.md](docs/notes/music-understanding-mir.md) | [music-understanding-mir-zh.md](docs/notes/music-understanding-mir-zh.md) |
 | Music Generation | [music-generation.md](docs/notes/music-generation.md) | [music-generation-zh.md](docs/notes/music-generation-zh.md) |
 | Audio Engineering | [audio-engineering.md](docs/notes/audio-engineering.md) | [audio-engineering-zh.md](docs/notes/audio-engineering-zh.md) |
-| Copyright & Compliance | [music-copyright-compliance.md](docs/notes/music-copyright-compliance.md) | — (merged bilingual) |
-| Edge Deployment | [edge-deployment.md](docs/notes/edge-deployment.md) | — (merged bilingual) |
-| Model Reproduction Guide | [model-reproduction-guide.md](docs/notes/model-reproduction-guide.md) | — (merged bilingual) |
+| Copyright & Compliance | [music-copyright-compliance.md](docs/notes/music-copyright-compliance.md) | — (Chinese with English terms) |
+| Edge Deployment | [edge-deployment.md](docs/notes/edge-deployment.md) | — (Chinese with English terms) |
+| Model Reproduction Guide | [model-reproduction-guide.md](docs/notes/model-reproduction-guide.md) | — (Chinese with English terms) |
 | Music Theory Fundamentals | [music-theory-fundamentals.md](docs/notes/music-theory-fundamentals.md) | [music-theory-fundamentals-zh.md](docs/notes/music-theory-fundamentals-zh.md) |
 | Music Styles | [music-styles.md](docs/notes/music-styles.md) | [music-styles-zh.md](docs/notes/music-styles-zh.md) |
 | Music Evaluation | [music-evaluation.md](docs/notes/music-evaluation.md) | [music-evaluation-zh.md](docs/notes/music-evaluation-zh.md) |
@@ -65,8 +69,8 @@ references/             — curated paper lists and resources
 
 - [Code Structure & Compute Guide](src/README.md) — directory structure, GPU/VRAM requirements, environment recommendations
 - [Public Dataset Catalog](datasets/README.md) — download links, sizes, formats, licensing
-- [References & Reading List](references/README.md) — 50+ key papers organized by topic
-- [Cookbook: Code Recipes](docs/cookbook/recipes.md) — runnable code for feature extraction, generation, separation, evaluation
+- [References & Reading List](references/README.md) — primary papers organized by topic
+- [Cookbook: Code Recipes](docs/cookbook/recipes.md) — tested feature/evaluation baselines and model API examples
 - [Personal Thoughts](docs/thoughts/personal-thoughts.md) — reflections on the field, opinions, lessons learned
 
 ## License
@@ -81,6 +85,8 @@ references/             — curated paper lists and resources
 [![Notes](https://img.shields.io/badge/research-notes%20%2B%20surveys-39c5bb?style=flat-square)](docs/)
 
 音乐理解与生成研究仓库。
+
+正文于 2026-09-19 依据原论文及官方文档复核；CPU 示例经过数值验证。模型接口核对与完整模型推理、论文指标复现分开记录。
 
 这是一个精选的研究工作空间，涵盖音频工程、音乐信息检索（MIR）、生成式音乐、音乐基础模型、边缘部署、版权与合规。既可作为阅读导航，也可作为可复现实验的起点。
 
@@ -113,7 +119,7 @@ docs/
     music-evaluation.md             — 评测方法与协议
     music-singing-synthesis.md      — 歌声合成
   surveys/              — 文献综述
-    reading-guide.md    — 综述论文导读：8 篇关键综述的解读与阅读路径
+    reading-guide.md    — 综述论文导读：已核实综述的解读与阅读路径
 datasets/               — 公开数据集目录
 src/                    — 代码结构指南与工具推荐
 references/             — 精选论文列表与资源
@@ -126,9 +132,9 @@ references/             — 精选论文列表与资源
 | 音乐理解 / MIR | [music-understanding-mir.md](docs/notes/music-understanding-mir.md) | [music-understanding-mir-zh.md](docs/notes/music-understanding-mir-zh.md) |
 | 音乐生成 | [music-generation.md](docs/notes/music-generation.md) | [music-generation-zh.md](docs/notes/music-generation-zh.md) |
 | 音频工程 | [audio-engineering.md](docs/notes/audio-engineering.md) | [audio-engineering-zh.md](docs/notes/audio-engineering-zh.md) |
-| 版权与合规 | [music-copyright-compliance.md](docs/notes/music-copyright-compliance.md) | —（双语合并版） |
-| 边缘部署 | [edge-deployment.md](docs/notes/edge-deployment.md) | —（双语合并版） |
-| 模型复现指南 | [model-reproduction-guide.md](docs/notes/model-reproduction-guide.md) | —（双语合并版） |
+| 版权与合规 | [music-copyright-compliance.md](docs/notes/music-copyright-compliance.md) | —（中文，保留英文术语） |
+| 边缘部署 | [edge-deployment.md](docs/notes/edge-deployment.md) | —（中文，保留英文术语） |
+| 模型复现指南 | [model-reproduction-guide.md](docs/notes/model-reproduction-guide.md) | —（中文，保留英文术语） |
 | 乐理基础 | [music-theory-fundamentals.md](docs/notes/music-theory-fundamentals.md) | [music-theory-fundamentals-zh.md](docs/notes/music-theory-fundamentals-zh.md) |
 | 音乐风格 | [music-styles.md](docs/notes/music-styles.md) | [music-styles-zh.md](docs/notes/music-styles-zh.md) |
 | 音乐评测 | [music-evaluation.md](docs/notes/music-evaluation.md) | [music-evaluation-zh.md](docs/notes/music-evaluation-zh.md) |
@@ -138,8 +144,12 @@ references/             — 精选论文列表与资源
 
 - [代码结构与算力指南](src/README.md) — 目录结构、GPU/VRAM 需求、环境推荐
 - [公开数据集目录](datasets/README.md) — 下载链接、大小、格式、许可
-- [参考文献与阅读清单](references/README.md) — 按主题整理的 50+ 关键论文
+- [参考文献与阅读清单](references/README.md) — 按主题整理的原始论文
 
 ## 许可
 
 [知识共享署名 4.0 国际 (CC BY 4.0)](LICENSE)
+
+## Build / 构建
+
+本地检查和发布流程见 [PUBLISHING.md](PUBLISHING.md)。

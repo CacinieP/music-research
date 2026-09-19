@@ -1,358 +1,192 @@
 # Music Generation Evaluation: Metrics, Protocols, and Open Problems
 
-A practitioner's guide to evaluating AI-generated music. Covers human evaluation protocols, automatic metrics (distribution-based, embedding-based, perceptual), text-audio alignment, benchmarking frameworks, and the persistent gap between automatic metrics and human judgment.
+Research notes checked on 2026-09-19. The protocols below distinguish creative generation, conditional generation, and reconstruction; their metrics are not interchangeable.
+
+> 中文版：[music-evaluation-zh.md](music-evaluation-zh.md)
 
 ---
 
-## 1. Why Music Evaluation Is Hard 为什么音乐评测难
+## 1. Why Music Evaluation Is Hard
 
-Music is fundamentally multi-dimensional:
+| Dimension | Evaluation question |
+|-----------|---------------------|
+| Audio quality | Are there clipping, noise, distortion, or mixing artifacts? |
+| Musical coherence | Do phrases, transitions, repetition, and development make sense? |
+| Conditioning | Does the output follow the requested text, score, melody, or timing? |
+| Diversity | Do multiple outputs cover different plausible solutions? |
+| Novelty | Does the output reproduce training material or offer new material? |
+| Expression | Does the performance convey the intended style or emotion? |
 
-| Dimension | What varies | Why it matters |
-|-----------|-------------|----------------|
-| **Quality** | Clarity, fidelity, noise level | Basic audio quality |
-| **Coherence** | Structural logic, phrase flow | Does it sound like *music*? |
-| **Style fidelity** | Genre match, timbral accuracy | Does it match the target style? |
-| **Novelty** | Originality, surprise, boredom | Is it interesting to listen to? |
-| **Text-audio alignment** | Prompt adherence | Did it follow instructions? |
-| **Emotional impact** | Arousal, valence conveyance | Does it evoke the intended feeling? |
-| **Musicality** | Harmonic validity, rhythmic feel | Does it follow music conventions? |
+There is no universal musical-quality score. A **low** FAD can coexist with poor long-term structure. A high text-audio similarity can coexist with wrong notes or unclear lyrics. Conventions and listener preferences depend on genre, culture, and intended use.
 
-No single metric captures all dimensions. A track can score high on FAD (distribution match) while being musically incoherent, or be harmonically interesting but have poor audio quality.
+First define the task. Reconstructing a particular recording permits aligned reference comparisons; composing a new piece from its description usually has many valid answers.
 
-**The core tension**: Automatic metrics are fast and reproducible but miss musical meaning. Human evaluation captures musical meaning but is slow, expensive, and subjective.
+## 2. Human Evaluation
 
----
+### 2.1 Protocols
 
-## 2. Human Evaluation 人类评测
+| Protocol | What listeners do | Appropriate use |
+|----------|-------------------|-----------------|
+| MOS / attribute ratings | Rate a defined attribute, often on a 1–5 scale | Naturalness, quality, prompt adherence; report anchors and scale |
+| Pairwise preference | Choose A or B for the same condition, optionally allowing ties | Comparing generators without an exact target recording |
+| MUSHRA | Rate multiple versions on a 0–100 scale with reference, hidden reference, and anchors | Intermediate-quality audio-system comparisons with the same underlying content |
+| ABX | Decide whether X is A or B | Detecting an audible difference; not measuring which version is better |
+| Ranking | Order several candidates | Relative preference, with attention to listener workload |
 
-Human evaluation remains the gold standard. Key design decisions:
+[MUSHRA is specified in ITU-R BS.1534](https://www.itu.int/rec/R-REC-BS.1534). A listening test of different newly composed songs without an appropriate reference and anchors should be described as an adapted multi-stimulus test, rather than claimed to follow standard MUSHRA.
 
-### 2.1 Common Protocols
+### 2.2 Experimental Design
 
-| Protocol | Description | Use case |
-|----------|-------------|----------|
-| **MOS** (Mean Opinion Score) | Rate overall quality 1–5 | Quick quality check |
-| **MUSHRA** | Rate against hidden references | High-quality comparison |
-| **Pairwise comparison** | A vs. B, which is better? | Model comparison |
-| **ABX** | A vs. B with hidden reference X | Perceptual difference |
-| **Ranking** | Sort 3+ samples by preference | Preference ordering |
-| **Attribute rating** | Rate specific dimensions (style, coherence, etc.) | Multi-dimensional eval |
+- Recruit listeners representative of the target audience; use expert listeners for expert judgments and report musical experience.
+- Blind model identities, randomize presentation and A/B positions, and balance prompts across systems.
+- Define listening conditions and loudness treatment. [ITU-R BS.1770](https://www.itu.int/rec/R-REC-BS.1770) specifies loudness and true-peak measurement; it does not choose a universal listening level. Loudness matching should not erase dynamics that are themselves under evaluation.
+- Match duration to the claim: short excerpts for local artifacts, complete sections or tracks for structural coherence. Do not infer full-song quality from a few seconds.
+- Choose sample and listener counts from effect size, variability, power or confidence-interval requirements. There is no universal “20 listeners makes MOS reliable” rule.
+- Report numbers of prompts, outputs, unique listeners, ratings per item, exclusions, uncertainty, and aggregation. Repeated ratings by one listener or repeated outputs from one prompt are not independent observations; account for this in bootstrap or mixed-effects analyses.
+- Choose agreement statistics for the data: Cohen's kappa is for two categorical raters; weighted kappa, suitable multi-rater measures, or a specified ICC may fit other designs. Low agreement may reflect ambiguous instructions or unreliable annotation as well as subjective taste.
 
-### 2.2 Best Practices
+### 2.3 A Verified Preference Dataset
 
-- **Listeners**: Use musically trained listeners for fine-grained evaluation. Use crowdsourcing (MTurk, Prolific) for large-scale preference studies.
-- **Listening environment**: Use studio headphones (ATH-M50x, HD-650) or monitors. Normalize loudness across samples (ITU-R BS.1770).
-- **Sample duration**: 10–30s for quality/style checks. 30s–3min for coherence. Full tracks for end-to-end evaluation.
-- **Randomization**: Randomize sample order to avoid position bias.
-- **Inter-annotator agreement**: Report Cohen's kappa or ICC. Low agreement means the dimension is inherently subjective.
-- **Number of listeners**: Minimum 20–30 for reliable MOS. More for fine-grained attribute rating.
+[Benchmarking Music Generation Models and Metrics via Human Preference Studies](https://arxiv.org/abs/2506.19085) reports approximately 6,000 generated examples from 12 systems, 15,000 pairwise comparisons, and 2,500 participants. Its [AIME dataset](https://huggingface.co/datasets/disco-eth/AIME) supports studying metric–preference relationships. Rankings apply to the tested model versions, prompts, and listeners; they are not a current universal leaderboard.
 
-### 2.3 Large-Scale Benchmarks
+## 3. Choose Metrics by Reference Requirement
 
-| Benchmark | Description | Scale |
-|-----------|-------------|-------|
-| **MUSECA** | Comparative listening tests for music generation | Multiple models, multiple judges |
-| **SongBench** | Supervised quality labels for song generation | 1K+ tracks with human ratings |
-| **ICASSP 2025 Human Preference Study** | Benchmarking music gen models via human preference | Systematic pairwise comparison |
-| **AAAI 2025 Preference Alignment** | Human preference data for alignment training | Preference pairs |
+| Metric family | Needs paired target audio? | Needs a reference collection? | Main use |
+|---------------|---------------------------|-------------------------------|----------|
+| FAD / audio-embedding Fréchet distance | No | Yes | Distribution comparison |
+| Generative precision / recall | No | Yes | Coverage and support in an embedding space |
+| CLAP / MuLan audio-text similarity | No | No; needs the condition text | Semantic prompt alignment |
+| ViSQOL, PEAQ, spectral reconstruction errors | Yes, for meaningful reconstruction assessment | No separate collection | Distortion of corresponding content |
+| Score / beat / chord adherence | Needs a target score or control annotation | No | Task-specific controllability |
+| Human preference | No exact target needed | No | Listener judgments |
 
----
+“No paired reference” and “no reference data” mean different things. FAD falls into the first category.
 
-## 3. Automatic Metrics: Overview 自动指标总览
-
-### 3.1 The Metric Landscape
-
-```
-Automatic Metrics
-├── Distribution-based    (FAD, FD, precision/recall)
-├── Embedding-based       (CLAP Score, FSD)
-├── Perceptual            (PEMO-Q, ViSQOL)
-├── Music-specific        (Chroma-based, harmonic, rhythmic)
-└── Text-audio alignment  (CLAP Score, FA-CLAP)
-```
-
-### 3.2 Metric Properties to Consider
-
-| Property | Question |
-|----------|----------|
-| **Correlation with humans** | Does high score = human preference? |
-| **Reference requirement** | Does it need ground-truth audio? |
-| **Computation cost** | Forward pass through large model? |
-| **Dimension coverage** | Quality? Style? Alignment? Coherence? |
-| **Robustness** | Stable across different music types? |
-
-No metric scores well on all five dimensions simultaneously.
-
----
-
-## 4. Distribution-Based Metrics 分布指标
+## 4. Distribution-Based Metrics
 
 ### 4.1 Fréchet Audio Distance (FAD)
 
-Computes Fréchet distance between multivariate Gaussian distributions of audio embeddings:
+For reference and generated audio embeddings, estimate means and covariance matrices. The Gaussian squared 2-Wasserstein distance commonly called FAD is
 
 $$
-FAD = ||\mu_r - \mu_g||^2 + Tr(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2})
+\operatorname{FAD}=\lVert\mu_r-\mu_g\rVert_2^2+
+\operatorname{tr}\!\left(\Sigma_r+\Sigma_g-
+2\left(\Sigma_r^{1/2}\Sigma_g\Sigma_r^{1/2}\right)^{1/2}\right).
 $$
 
-- $\mu_r, \Sigma_r$: mean and covariance of real audio embeddings
-- $\mu_g, \Sigma_g$: mean and covariance of generated audio embeddings
+Here $r$ denotes the reference collection and $g$ the generated collection; square roots are positive-semidefinite matrix square roots. The symmetric form avoids treating the generally nonsymmetric product $\Sigma_r\Sigma_g$ as a symmetric matrix. Audio embeddings need not actually be Gaussian: Gaussian fitting is the metric's approximation.
 
-**Embedding backbones**: VGGish, YAMNet, CLAP, EnCodec features, music-specific models.
+Lower means closer distributions **under this embedding and protocol**. The [original FAD paper](https://arxiv.org/abs/1812.08466) appeared as a 2018 preprint and at INTERSPEECH 2019, using VGGish features for music enhancement evaluation.
 
-**Interpretation**: Lower FAD = generated distribution closer to real distribution. Lower is better.
+Practical limits:
 
-**Common pitfalls**:
-- FAD is sensitive to embedding choice. VGGish-based FAD and CLAP-based FAD can give very different rankings.
-- FAD measures distribution match, not individual track quality. A model can have good FAD but produce occasional bad samples.
-- FAD does not measure text-audio alignment.
+- Record encoder/checkpoint, feature layer, pooling, window length, resampling, reference corpus, sample counts, and implementation. Values from different setups are not directly comparable.
+- Finite-sample bias and small-sample covariance estimates can alter rankings. Compare matched sample sizes and report uncertainty; tiny per-genre subsets may be unreliable.
+- FAD combines distribution differences into one value; it does not separately identify fidelity, diversity, or memorization.
+- It does not use prompt–audio pairs, so it does not test individual prompt adherence. Permuting outputs across prompts leaves ordinary FAD unchanged.
+- Aggregating window embeddings discards their global ordering. Local features may encode some timing, but FAD alone does not establish full-song structure.
 
-### 4.2 Fréchet Distance (FD)
+### 4.2 FAD-CLAP and Per-Song Scores
 
-Same formula as FAD but applied to specific embedding spaces (e.g., CLAP audio embeddings, music foundation model features).
+**FAD-CLAP** means FAD using CLAP **audio** embeddings. It still compares audio distributions and does not automatically become a text-alignment metric. Avoid introducing “FA-CLAP” as a separate standard without a specific definition and source.
 
-### 4.3 Precision and Recall
+[Microsoft's FAD toolkit](https://github.com/microsoft/fadtk) supports multiple embedding models, sample-size-aware estimation, and individual-song scoring. Per-song procedures still use a background distribution and a specified sampling/embedding method. They should not be confused with fitting a covariance to one global embedding, or assumed to be the best perceptual metric for every domain.
 
-| Metric | Description |
-|--------|-------------|
-| **Precision** | % of generated samples that fall within the real distribution (avoiding outliers) |
-| **Recall** | % of real distribution covered by generated samples (avoiding mode collapse) |
-| **Density/Coverage** | Refined versions using k-nearest-neighbor |
+### 4.3 Generative Precision, Recall, Density, and Coverage
 
-A model with high precision but low recall is "safe" but boring. High recall but low precision is diverse but unreliable. Both should be reported.
+These estimate support/coverage using finite samples and an explicit embedding-space neighborhood rule. Precision asks how generated samples relate to estimated reference support; recall asks how reference samples are covered by generated support. They are not exact percentages of an unknown “true distribution.” Report the implementation, neighborhood parameters, and sample counts. High coverage or precision does not independently establish creativity or musical validity.
 
----
+### 4.4 Label KL and Inception Score
 
-## 5. Embedding-Based Metrics 嵌入指标
+Classifier-based KL can compare label posteriors for corresponding reference/generated clips or compare aggregate label distributions. State which protocol is used, the KL direction, classifier, normalization, and zero-probability handling. A multi-label sigmoid vector is not automatically a categorical probability distribution.
+
+Inception Score rewards confident per-example classifier predictions and varied aggregate predictions. Neither score directly measures musicality, and both depend on classifier calibration and label coverage.
+
+## 5. Text-Audio Alignment
 
 ### 5.1 CLAP Score
 
-Uses the CLAP model's audio-text alignment score:
+For audio $a$ and prompt $t$, with nonzero embeddings:
 
 $$
-CLAPScore(a, t) = cosine\_similarity(CLAP_{audio}(a), CLAP_{text}(t))
+\operatorname{CLAPScore}(a,t)=
+\frac{f_a(a)^\top f_t(t)}{\lVert f_a(a)\rVert_2\lVert f_t(t)\rVert_2}.
 $$
 
-- **Average CLAP Score**: Mean over generated audio and their text conditions. Higher = better alignment.
-- **CLAP Score by genre/style**: Decompose by style tag to check if alignment is uniform across styles.
-- **Limitation**: CLAP was trained on general audio, not music-specific. CLAP Score correlates with human judgment for *some* dimensions but not all.
+Average scores across matched prompt–output pairs, and document any scaling (for example multiplying by 100). Different CLAP implementations/checkpoints use different training corpora; [LAION-CLAP](https://github.com/LAION-AI/CLAP) includes music-trained variants. “CLAP is never trained on music” is incorrect.
 
-### 5.2 FA-CLAP (Fréchet Audio-CLAP Distance)
+This measures learned semantic association, not exact BPM, harmony, lyric transcription, negation handling, or ordering of sections. MuLan similarity serves a related role in the [MusicLM evaluation](https://arxiv.org/abs/2301.11325); scores from distinct encoders are not interchangeable.
 
-FAD computed in the CLAP embedding space. Captures both distribution match and text conditioning quality.
+### 5.2 Complementary Tests
 
-### 5.3 Frechet Style Distance (FSD)
+| Condition | Useful additional test |
+|-----------|------------------------|
+| Tempo / beats | Tempo error with half/double-tempo policy; beat F-measure with declared tolerance |
+| Key / chords | Time-aligned key/chord adherence with a specified vocabulary |
+| Lyrics | Transcription error, omissions/repetitions, and human intelligibility |
+| Melody | Pitch-class or F0 contour adherence, with explicit octave handling |
+| Song form | Requested versus realized section order, timing, and transitions |
+| Instruments | Validated instrument tags plus listening checks for mixtures |
 
-FAD computed in a style-specific embedding space (e.g., genre classifier features, style embedding). Measures how well the generated output matches the target *style* distribution rather than the overall real distribution.
+A text-only LLM judging an automatically generated caption evaluates a proxy that inherits captioning errors. Audio-capable judges also require validation against listeners and held-out systems. Do not treat either as ground truth.
 
----
+Classifier-free guidance can trade off adherence, artifacts, and diversity. Evaluate a range of settings; increasing guidance does not guarantee monotonically better alignment.
 
-## 6. Perceptual Audio Quality Metrics 感知音频质量指标
+## 6. Perceptual and Reconstruction Metrics
 
-### 6.1 Overview
+| Metric | Scope and caveat |
+|--------|------------------|
+| PEAQ | Objective audio-quality assessment standardized by [ITU-R BS.1387](https://www.itu.int/rec/R-REC-BS.1387) |
+| PEMO-Q | Auditory-model-based objective comparison; distinct from PEAQ, and not itself the BS.1387 standard |
+| ViSQOL | Full-reference speech/audio similarity estimator; select and report speech or audio mode ([official implementation](https://github.com/google/visqol)) |
+| PESQ / POLQA | Speech-oriented quality estimators; do not assume validation for full musical mixtures |
+| STFT / mel distance | Reconstruction differences dependent on alignment, gain, and analysis parameters |
 
-| Metric | Full name | What it captures | Requires reference |
-|--------|-----------|------------------|-------------------|
-| **PEMO-Q** | Perceptual Evaluation of Audio Quality | Perceptual quality (ITU-R standard) | Yes |
-| **ViSQOL** | Virtual Speech/audio Quality Object Listener | Perceptual similarity | Yes |
-| **POLQA** | Perceptual Objective Listening Quality Analysis | Speech quality (less music) | Yes |
-| **PESQ** | Perceptual Evaluation of Speech Quality | Speech quality only | Yes |
-| **STFT-based** | L1/L2 loss on spectrograms | Spectral match | Yes |
-| **Mel-distance** | L1/L2 on mel-spectrograms | Mel-spectral match | Yes |
+These are useful for codecs, vocoders, restoration, and aligned reconstruction. Comparing two valid but different compositions against each other measures their difference, not which is musically better. Perceptual-model correlations must be established on the relevant distortions and data.
 
-**Key insight**: Reference-based perceptual metrics (PEMO-Q, ViSQOL) correlate better with human judgment of *audio quality* than spectrogram losses. But they require high-quality reference audio, which may not exist for creative generation.
+Without a paired reference, use condition adherence, a suitable reference-distribution comparison, and listeners. BRISQUE/NIQE are image metrics; applying them to spectrogram pictures does not establish audio-quality validity. Codec reconstruction error or bitrate is not a standalone measure of the quality of a newly generated composition.
 
-### 6.2 When Reference Is Not Available
+## 7. Music-Specific Descriptors
 
-For creative generation (no ground-truth reference), use:
-- **No-reference metrics**: BRISQUE, NIQE (image-derived, adapted for spectrograms)
-- **Self-supervised features**: EnCodec reconstruction quality, audio codec bitrate efficiency
-- **Distribution metrics**: FAD, precision/recall (no reference needed for distribution)
+| Dimension | Possible descriptors | Interpretation limit |
+|-----------|----------------------|----------------------|
+| Harmony | Chord transitions, pitch-class histograms, key-profile similarity | Pitch-class entropy alone is not tonal stability: a constant note has low entropy |
+| Rhythm | Onset density, inter-onset intervals, swing ratio, tempo curve | Tempo variation and microtiming may be intentional |
+| Melody | Interval distribution, range, contour, motif recurrence | No universal Zipf law or preferred interval distribution across traditions |
+| Structure | Self-similarity, repetition, annotated section boundaries | High repetition need not be good; boundary F-measure requires target boundaries and a tolerance |
 
----
+State whether descriptors come from symbolic notes or estimated audio annotations. Transcription, chord, beat, and source-separation errors propagate into evaluation. A genre template is a chosen target, not a universal definition of valid music.
 
-## 7. Music-Specific Metrics 音乐特有指标
+For symbolic generation, [Fréchet Music Distance (FMD)](https://arxiv.org/abs/2412.07948) compares symbolic-music embedding distributions. Its 2024 preprint is separate from audio FAD and does not assess rendering fidelity.
 
-These capture musical properties beyond audio quality:
+## 8. Benchmarks and Reproducibility
 
-### 7.1 Harmonic Metrics
+| Resource | Verified role |
+|----------|---------------|
+| [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) | 5,521 ten-second music examples with human descriptions; commonly used for text-to-music evaluation |
+| [AIME](https://huggingface.co/datasets/disco-eth/AIME) | Generated music and human pairwise judgments for model/metric comparison |
+| [MARBLE](https://arxiv.org/abs/2306.10548) | Music-representation understanding benchmark; not a direct generated-song quality test |
 
-| Metric | Description |
-|--------|-------------|
-| **Chord similarity** | Compare estimated chords of generated vs. reference (if condition is chord-based) |
-| **Harmonic change rate** | Rate of chord changes per bar — matches target style |
-| **Key consistency** | % of time spent in the expected key |
-| **Tonal stability** | Pitch-class entropy over time — lower = more tonal |
+MusicCaps provides annotations and source identifiers; source-audio availability can change. Record the actually retrieved subset and preprocessing. It is a short-clip benchmark, so it cannot establish multi-minute structure. Use disjoint training/evaluation data and check song-, artist-, and recording-level overlap where possible.
 
-### 7.2 Rhythmic Metrics
+A reproducible protocol records:
 
-| Metric | Description |
-|--------|-------------|
-| **Beat alignment** | Correlation between generated and expected beat positions |
-| **Groove consistency** | Swing ratio, micro-timing standard deviation |
-| **Tempo stability** | BPM variance over time |
-| **Onset density** | Notes/events per beat — matches genre norms |
+1. Task, test split, target genres/languages, reference requirements, and missing examples.
+2. Model/checkpoint or service version, access date, conditioning, sampler, guidance, seeds, and outputs per prompt.
+3. Duration, sample rate, channel treatment, normalization, and failure handling, including silence and truncated outputs.
+4. Metrics with exact checkpoints/settings, baselines, aggregation, and uncertainty.
+5. Listener recruitment, randomized test design, rated dimensions, counts, exclusions, and statistical analysis.
+6. Generation time, hardware, batch size, and total cost if efficiency is claimed.
+7. Released code, prompts, samples, and annotations where redistribution is permitted.
 
-### 7.3 Melodic Metrics
+## 9. Open Problems and Practical Priorities
 
-| Metric | Description |
-|--------|-------------|
-| **Pitch histogram match** | Pitch-class distribution similarity to target style |
-| **Interval distribution** | Frequency of each interval size — Zipf-like for tonal music |
-| **Pitch range** | Span in semitones |
-| **Contour match** | Melodic contour classification match |
+For text-to-music, FAD plus prompt similarity is a useful starting point when suitable reference data exists, followed by condition-specific tests and listening evaluation. For symbolic generation, SVS, and reconstruction, select metrics appropriate to those tasks instead of mandating CLAP everywhere.
 
-### 7.4 Structural Metrics
+Separate sample-level and system-level metric correlations. A score that ranks model averages well need not choose the better of two songs. Validate on new generators, languages, and styles, and inspect failure cases rather than only reporting a single correlation.
 
-| Metric | Description |
-|--------|-------------|
-| **Repetition score** | Self-similarity matrix density — matches genre expectations |
-| **Section boundary detection** | Automatic section change detection (boundary F-measure) |
-| **Section proportion** | Intro/verse/chorus/bridge lengths match genre templates |
+Long-term form, emotional expression, novelty, and cultural diversity remain difficult to summarize automatically. Preference optimization can exploit weaknesses in reward models; keep held-out human evaluation separate from training rewards. [Aligning Generative Music AI with Human Preferences: Methods and Challenges](https://arxiv.org/abs/2511.15038) is a November 2025 preprint accepted in the **AAAI 2026 Senior Member Track**.
 
----
+Further reading: [A Survey on Evaluation Metrics for Music Generation](https://arxiv.org/abs/2509.00051) (2025).
 
-## 8. Text-Audio Alignment 文本-音频对齐
-
-### 8.1 Why It Matters
-
-For text-conditioned generation, *following the prompt* is as important as musical quality. Current failure modes:
-
-| Failure | Example |
-|---------|---------|
-| Ignoring style | Prompt: "fast metal" → output: slow ambient |
-| Ignoring mood | Prompt: "sad piano" → output: neutral piano |
-| Ignoring structure | Prompt: "verse-chorus" → output: no clear sections |
-| Hallucinating instruments | Prompt: "violin solo" → output: no violin |
-
-### 8.2 Measuring Alignment
-
-| Method | Description |
-|--------|-------------|
-| **CLAP Score** | Cosine similarity between CLAP audio and text embeddings |
-| **FA-CLAP** | FAD in CLAP space (distribution + alignment) |
-| **LLM-as-judge** | Use an LLM to compare generated audio description with prompt |
-| **Attribute accuracy** | Classify generated audio for specific attributes (BPM, key, genre) and compare with prompt |
-| **Human alignment rating** | "Did the generated music follow the prompt?" |
-
-### 8.3 The Alignment-Perfection Trade-off
-
-Stronger text conditioning (higher CFG scale) can improve prompt adherence but hurt musical quality and diversity. Finding the right CFG scale is task-dependent.
-
----
-
-## 9. Benchmarking Frameworks 评测框架
-
-### 9.1 Benchmark Platforms
-
-| Platform | Description |
-|----------|-------------|
-| **MusicCaps** | 5.5K music clips with detailed captions (text quality evaluation) |
-| **SynthSeg** | Synthetic evaluation for text-to-music alignment |
-| **COMP** | Comprehensive benchmarking for music generation |
-| **Codec SUPERB** | Benchmarking neural audio codecs (downstream task performance) |
-
-### 9.2 Evaluation Protocol Template
-
-A minimal but complete evaluation protocol:
-
-```
-1. Dataset: [description of test set, size, diversity]
-2. Models: [models compared, checkpoints]
-3. Conditions: [text prompts, BPM/key/meter conditions]
-4. Samples: [number of generated samples per condition]
-5. Automatic metrics: [FAD, CLAP Score, precision/recall]
-6. Music-specific metrics: [harmonic, rhythmic, structural]
-7. Human evaluation: [protocol, number of listeners, dimensions rated]
-8. Baselines: [prior models, ground-truth references if available]
-```
-
----
-
-## 10. The Metric-Human Judgment Gap 指标与人类判断的鸿沟
-
-### 10.1 Known Discrepancies
-
-| Scenario | Automatic metric | Human judgment | Reason |
-|----------|-----------------|----------------|--------|
-| High FAD + human preference for generated | Good FAD | Generated preferred | FAD sensitive to embedding choice; humans judge musicality |
-| Low FAD + human preference for real | Good FAD | Real preferred | FAD measures distribution, not individual quality |
-| High CLAP Score + wrong style | Good alignment | Wrong style | CLAP captures coarse semantics, not fine-grained style |
-| Good FAD + musically incoherent | Good distribution | Incoherent | FAD doesn't model musical structure |
-
-### 10.2 Why the Gap Persists
-
-1. **Metrics optimize for correlation, not causation**: Metrics are fitted to human data but don't model *why* humans prefer something.
-2. **Music is cultural and subjective**: What sounds "good" depends on listener background, cultural context, and listening purpose.
-3. **Metrics miss temporal structure**: FAD and CLAP Score operate on clip-level embeddings, missing phrase-level and section-level musical coherence.
-4. **No metric captures "surprise"**: Musical interest comes from expectation violation (Meyer's theory), which is inherently hard to quantify.
-5. **Reference dependency**: Best metrics need reference audio, which doesn't exist for creative generation tasks.
-
-### 10.3 Current Research Directions
-
-| Direction | Approach |
-|-----------|----------|
-| Music-specific embeddings | Train embeddings that capture musical structure (MERT variants, MusicFM probes) |
-| Multi-dimensional metrics | Separate metrics per dimension instead of one score |
-| LLM-based evaluation | Use LLMs with music knowledge to assess coherence, style, etc. |
-| Perceptual metrics for music | Adapt speech quality metrics (PEMO-Q) for music-specific perception |
-| Human-AI hybrid | Use metrics for screening + humans for final judgment |
-
----
-
-## 11. Practical Recommendations 实践建议
-
-### For model developers:
-
-- **Always report FAD + CLAP Score** as minimum viable automatic evaluation. They are standard in the field.
-- **Report precision AND recall** to catch mode collapse.
-- **Decompose FAD/CLAP Score by style** to check if performance is uniform across genres.
-- **Add music-specific metrics** relevant to your conditioning signals (e.g., chord accuracy for chord-conditioned generation, BMA for beat-conditioned).
-- **Include human evaluation** for any paper or benchmark — even 20 listeners provides signal.
-- **Report inter-annotator agreement** to contextualize human evaluation results.
-
-### For benchmark designers:
-
-- Use diverse test sets covering multiple genres, moods, and structural complexities.
-- Include both simple and challenging conditions.
-- Provide reference audio when possible (even if synthetic/rendered).
-- Release evaluation code and generated samples for reproducibility.
-
-### For metric developers:
-
-- Target correlation with human judgment on *musical* dimensions, not just audio quality.
-- Evaluate metrics across diverse musical traditions, not just Western pop.
-- Develop reference-free or low-reference metrics for creative evaluation.
-- Report metric performance on multiple datasets to assess robustness.
-
----
-
-## 12. Summary: Evaluation Checklist 评测清单
-
-Before publishing generation results:
-
-- [ ] **FAD** reported (with embedding type specified)?
-- [ ] **CLAP Score** reported (average + by style)?
-- [ ] **Precision and recall** reported?
-- [ ] **Music-specific metrics** included where relevant?
-- [ ] **Human evaluation** conducted with minimum 20 listeners?
-- [ ] **Inter-annotator agreement** reported?
-- [ ] **Test set diversity** covers target genres/moods?
-- [ ] **Baselines** compared (prior models, ground-truth)?
-- [ ] **Evaluation code and samples** released?
-
----
-
-## Further Reading 延伸阅读
-
-- "Benchmarking Music Gen Models and Metrics via Human Preference Studies," ICASSP 2025
-- "Aligning Generative Music AI with Human Preferences," AAAI 2025
-- "Evaluation of Music Generation Systems: A Comprehensive Review," arXiv 2024
-- "On the Evaluation of Conditional Music Generation," ISMIR 2024
-- "FAD: Fréchet Audio Distance," arXiv 2021
-- "CLAP Score," Wu et al., 2023
-
----
-
-> This document covers evaluation methodology for AI music generation. For related topics, see [music-generation.md](music-generation.md) (generation architectures), [music-styles.md](music-styles.md) (style conditioning), and [music-understanding-mir.md](music-understanding-mir.md) (MIR evaluation).
+> Related: [generation architectures](music-generation.md), [singing synthesis](music-singing-synthesis.md), [music styles](music-styles.md), and [MIR](music-understanding-mir.md).

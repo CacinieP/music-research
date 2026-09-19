@@ -1,199 +1,76 @@
-# 音乐版权与 AI 合规 (2025--2026)
+# 音乐版权与 AI 合规
 
-音乐 AI 生成面临的版权法律问题、生成侵权风险、各国立法差异、行业实践及合规指南。
+资料核对日期：2026-09-19。本页区分法规、机构解释、当事方公告和工程建议；适用于研究导航，具体项目仍需按法域、用途和授权合同判断。
 
-> English version: [music-copyright-compliance.md](music-copyright-compliance.md)（本文件为中英双语）
+## 1. 先区分不同权利和行为
 
----
+音乐作品（词、曲）、录音制品、表演，以及声音/人格权益可能分别受保护。取得录音文件或模型权重，不等于取得所有这些权利。应分别核对数据获取、训练复制、模型分发、声音克隆和生成内容发布。
 
-## 1. 训练数据版权
+“公开可下载”“免版税”“Creative Commons”和“公有领域”不是同义词。CC 作品通常仍有版权；BY、NC、ND、SA 等条件必须分别核对。数据集元数据的许可也不自动覆盖链接指向的录音。参见 [Creative Commons 许可说明](https://creativecommons.org/share-your-work/cclicenses/) 和[数据集目录](../../datasets/README.md)。
 
-### 关键诉讼
+## 2. 美国：版权性与训练合理使用是两个问题
 
-**RIAA v. Suno 和 Udio（2024 年 6 月）**
-- RIAA 代表 Sony/Universal/Warner 在联邦法院起诉 Suno（波士顿）和 Udio（纽约）
-- 核心指控：大规模版权侵权——在未经授权的情况下使用版权录音训练模型
-- 索赔：每件侵权作品 $150,000
+[美国版权局 AI 报告](https://www.copyright.gov/ai/) Part 2（2025-01-29）讨论生成内容的版权性：纯机器生成且缺少人类作者性的部分不受保护；人类原创的选择、编排、修改等贡献仍可能受保护。不能把它概括成“使用 AI 的作品一律没有版权”。
 
-**和解（2025 年 10--11 月）**
-- UMG 于 2025 年 10 月与 Udio 达成和解，计划 2026 年推出授权 AI 音乐平台
-- Warner Music 于 2025 年 11 月与 Suno 达成约 $5 亿和解，被称为"里程碑"交易。旧版 Suno 模型正在被淘汰
-- Forbes（2025 年 12 月）将此概括为"Launch, Train, Settle"模式
+Part 3 于 2025-05-09 发布预出版版，讨论生成式 AI 训练。合理使用须结合使用目的、作品性质、使用数量及市场影响等因素作个案分析；报告本身不是法院判决。合法购得副本也不意味着一切后续训练必然构成合理使用。[17 U.S.C. §107](https://www.copyright.gov/title17/92chap1.html#107)
 
-**GEMA v. OpenAI（德国，2025 年）**
-- GEMA 对 OpenAI 提起诉讼，指控其在 AI 训练数据中未经授权使用受版权保护的歌词和音乐作品
+原笔记把 Anthropic 个案概括成“合法获取 = 合理使用；盗版 = 侵权”的普遍公式，已删除。数据来源、建库行为和具体训练用途需要分别判断，不能把书籍案件中的结论直接推广到音乐模型。
 
-**独立艺术家 v. Google**
-- 独立艺术家起诉 Google 的 Lyria 音乐 AI 模型，指控其基于数千万未授权版权作品训练
+### 音乐行业案件与协议
 
-### 合理使用 vs 授权要求
+2024 年 6 月，多家唱片公司分别起诉 Suno 和 Udio，指控未经授权复制录音；这是原告的指控，不能写成法院已认定的全部事实。每件作品最高 150,000 美元是故意侵权情形下法定赔偿的上限之一，并非每件作品自动获赔。[RIAA 起诉公告](https://www.riaa.com/record-companies-bring-landmark-cases-for-responsible-ai-againstsuno-and-udio-in-boston-and-new-york-federal-courts-respectively/)、[17 U.S.C. §504](https://www.copyright.gov/title17/92chap5.html#504)
 
-**Anthropic 里程碑判决（2025 年 6 月）**
-- 法院：美国加州北区联邦法院（Judge William Alsup）
-- 关键裁定：
-  - 在**合法获取**的版权作品上训练 AI 构成合理使用
-  - 为训练目的创建**盗版**作品的集中库不构成合理使用，属于侵权
-- 这是美国首个重大判决，确立了 AI 模型在版权作品上训练可构成合理使用，但关键区别在于训练数据的获取方式
+- UMG 于 2025-10-29 宣布与 Udio 和解及授权合作，并在公告中计划于 2026 年推出新平台。该公告证明协议和当时的计划，不能单独证明平台已上线。[UMG 公告](https://www.universalmusic.com/universal-music-group-and-udio-announce-udios-first-strategic-agreements-for-new-licensed-ai-music-creation-platform/)
+- WMG 于 2025-11-25 宣布与 Suno 合作并解决双方此前诉讼。官方公告未披露“约 5 亿美元和解”数字，原笔记中该金额已移除。与某一权利人的协议不代表取得其他权利人的许可。[WMG 公告](https://www.wmg.com/news/warner-music-group-and-suno-forge-groundbreaking-partnership)
 
-**美国版权局报告**
-- Part 2（2025 年 1 月）：确认现有版权法足以处理 AI 生成作品的版权性；完全由 AI 生成的作品因缺乏人类作者性而不可获得版权注册
-- Part 3（2025 年 5 月）：108 页报告，分析未经授权使用版权作品训练 AI 是否构成合理使用；结论：合理使用不会总是保护 AI 开发者免于授权义务，需逐案分析
+## 3. 欧盟：分阶段义务，版权与透明度分开
 
-### 合理使用四要素在音乐 AI 中的适用
+AI 法案于 2024-08-01 生效。GPAI 模型相关义务与第 50 条透明度规则属于不同部分，不能将“第 50–55 条”全部归为同一日期的 GPAI 义务。
 
-| 要素 | 分析 |
-|------|------|
-| 使用目的与性质 | 训练是否具有转换性？ |
-| 版权作品的性质 | 音乐等创意作品享有更强保护 |
-| 使用量 | 模型摄取了多少原始作品？ |
-| 市场影响 | AI 输出是否与原作品竞争或替代？ |
+- GPAI 第 53(1)(c) 条要求版权合规政策，包括识别并遵守 DSM 指令第 4(3) 条规定的权利保留；第 53(1)(d) 条要求公开足够详细的训练内容摘要。开源豁免不免除这两项义务。
+- GPAI 规则自 2025-08-02 起分阶段适用；较早已投放市场的模型有过渡安排。具体日期须结合模型投放时间与修订条文。
+- 透明度规则自 2026-08-02 起适用；这不表示全部高风险系统规则同日生效。欧委会现行说明列有 2027、2028 年的高风险系统适用日期。
 
----
+来源：[AI 法案文本](https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng)、[欧委会现行实施时间线](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)。TDM 例外及权利保留与训练摘要披露是不同义务，公开摘要本身不授予训练许可。
 
-## 2. 生成侵权风险
-
-### 实质性相似性
-
-- 实质性相似性是判断 AI 生成音乐是否侵权的核心法律测试
-- AI 的"黑箱"特性使判断困难：不清楚模型接触了哪些训练数据、输出是否与特定版权作品实质性相似
-- 如果 AI 工具重现了特定旋律或歌词，很可能构成侵权，但证明此类复制很困难
-
-### 水印与检测方法
-
-| 方法 | 机构/年份 | 特点 |
-|------|-----------|------|
-| **AudioSeal** | Meta / ICML 2024 | 首个专为 AI 生成音频设计的局部检测水印；开源 |
-| **Digimarc** | 商业 / 2025 年 7 月 | 新一代商业音频水印，确保创作者准确补偿 |
-| **XAttnMark** | ICML 2025 | 基于交叉注意力的鲁棒音频水印 |
-| **Timbru** | 学术 2025 | 多比特音频水印，达到 SOTA 鲁棒性 |
-| **RAW-Bench** | INTERSPEECH 2025 | 评估音频水印算法的综合现实世界基准 |
-
-- 关键挑战：水印对移除/覆写攻击的鲁棒性仍是开放问题（2025 年 SoK 综评）
-
----
-
-## 3. 各国立法
-
-### 美国
-- 版权局 Part 2+3 报告确立：AI 生成作品不可注册版权（缺乏人类作者性）
-- Anthropic 判决：合法获取的训练数据 = 合理使用；盗版 = 侵权
-- 法律格局仍在演变，Suno/Udio 音乐相关案件持续发展
-
-### 欧盟
-- **AI 法案**：2024 年 8 月 1 日生效
-  - GPAI 义务（第 50--55 条）：2025 年 8 月 2 日可执行
-  - 完全适用（高风险系统、透明度/第 50 条）：2026 年 8 月 2 日
-- **第 53(1)(c) 条**：GPAI 提供者必须实施遵守 EU 版权法的政策，包括 TDM（文本与数据挖掘）退出机制
-- **第 53(1)(d) 条**：必须发布训练数据内容的"足够详细摘要"
-- 即使开源 GPAI 提供者也须遵守版权和训练数据摘要义务
+## 4. 中国、日本与英国
 
 ### 中国
-- **CNIPA 指导（2025 年 4 月）**：AI 生成作品能否获得版权取决于是否体现人类创造性
-- **北京互联网法院 Li v. Liu（2023/2024）**：里程碑判决——AI 生成图像可获得版权保护，前提是反映人类智力/创造性投入。与美国立场显著不同
-- **常熟法院（2025 年 3 月）**：确认 AI 生成图像可获得版权保护
-- AI 平台可为生成的侵权内容承担辅助侵权责任
-- 生成式 AI 监管规定要求内容尊重知识产权
+
+《生成式人工智能服务管理暂行办法》第七条要求使用具有合法来源的数据和基础模型，涉及知识产权时不得侵害他人依法享有的知识产权；其适用范围应按第二条判断。不能将图像案件中对特定人类创作投入的判断，推广为所有 AI 音乐自动取得版权。声音克隆也不能仅凭曲库许可推断已获本人同意。[网信办原文](https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)
 
 ### 日本
-- **著作权法第 30-4 条**：允许为"信息分析"（包括 AI 训练）使用版权作品，无需许可或支付
-- 日本政府重申不会对 AI 训练数据执行版权
-- 被视为全球最 AI 友好的版权制度之一
-- 与美国（合理使用争议）和 EU（TDM 退出机制）形成鲜明对比
+
+著作权法第 30-4 条为非享受作品所表达思想或感情的使用等情形提供例外，但有目的与不得不合理损害权利人利益等限制。训练与输出的法律判断应分开；“日本不对 AI 训练执行版权”是不准确的概括。[文化厅 AI 与著作权说明](https://www.bunka.go.jp/english/policy/copyright/pdf/94055801_01.pdf)
 
 ### 英国
-- **2026 年 3 月 18 日**：英国政府确认不会引入 AI 训练的广泛版权例外
-- 最初曾提议类似 EU 的 TDM 版权例外（含权利人退出机制），但在创意产业强烈反对后放弃
-- 采用**市场导向授权模式**：AI 开发者必须与权利人协商许可
 
----
+2026 年 3 月的政府报告表示，带权利人退出机制的广泛例外已不再是政府的首选方案，且仍需进一步工作。这不同于已经立法永久禁止一切新例外，也不意味着现有研究例外消失。[政府报告](https://www.gov.uk/government/publications/report-and-impact-assessment-on-copyright-and-artificial-intelligence/report-on-copyright-and-artificial-intelligence)
 
-## 4. 行业实践
+## 5. 训练数据与模型许可
 
-| 公司 | 训练数据策略 | 合规特点 |
-|------|------------|----------|
-| **Suno** | 含版权录音（据称包括 Mariah Carey 到 Chuck Berry） | 2025 年 11 月与 Warner 和解 (~$5 亿)；旧模型正在淘汰 |
-| **Udio** | 类似 Suno | 2025 年 10 月与 UMG 和解；参与新授权 AI 平台 |
-| **Stability AI (Open)** | 仅使用 CC/免版税数据（Freesound 47 万 + FMA 1.4 万） | 明确避开版权材料；可微调 |
-| **Stability AI (商业)** | AudioSparx 授权数据集 (>80 万音频) | 遵守退出请求，确保公平补偿 |
-| **Google** | MusicLM 使用合成/虚假数据集 | 减少对版权材料的依赖 |
-| **Meta** | AudioCraft 代码 MIT 许可；模型权重许可更严格 | 开发 AudioSeal 水印 |
+| 项目 | 可核实的边界 |
+|---|---|
+| Stable Audio Open 1.0 | 模型卡列出 486,492 条录音，来自 Freesound 与 FMA 的选定许可子集；并非所有 FMA/Freesound 内容都可按同一条件使用。模型本身另有许可 |
+| MusicGen / AudioCraft | 代码与权重分开：AudioCraft 代码 MIT，发布的 MusicGen 权重 CC BY-NC 4.0；不可据代码许可推断权重可商用 |
+| MusicLM | 论文报告大规模音乐训练，不能说模型只用“合成/虚假数据”。MusicCaps 是评测相关描述数据集，也不能据此推断训练语料全部公开 |
 
-**Merlin Network 政策（2024 年 12 月）**：要求对其目录的任何 AI 训练须获得"事先明确的特定授权"
+来源：[Stable Audio Open 模型卡](https://huggingface.co/stabilityai/stable-audio-open-1.0)、[AudioCraft](https://github.com/facebookresearch/audiocraft)、[MusicLM 论文](https://arxiv.org/abs/2301.11325)。
 
----
+## 6. 水印、来源记录与相似性检测
 
-## 5. 新兴标准
+[AudioSeal](https://github.com/facebookresearch/audioseal)提供音频水印与局部检测机制。检测效果依赖训练域、处理链、压缩和攻击条件；带水印不等于合法，未检出也不等于内容由人类创作。
 
-### C2PA（内容来源与真实性联盟）
-- 将防篡改来源元数据嵌入数字媒体（包括音频文件）的标准
-- 2025 年：美国国会图书馆启动 C2PA 工作组；EBU 为广播公司举办 C2PA 活动
-- Content Authenticity Initiative (CAI) 推动全球采用
+[C2PA](https://c2pa.org/specifications/specifications/)为媒体来源声明提供签名和可验证的绑定机制。它可帮助核对来源声明是否遭修改，但不替代版权许可或证明声明内容必然真实。
 
-### 透明度与合规工具
-- **TransparentMeta**：专为 AI 生成音频合规设计，符合 EU AI 法案透明度要求
-- **MassiveMusic**：提供授权的、专家策划的音乐数据集用于合规 AI 训练
+音频指纹、旋律匹配、歌词重复检测可以筛查潜在复制；CLAP 相似度和 FAD 都不是侵权判定器。应记录输入、生成配置、检索库、阈值及人工复核结果。
 
----
+## 7. 研究项目记录清单
 
-## 6. 合规实践指南
+1. 分开记录词曲、录音、表演和声音使用的授权范围，保存数据来源、版本及许可原文。
+2. 明确是否允许训练、微调、商用、再分发及生成结果发布；落实适用的署名与退出要求。
+3. 将版权性、训练合规、输出相似性和人格权益作为不同问题检查。
+4. 保留数据划分、去重和输出筛查记录；水印与来源凭证作为辅助证据。
+5. 对具体商业部署，核对服务地区、最新法条、合同和案件状态。
 
-1. **使用合法获取的数据**：Anthropic 判决（2025 年 6 月）确立了合法获取 = 合理使用，盗版 = 侵权。这是最关键的合规区分。
-
-2. **优先使用明确授权或 CC 许可的数据**：Stable Audio Open 的方法（Freesound + FMA，全部 Creative Commons）是合规的金标准。
-
-3. **详尽记录训练数据**：EU AI 法案第 53(1)(d) 条要求发布"足够详细摘要"。即使不在 EU，文档记录也能防范未来法律挑战。
-
-4. **实施 TDM 退出合规机制**：如果模型将在 EU 提供，必须尊重 EU 版权指令下的 TDM 退出声明。
-
-5. **考虑合成数据**：Google 为 MusicLM 使用合成/虚假数据集训练的方法展示了完全避免版权风险的可行路径。
-
-6. **小规模精选数据集**：2025 年 ACM 研究表明小数据集对音乐 GenAI 也可有效，降低法律风险。
-
-7. **实施水印**：使用 AudioSeal 或类似工具在生成音频中嵌入水印，辅助检测并展示合规诚意。
-
-8. **测试实质性相似性**：部署前测试生成输出与已知版权作品的相似性。
-
-9. **嵌入 C2PA Content Credentials**：在生成音频文件中采用 C2PA 标准嵌入来源元数据。
-
-10. **获取明确授权**：遵循 Merlin Network 2024 年 12 月政策，对任何训练须获得"事先明确的特定授权"。
-
----
-
-## 7. 关键事件时间线
-
-| 时间 | 事件 |
-|------|------|
-| 2023 年 2 月 | 美国版权局：AI 生成作品无人类作者性不可注册 |
-| 2023 年 11 月 | 北京互联网法院 Li v. Liu：AI 生成作品可获版权（含人类创造性） |
-| 2024 年 8 月 | EU AI 法案生效 |
-| 2024 年 6 月 | RIAA 起诉 Suno/Udio |
-| 2025 年 1 月 | 美国版权局 Part 2 报告发布 |
-| 2025 年 5 月 | 美国版权局 Part 3 报告发布 |
-| 2025 年 6 月 | Anthropic 合理使用判决 |
-| 2025 年 7 月 | Digimarc 发布新一代音频水印 |
-| 2025 年 8 月 | EU AI 法案 GPAI 义务可执行 |
-| 2025 年 10 月 | UMG 与 Udio 和解 |
-| 2025 年 11 月 | Warner 与 Suno 和解 (~$5 亿) |
-| 2025 年 12 月 | Forbes "Launch, Train, Settle" 分析 |
-| 2026 年 3 月 | 英国放弃 TDM 版权例外计划 |
-| 2026 年 8 月 | EU AI 法案完全适用 |
-
----
-
-## 参考文献
-
-- [RIAA Suno/Udio 起诉公告](https://www.riaa.com/record-companies-bring-landmark-cases-for-responsible-ai-againstsuno-and-udio-in-boston-and-new-york-federal-courts-respectively/)
-- [美国版权局 AI 报告](https://www.copyright.gov/ai/)
-- [EU AI 法案](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
-- [Anthropic 判决分析 (Authors Alliance)](https://www.authorsalliance.org/2025/06/24/anthropic-wins-on-fair-use-for-training-its-llms-loses-on-building-a-central-library-of-pirated-books/)
-- [Forbes: Launch, Train, Settle](https://www.forbes.com/sites/virginieberger/2025/12/18/launch-train-settle-how-suno-and-udios-licensing-deals-made-copyright-infringement-profitable/)
-- [Warner-Suno 和解 (The Guardian)](https://www.theguardian.com/business/2025/nov/26/warner-music-signs-deal-with-ai-song-generator-suno-after-settling-lawsuit)
-- [AudioSeal (GitHub)](https://github.com/facebookresearch/audioseal)
-- [C2PA](https://c2pa.org/)
-- [Digimarc 音频水印](https://www.digimarc.com/press-releases/2025/07/16/digimarc-revolutionizes-audio-content-authentication-protection-next)
-- [Li v. Liu 判决](https://legalblogs.wolterskluwer.com/copyright-blog/beijing-internet-court-grants-copyright-to-ai-generated-image-for-the-first-time/)
-- [CNIPA 2025 年 4 月指导](https://english.cnipa.gov.cn/art/2025/4/25/art_3090_199316.html)
-- [日本著作权法第 30-4 条分析](https://cepa.org/article/ai-boom-or-copyright-doom-lessons-from-asia/)
-- [英国放弃 TDM 例外](https://www.hoganlovells.com/en/publications/ai-and-copyright-uk-government-backs-away-from-exceptions-for-ai-training-proposes-maintaining-the)
-- [Stable Audio Open (Hugging Face)](https://huggingface.co/stabilityai/stable-audio-open-1.0)
-- [音频水印鲁棒性综述 (arXiv)](https://arxiv.org/html/2503.19176v2)
+English summary: Access, training, distribution and output use require separate analysis. Copyright in human contributions, fair use, dataset licences and model licences are distinct questions. Watermarks and provenance records help trace content but do not grant rights.

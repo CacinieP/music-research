@@ -1,0 +1,5 @@
+{
+  "name": "music-research-reading-site",
+  "private": true,
+  "dependencies": {"mathjax": "3.2.2"}
+}

@@ -2,7 +2,7 @@
 
 本文档提供模型复现的思路框架和记录模板，不包含源代码。重点在于环境选型、算力评估和记录规范。
 
-> English version: [model-reproduction-guide.md](model-reproduction-guide.md)（本文件为中英双语）
+> 中文研究指南；模型名与 API 保留英文。核对日期：2026-09-19。
 
 ---
 
@@ -19,21 +19,15 @@
 
 | 评估项 | 说明 |
 |--------|------|
-| 模型参数量 | 决定最低显存需求（FP16 下 1B ≈ 2GB 显存） |
+| 模型参数量 | 仅权重下界：FP16 下 1B 参数约 2 GB；峰值还包括激活、缓存、运行时等 |
 | 训练数据规模 | 决定训练时长和存储需求 |
-| 是否需要预训练 | 基础模型预训练 vs 仅微调，差距 10--100x 算力 |
-| 输入输出长度 | 音频长度直接影响显存（长音频线性增长） |
-| 批大小 | 受显存限制；可用梯度累积模拟大 batch |
+| 是否需要预训练 | 记录训练 token/音频时长、更新步数及吞吐；没有普适的预训练/微调倍率 |
+| 输入输出长度 | 音频长度影响激活与缓存；全注意力计算可随 token 长度平方增长 |
+| 批大小 | 减小 micro-batch 并累积梯度；BatchNorm 等状态使其不总与一次大 batch 等价 |
 
 ### 3. 环境选型决策树
 
-```
-推理（< 4GB 显存）→ Colab Free / 本地 RTX 3060
-推理（4--16GB）   → Colab Pro / 本地 RTX 4090 / AutoDL
-微调（单卡）       → AutoDL A100 (40GB) / RunPod A100
-训练（多卡）       → 云端 4--8x A100
-预训练            → 32x A100+ / 集群
-```
+先按官方实现建立单样本基线，再测量峰值内存和吞吐，决定本地、云端或多卡方案。云平台 GPU 可用性和套餐不保证固定型号，不能按服务名称推断显存。
 
 ---
 
@@ -89,7 +83,7 @@
 |------|----------|
 | 模型 | Spleeter → Demucs → HT Demucs → BSRNN → BS-RoFormer |
 | 数据 | MUSDB18-HQ test set |
-| 指标 | SDR/SIR/SAR（per stem + overall） |
+| 指标 | 指定 BSS Eval/museval 版本、窗口及聚合方式；报告每 stem 和总体，不能与 SI-SDR 混用 |
 | 效率 | 推理时间、显存占用、RTF（real-time factor） |
 | 感知 | 人工听感评价（可选） |
 
@@ -97,7 +91,7 @@
 
 | 维度 | 记录内容 |
 |------|----------|
-| 模型 | MusicGen → AudioLDM 2 → Stable Audio → YuE |
+| 模型 | 按同一任务分组：短片段文本生成与歌词条件全曲生成分别比较 |
 | Prompt | 使用 MusicCaps 的统一 prompt 集 |
 | 指标 | FAD, CLAP Score, 人工偏好 |
 | 效率 | 生成 30 秒音频所需时间 |
@@ -109,7 +103,7 @@
 |------|----------|
 | 模型 | EnCodec → DAC → WavTokenizer → HiFi-Codec |
 | 比特率 | 1.5 / 3 / 6 / 12 / 24 kbps |
-| 指标 | ViSQOL, PESQ, 重建波形对比 |
+| 指标 | ViSQOL audio 模式、重建误差和盲听；PESQ 面向窄/宽带语音，不作为通用音乐质量指标 |
 | 音乐类型 | 人声 / 古典 / 电子 / 摇滚 |
 
 ---
@@ -118,8 +112,8 @@
 
 | 问题 | 原因 | 解决方案 |
 |------|------|----------|
-| 显存不足 | 音频序列太长或 batch 过大 | 梯度累积 / chunk 处理 / FP16 |
-| 训练 NaN | 混合精度 + 小学习率不稳定 | 使用 BF16 / 梯度裁剪 / 预热 |
+| 显存不足 | 音频序列太长或 batch 过大 | 减小单步 batch、分块或调整精度；单样本已 OOM 时梯度累积本身不能解决 |
+| 训练 NaN | 溢出、无效输入/损失、梯度爆炸等；不能归因为“小学习率” | 使用 BF16 / 梯度裁剪 / 预热 |
 | 论文无法复现 | 随机种子、数据划分、超参未完全公开 | 联系作者 / 多次实验取平均 |
 | 依赖冲突 | 不同模型要求不同 PyTorch/CUDA 版本 | 使用 conda 环境隔离 / Docker |
 | 下载慢 | HuggingFace / GitHub 国内访问受限 | 镜像站 / 代理 / 离线下载 |
@@ -140,9 +134,16 @@ notebooks/
 ```
 
 每个 Notebook 应包含：
+
 1. 环境安装（`!pip install ...`）
 2. 模型加载
 3. 输入示例 + 可视化
 4. 推理 + 输出可视化
 5. 指标计算
 6. 结论与观察
+
+## 依据
+
+- [MusicGen 官方训练与推理](https://github.com/facebookresearch/audiocraft/blob/main/docs/MUSICGEN.md)
+- [ViSQOL 音频与语音模式](https://github.com/google/visqol)
+- [museval 指标实现](https://github.com/sigsep/sigsep-mus-eval)
