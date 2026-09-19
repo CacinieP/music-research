@@ -1,782 +1,279 @@
 # Music Generation: Technical Research Notes
 
-Comprehensive technical survey of music generation as of 2025--2026. Covers symbolic generation, audio-level generation, singing voice synthesis, controllable generation, and evaluation.
+Selected research on symbolic generation, audio generation, singing, control, video conditioning, and evaluation. Content checked on 2026-09-19. Model specifications below refer to the named paper/release, not every later version of that product family.
+
+> 中文版：[music-generation-zh.md](music-generation-zh.md)
 
 ---
 
 ## 1. Symbolic Music Generation
 
-### 1.1 Representation Formats
+### 1.1 Representations
 
-Symbolic music operates on discrete representations (notes, timing, dynamics) rather than raw audio. The choice of representation fundamentally shapes what a model can learn.
+Symbolic models generate notes, durations, timing, instrumentation, or notation. A synthesizer or renderer is needed to turn the result into audio.
 
-#### MIDI (Musical Instrument Digital Interface)
-- Event-based protocol: `Note On`, `Note Off`, `Velocity`, `Time Shift`, `Program Change`
-- Polyphony handled via overlapping note-on/note-off events with delta-time offsets
-- Standard "MIDI-Like" tokenization (Oore et al., 2018): sequential stream of events ordered by onset time
-- Limitation: raw MIDI events lack explicit metric structure (bar lines, beat positions); timing is purely relative
+| Representation | Encoded information | Trade-off |
+|----------------|---------------------|-----------|
+| MIDI / MIDI-like events | Note on/off, pitch, velocity, timing, programs and optional controls | Compact performance events; tokenization must define ordering and time resolution |
+| Piano roll | Pitch × time activation or velocity, optionally separated by track | Convenient grid; resolution increases size and adjacent repeated notes need onset handling |
+| ABC notation | Text notation with meter, pitch, duration, voices and other notation | Compact and human-readable; supported features depend on parser and corpus |
+| REMI | Explicit bar/position structure with pitch, duration, velocity and selected metadata | Makes metric position explicit; quantization trades timing detail for structure |
+| Compound Word | Groups token attributes with separate attribute embeddings/predictions | Reduces sequence length; compound events need a defined schema |
 
-#### Piano Roll
-- 2D matrix representation: pitch (rows) x time frames (columns), values indicate velocity/activation
-- Directly compatible with CNN architectures (treat as image)
-- Loses explicit note-level event structure; boundary detection is implicit
-- Resolution trade-off: fine temporal resolution = very large matrices
+**MIDI versus tokenization:** `Time Shift` is a model token, not a native MIDI channel-message type, and velocity is an attribute of note messages. Standard MIDI Files store delta times and may contain tempo/time-signature metadata; bars can be derived from that metadata. It is a chosen event vocabulary—not MIDI as a whole—that may omit meter.
 
-#### ABC Notation
-- Text-based music notation common in folk/traditional music
-- Compact, human-readable, naturally suited for language model tokenization
-- Limited to monophonic or simple polyphonic music
+ABC supports multiple voices and polyphony; it is not inherently restricted to monophonic music. The [MuPT paper](https://arxiv.org/abs/2404.06393) uses synchronized multi-track ABC (SMT-ABC) to address alignment of measures across tracks.
 
-#### Token-Based Representations (current standard for Transformers)
+Verified tokenization references:
 
-| Format | Key Idea | Reference |
-|--------|----------|-----------|
-| **MIDI-Like** | Raw MIDI events as tokens (Note On/Off, Time Shift) | Oore et al., 2018 |
-| **REMI** | Revamped MIDI events with explicit Bar, Position, Tempo, Chord tokens | Huang & Yang, 2020 (Pop Music Transformer) |
-| **Compound Word (CP)** | Groups multiple attributes per timestep into a single compound token | Hsiao et al., 2021 |
-| **REMI+ / REMI-z** | Multi-track extensions of REMI with track-aware tokenization | NeurIPS 2025 |
-| **Pianoroll-Event** | Hybrid spatial + sequential encoding bridging piano roll and token views | arXiv 2601.19951 (2025) |
-| **MIDI-Token** | Various tokenization strategies compared in MIDITok package | Natole et al., ISMIR 2021 |
+- [Pop Music Transformer / REMI](https://arxiv.org/abs/2002.00212), Yu-Siang Huang and Yi-Hsuan Yang, 2020.
+- [Compound Word Transformer](https://arxiv.org/abs/2101.02402), Hsiao et al., 2021.
+- [REMI-z implementation and paper citation](https://github.com/Sonata165/REMI-z), *Unifying Symbolic Music Arrangement: Track-Aware Reconstruction and Structured Tokenization*, NeurIPS 2025. REMI-z groups notes by track within bar structure; REMI+ and REMI-z are distinct schemes, not two names for one 2025 format.
+- [Pianoroll-Event](https://arxiv.org/abs/2601.19951), Qian et al., **January 2026**: frame, gap, pattern, and musical-structure events combine grid structure with compact event coding.
+- [MidiTok](https://miditok.readthedocs.io/en/latest/) is a tokenization library supporting multiple schemes, not a single representation called “MIDI-Token.” Pin its version and tokenizer configuration for reproducibility.
 
-REMI (Huang & Yang, 2020) is the most influential: it adds explicit `Bar`, `Position`, `Tempo`, and `Chord` tokens so the model can learn metric structure directly, rather than inferring it from delta-times. REMI-z (2025) extends this to multi-track music with per-track token streams.
+### 1.2 Representative Models
 
-### 1.2 Key Models
+**Music Transformer** (Huang et al., ICLR 2019) introduces an efficient implementation of relative attention for long musical sequences. The original experiments use **JSB Chorales and Piano-e-Competition**, not MAESTRO. Relative sequence positions help repetition and timing modeling; they do not by themselves encode transposition-invariant pitch intervals. The efficiency improvement concerns intermediate relative-position tensors, not removal of all quadratic attention costs. [Paper](https://arxiv.org/abs/1809.04281).
 
-#### Music Transformer (Huang, Vaswani et al., 2018/2019)
-- **Paper**: "Music Transformer: Generating Music with Long-Term Structure" (arXiv:1809.04281, ICLR 2019)
-- **Authors**: Cheng-Zhi Anna Huang, Ashish Vaswani, et al. (Google Magenta)
-- **Architecture**: Decoder-only Transformer with modified **relative attention** mechanism
-- **Key contribution**: Relative position representations in self-attention allow the model to learn relative intervals and recurrent patterns in music, rather than absolute positions. This is critical because music is inherently relational (intervals, chord progressions, rhythmic cycles)
-- **Representation**: MIDI-Like tokenization (performance-level piano performances from the Maestro dataset)
-- **Results**: Generates coherent minute-long piano compositions with long-term structural repetition (A-B-A form, recurring themes)
-- **Limitation**: Single instrument (piano only); MIDI-Like tokenization lacks explicit metric structure
+**Pop Music Transformer** combines a Transformer-XL-style model with REMI for beat-aware pop-piano generation. It demonstrates rhythmic benefits in the authors' evaluation, rather than guaranteeing better music for every genre. [Paper](https://arxiv.org/abs/2002.00212).
 
-#### Pop Music Transformer (Huang & Yang, 2020)
-- **Architecture**: Transformer with REMI tokenization
-- **Key contribution**: Introduced REMI representation with explicit Bar/Position tokens
-- **Training data**: Pop piano arrangements
-- **Improvement over Music Transformer**: Better rhythmic structure and beat-level modeling due to explicit metric tokens
+**MuPT** (2024) studies pretraining symbolic-music Transformers, SMT-ABC, context length, and scaling. Its results depend on its corpus and representation; “larger symbolic models always preserve form” is not a general result. [Paper](https://arxiv.org/abs/2404.06393).
 
-#### MuPT (2024--2025)
-- Pre-trained Transformer for symbolic music generation
-- Aims to improve structural consistency over longer compositions
-- Focus on pre-training scale for symbolic music
+### 1.3 Autoregression, Diffusion, and Flow Matching
 
-#### Transformer-GAN for Symbolic Music (AAAI)
-- Combines autoregressive Transformer generator with GAN discriminator
-- Produces minute-long compositions with adversarial training for quality control
+An autoregressive model factorizes a token sequence as
 
-### 1.3 Autoregressive vs. Diffusion for Symbolic Music
+$$
+p(x\mid c)=\prod_{t=1}^{T}p(x_t\mid x_{<t},c).
+$$
 
-**Autoregressive (AR) approaches** (Music Transformer, REMI-based models):
-- Model music as a sequence of tokens, predicting next token given previous ones
-- Strengths: Natural fit for sequential music; handles variable-length outputs; strong local coherence
-- Weaknesses: Error accumulation over long sequences; slow sequential generation; may struggle with global structure
+It naturally supports sequential continuation but incurs sequential sampling cost. Context limits and training/inference mismatch may harm long-term coherence.
 
-**Diffusion approaches** for symbolic music:
-- Apply diffusion (progressive denoising) to piano roll or latent representations
-- Strengths: Parallel generation; can model global structure directly; less error accumulation
-- Weaknesses: Fixed output length; less natural fit for event-based music; may miss fine-grained sequential dependencies
+Diffusion and flow-matching models iteratively transform noise into a piano roll, latent sequence, or other representation. Positions within a step can be processed in parallel, but multiple sampling steps remain. Fixed output length is common in particular implementations, not a mathematical requirement; duration conditioning, masking, and chunking can support varying lengths.
 
-**Hybrid approaches** are emerging: combining AR for sequential fine structure with diffusion for global planning.
+Flow matching learns a vector field for a chosen probability path; diffusion learns a denoising/score-related model. They are related continuous generative approaches, not synonyms, and neither guarantees greater diversity or better structure in every setting.
 
-A 2025 study (arXiv:2506.08570) provides the first controlled comparison of AR vs. flow-matching for text-to-music generation, finding that diffusion/flow-matching provides superior diversity and controllability, while AR tends to produce more stable training and coherent local structure.
+[Auto-Regressive vs Flow-Matching](https://arxiv.org/abs/2506.08570) (Tal, Kreuk, Adi, 2025) compares **text-conditioned audio music** under controlled data and training settings. Its quality, control, editing, and sampling results should not be presented as a proof about all symbolic-music models.
 
-### 1.4 Key Datasets
+### 1.4 Datasets
 
-| Dataset | Content | Size |
-|---------|---------|------|
-| **MAESTRO** | Aligned MIDI-audio piano performances | ~200 hours |
-| **Lakh MIDI** | Multi-instrument MIDI files | 180K files |
-| **POP909** | Pop piano arrangements with melody/accompaniment | 909 songs |
-| **AD Pianoforte** | Classical piano performances | ~100 hours |
-| **MetaMIDI** | Large-scale MIDI collection | 436K files |
+| Dataset | Content | Release-scale reference |
+|---------|---------|-------------------------|
+| [MAESTRO](https://magenta.tensorflow.org/datasets/maestro) | Closely aligned piano audio/MIDI performances | About 200 hours; use the release's official split |
+| [Lakh MIDI v0.1](https://colinraffel.com/projects/lmd/) | Deduplicated MIDI collection | 176,581 files; LMD-matched is a smaller subset |
+| [POP909](https://arxiv.org/abs/2008.07142) | Pop-piano arrangements with melody, bridge and piano tracks | 909 songs |
+
+Counts of files, unique pieces, performances, and excerpts are different. Specify cleaning, duplicate handling, and song/artist separation when reporting a training or test set.
 
 ### 1.5 Open Problems
-- **Long-form structure**: Maintaining global form (verse-chorus-bridge), thematic development, and harmonic direction over multi-minute compositions
-- **Multi-track generation**: Coordinated generation across multiple instruments with appropriate voice leading, rhythm section coordination, and arrangement
-- **Controllability**: Precise control over harmony, form, style, and dynamics beyond text conditioning
-- **Representation gap**: No single representation captures all musical dimensions (pitch, rhythm, dynamics, timbre, form) equally well
 
----
+Long-form form, recurring themes, multi-track coordination, expressive performance timing, and control over harmony remain important. Symbolic structure does not directly specify recording timbre or production, and no single representation captures every musical dimension equally.
 
 ## 2. Audio-Level Music Generation
 
-### 2.1 Neural Audio Codecs (Foundation for Audio Generation)
+### 2.1 Codecs and Continuous Autoencoders
 
-Audio-level models require compressing high-dimensional waveforms (44,100 samples/sec) into tractable representations.
+Discrete codecs turn waveforms into token sequences for language models. Continuous autoencoders provide latent sequences for diffusion/flow models. “Audio generation requires a discrete codec” is therefore incorrect.
 
-#### EnCodec (Defossez et al., Meta, 2022)
-- **Paper**: "High Fidelity Neural Audio Compression" (arXiv:2210.13438)
-- **Architecture**: Convolutional encoder-decoder with **Residual Vector Quantization (RVQ)** bottleneck
-  - Encoder: strided convolutional network compresses audio to latent frames
-  - RVQ: Multiple hierarchical codebooks quantize the continuous latent into discrete tokens. Residual quantization: first codebook captures coarse structure, subsequent codebooks capture progressively finer details
-  - Decoder: Transposed convolutions reconstruct waveform from quantized latents
-  - Discriminator: Multi-scale STFT + multi-period discriminators for adversarial training
-- **Bitrates**: 1.5 to 24 kbps (24 kHz model); 3 to 24 kbps (48 kHz stereo model)
-- **Frame rate**: ~50 Hz (75 Hz for 48 kHz model) across 4--8 codebook levels
-- **Training**: Reconstruction loss + adversarial loss + quantization commitment loss
-- **Role**: Serves as the audio tokenizer for MusicGen and many other models
+| Codec | Verified design and settings |
+|-------|------------------------------|
+| [SoundStream](https://arxiv.org/abs/2107.03312) (2021) | Convolutional encoder/decoder with residual vector quantization (RVQ), adversarial training and quantizer dropout; supports multiple bitrates |
+| [EnCodec](https://github.com/facebookresearch/encodec) (2022) | Convolutional/recurrent encoder-decoder, RVQ and multi-scale STFT adversarial training; original releases include 24 kHz mono and 48 kHz stereo |
+| [DAC](https://arxiv.org/abs/2306.06546) (2023) | Improved RVQGAN codec with periodic activations and improved codebook learning; includes high-fidelity 44.1 kHz audio compression |
 
-#### SoundStream (Zeghidour et al., Google, 2021)
-- Predecessor to EnCodec; introduced the RVQ approach for neural audio codecs
-- Used in AudioLM and MusicLM pipelines
-- 24 kHz, 3 kbps streaming audio codec
+For the original EnCodec configurations, the 24 kHz model has a **75 Hz** frame rate and supports 1.5/3/6/12/24 kbps; the 48 kHz model has **150 Hz** frames and supports 3/6/12/24 kbps. Active codebook counts depend on bitrate. **MusicGen uses a separately trained 32 kHz, 50 Hz EnCodec configuration**, not either setting unchanged.
 
-#### DAC (Descript Audio Codec, Kumar et al., 2023)
-- Improved neural codec with snake activation functions and larger codebooks
-- 44.1 kHz, used in some Stable Audio variants
+RVQ successively quantizes residual error. Its first/later codebooks can differ in information content, but they do not have guaranteed labels such as “harmony” versus “timbre.” Frame rate counts time positions; total tokens per second also depend on the number of codebooks and channel arrangement.
 
 ### 2.2 Jukebox (OpenAI, 2020)
 
-- **Paper**: "Jukebox: A Generative Model for Music" (Dhariwal, Jun, Payne, Kim, Radford, Sutskever; arXiv:2005.00341)
-- **Architecture**: Hierarchical VQ-VAE with autoregressive Transformers
-  - **3-level hierarchical VQ-VAE**: Compresses raw audio at three temporal resolutions
-    - Top level: ~8 Hz -- captures long-range musical structure (melody, harmony, form)
-    - Middle level: ~34 Hz -- captures timbre, vocal characteristics
-    - Bottom level: ~65 Hz or raw -- fine-grained audio detail
-  - Each level has its own codebook of discrete embeddings
-  - **Autoregressive Transformers** (decoder-only, similar to GPT-2/GPT-3) model token distributions at each level
-  - **Upsampling**: Top-level tokens are conditionally upsampled to middle, then bottom level
-  - **Lyrics conditioning**: Lyrics aligned to audio via forced alignment, providing conditioning for the top-level Transformer
-  - **Artist/genre metadata**: Additional conditioning via artist and genre embeddings
-- **Training data**: 1.2 million songs (600K English) with lyrics and metadata, sourced from the web
-- **Output**: 44.1 kHz stereo audio, up to several minutes
-- **Quality**: Recognizable singing and genre-appropriate instrumentation, but notable artifacts and below-human audio quality
-- **Limitations**: Extremely slow generation (hours for a single song); quality gap vs. human-composed music; hierarchical upsampling can introduce inconsistency between levels
-- **Significance**: Demonstrated that scaling VQ-VAE + autoregressive models to raw audio was feasible, establishing the paradigm for subsequent work
+[Jukebox](https://cdn.openai.com/papers/jukebox.pdf) uses a three-level VQ-VAE and autoregressive prior/upsamplers, conditioned on artist/genre metadata and, in a lyrics-conditioned model, text. Training uses 1.2 million songs, with a 600,000-song English subset described in the paper.
 
-### 2.3 MusicLM (Google Brain, 2023)
+The 44.1 kHz **mono** waveform is compressed with hop factors **8, 32, and 128**, corresponding to approximately **5,512.5, 1,378.1, and 344.5 tokens/s** at bottom, middle, and top levels. These are downsampling factors, not token rates of 8/34/65 Hz. Each level has a 2,048-entry codebook.
 
-- **Paper**: "MusicLM: Generating Music From Text" (Agostinelli, Denk, Borsos, et al.; arXiv:2301.11325)
-- **Architecture**: Hierarchical sequence-to-sequence with three stages
-  - **Stage 1 -- MuLan text encoding**: Text description encoded via MuLan (contrastive audio-text embedding model, analogous to CLIP for audio). Maps text into a shared audio-text embedding space
-  - **Stage 2 -- Semantic modeling**: Autoregressive Transformer generates **semantic tokens** (high-level musical structure) conditioned on MuLan text embedding. Uses the SoundStream codec's top-level codebook
-  - **Stage 3 -- Acoustic modeling**: Autoregressive Transformer upsamples semantic tokens into fine-grained **acoustic tokens** (full audio detail) using SoundStream's full RVQ stack
-  - Separation of semantic and acoustic modeling dramatically reduces effective sequence length at the top level
-- **Key components**:
-  - **MuLan**: Contrastive audio-text model aligning music and text embeddings
-  - **SoundStream**: Neural audio codec providing discrete tokens via RVQ
-  - **Transformers**: At both semantic and acoustic levels
-- **Capabilities**: Text-to-music from rich descriptions; melody conditioning (humming a melody generates full arrangement); long-term structural coherence
-- **Output**: 24 kHz, up to several minutes
-- **Evaluation**: Introduced MusicCaps benchmark (5,521 10-second clips with human-written captions from AudioSet/YouTube). Evaluated with FAD, KL divergence, MuLan similarity, and human side-by-side comparisons
-- **Not released publicly** due to copyright concerns with training data
-- **Significance**: Established the hierarchical semantic-acoustic paradigm and the MusicCaps evaluation benchmark
+Generation proceeds from the top level through conditional upsampling. Sliding windows permit multi-minute output, but the top-level context is about 24 seconds; generating minutes does not prove repeated choruses or whole-song form. Sampling is computationally expensive. Code and checkpoints are in the [official repository](https://github.com/openai/jukebox); check its license for the chosen use.
+
+### 2.3 MusicLM (Google, 2023)
+
+[MusicLM](https://arxiv.org/html/2301.11325v1) combines three independently pretrained representations:
+
+1. **MuLan** provides music-text conditioning. The generator trains with quantized MuLan **audio** embeddings and substitutes MuLan **text** embeddings at inference.
+2. **w2v-BERT features clustered by k-means** provide semantic tokens at 25 Hz.
+3. **SoundStream** provides acoustic tokens: 24 kHz mono, 50 Hz frames, 12 RVQ levels in this system.
+
+Autoregressive stages predict semantic tokens, coarse acoustic tokens, then fine acoustic tokens. Semantic tokens are not SoundStream's first codebook. The system demonstrates text and melody conditioning and multi-minute examples. Original model weights were not released with the paper; later consumer access is a separate question.
+
+MusicLM introduced **MusicCaps**, 5,521 ten-second examples with human music descriptions. This is an evaluation resource, not the generator's 280,000-hour training collection. See [the original paper](https://arxiv.org/abs/2301.11325).
 
 ### 2.4 MusicGen (Meta, 2023)
 
-- **Paper**: "Simple and Controllable Music Generation" (Copet, Kreuk, Gat, Remez, Kant, Synnaeve, Adi, Defossez; arXiv:2306.05284)
-- **Architecture**: **Single-stage autoregressive Transformer** (no hierarchical semantic/acoustic separation)
-  - Operates on EnCodec discrete audio tokens (32 kHz, 4 codebooks at 50 Hz)
-  - Single Transformer predicts all 4 codebook tokens per timestep using delayed pattern interleaving
-  - Text conditioning via **T5 encoder** (frozen) and/or **chroma-based melody conditioning**
-  - **Melody conditioning**: Extracts chroma features from an audio prompt and uses them as additional conditioning, enabling "generate music that follows this melody"
-- **Key simplification**: Eliminates the hierarchical multi-stage approach of MusicLM/Jukebox by using a single Transformer with EnCodec's multi-codebook tokens
-- **Training data**:
-  - 20K hours of licensed music (Meta's internal dataset)
-  - Shutterstock and Pond5 music libraries
-  - MusicCaps for text-aligned evaluation
-- **Model sizes**: 300M (small), 1.5B (medium), 3.3B (large)
-- **Output**: 32 kHz, up to 30 seconds standard (extendable with sliding window)
-- **Framework**: Released as part of Meta's **AudioCraft** library (open source)
-- **Evaluation**: State-of-the-art FAD scores on MusicCaps benchmark at release; human evaluation showing preference over baselines
-- **Controllability**: Text prompts + optional melody/audio conditioning
-- **Companion model -- MAGNeT**: Non-autoregressive (masked) variant for faster parallel generation using the same EnCodec foundation
+[MusicGen](https://arxiv.org/abs/2306.05284) uses a single autoregressive Transformer over codec streams. Released models condition on a frozen T5 text encoder; melody variants add chroma features.
 
-### 2.5 AudioLDM and AudioLDM 2 (2023--2024)
+The mono setup uses 32 kHz audio, four 50 Hz codebooks, and delayed interleaving. At an autoregressive step, different codebooks refer to **offset codec times**, not all the same audio frame. This reduces the number of sequential model steps compared with flattening every codebook token.
 
-#### AudioLDM (Liu et al., 2023)
-- **Paper**: "AudioLDM: Text-to-Audio Generation with Latent Diffusion Models" (Haohe Liu et al.)
-- **Architecture**: Latent Diffusion Model (LDM) adapted from Stable Diffusion to audio domain
-  - **VAE encoder-decoder**: Compresses mel-spectrograms into lower-dimensional latent space (based on AudioMAE/HiFi-GAN components)
-  - **U-Net diffusion backbone**: Operates in latent space, conditioned on text embeddings
-  - **Text conditioning**: CLAP (Contrastive Language-Audio Pretraining) embeddings bridge text-audio modality gap
-  - **Inference**: Diffusion denoising in latent space, then VAE decode to mel-spectrogram, then vocoder to waveform
-- **Output**: Sound effects, ambient audio, short music clips (~10 seconds)
-- **Advantage**: Computationally efficient (diffusion in compressed latent space vs. full spectrogram space); supports text-to-audio, audio-to-audio, and inpainting
+The [official documentation](https://github.com/facebookresearch/audiocraft/blob/main/docs/MUSICGEN.md) lists 300M, 1.5B and 3.3B model sizes; 20,000 hours of licensed training music, including an internal collection and Shutterstock/Pond5; and separate stereo variants. Stereo uses separate left/right code streams. Standard training context is 30 seconds, with continuation/extension in supported implementations.
 
-#### AudioLDM 2 (Liu et al., 2023--2024)
-- **Paper**: "AudioLDM 2: Learning Holistic Audio Generation with Self-supervised Pretraining" (arXiv:2308.05734)
-- **Key improvements over AudioLDM 1**:
-  - **Unified framework**: Single architecture handles speech, music, and sound effects
-  - **GPT-2 integration**: Joint finetuning of GPT-2 language model with latent diffusion, enhancing text understanding
-  - **Self-supervised pretraining**: Improves quality and generalization
-  - **Optimized architecture**: 16 kHz improved model with more training data
-  - **Performance**: Matches state-of-the-art on text-to-audio, text-to-music, and text-to-speech benchmarks simultaneously
-- **Three variants**: Specialized for audio, music, and speech respectively
+Chroma collapses octave information and may include harmonic content; it is a melodic guide, not exact score or lyric control. Code and weights have separate terms: AudioCraft code is MIT, released MusicGen weights use CC-BY-NC 4.0 in the [model card](https://github.com/facebookresearch/audiocraft/blob/main/model_cards/MUSICGEN_MODEL_CARD.md). “Open weights” does not imply unrestricted commercial use.
 
-### 2.6 Stable Audio (Stability AI, 2023--2024)
+[MAGNeT](https://arxiv.org/abs/2401.04577) uses masked, non-autoregressive audio-token modeling; it is a related generation approach, not simply a faster sampler for an unchanged MusicGen checkpoint.
 
-#### Stable Audio 1.0 (2023)
-- **Architecture**: Latent Diffusion Model with three components
-  1. **Autoencoder**: VAE-based encoder compresses 44.1 kHz stereo audio into compact latent representation
-  2. **Text encoder**: Frozen text encoder (T5 or CLAP) for prompt conditioning
-  3. **Diffusion model**: U-Net-based denoiser operating on latents with text cross-attention
-- **Output**: Variable-length stereo audio up to ~47 seconds at 44.1 kHz
-- **Training data**: Licensed music and audio
+### 2.5 AudioLDM and AudioLDM 2
 
-#### Stable Audio 2.0 (April 2024)
-- **Architecture upgrade**: Replaces U-Net backbone with **Diffusion Transformer (DiT)**
-  - **Highly compressed autoencoder**: Projects raw audio waveforms into continuous latent representation at a latent rate of **21.5 Hz** (significant compression)
-  - **DiT backbone**: Transformer-based denoiser replaces U-Net, following the trend of DiT architectures (as in Stable Diffusion 3, Sora)
-  - **T5 text encoder**: For text conditioning
-  - **Latent diffusion**: Entire diffusion process occurs in the learned latent space
-- **Output**: Full tracks up to **3 minutes** with coherent musical structure (intro-development-outro)
-- **Significance**: First open-weight model to generate 3-minute structured music tracks
-- **Released**: Open weights on Hugging Face (Stable Audio Open 1.0 variant)
+**AudioLDM** (2023) trains a latent diffusion model over a VAE's mel-spectrogram latents, followed by VAE decoding and a HiFi-GAN vocoder. It trains using CLAP audio embeddings and can use CLAP text embeddings at sampling. AudioMAE is not the defining VAE component of AudioLDM 1. The original setting targets general short audio, including sound effects and music. [Paper](https://arxiv.org/abs/2301.12503).
 
-#### Stable Audio Open (June 2024)
-- Open-weights release (~486K royalty-free audio recordings + ~70K music tracks)
-- Training data: Free Music Archive (FMA), Freesound, Creative Commons licensed audio
-- Explicitly not trained on copyrighted music
-- Supports fine-tuning on custom datasets
-- Generates up to ~47 seconds at 44.1 kHz
+**AudioLDM 2** (2023 preprint; 2024 journal version) introduces the **language of audio (LOA)** based on AudioMAE. A GPT-2-based model predicts LOA from conditioning modalities; latent diffusion synthesizes audio conditioned on LOA. This is more specific than “jointly fine-tuning GPT-2 improves text understanding.” Speech, music and general-audio checkpoints should be distinguished; sample rate and duration depend on the checkpoint and implementation. [Paper](https://arxiv.org/abs/2308.05734).
 
-#### Stable Audio 3 (2025, in development)
-- **Semantic-acoustic autoencoder**: Novel autoencoder projecting audio into compact latent space with both semantic and acoustic information
-- Diffusion Transformer operating on improved latent representations
-- Conditioned on text and desired output characteristics
+### 2.6 Stable Audio Versions
 
-### 2.7 YuE (Multimodal Art Projection, 2025)
+| Release | Documented behavior | Distinction |
+|---------|---------------------|-------------|
+| Stable Audio 1.0 (September 2023) | Launch offered 45-second free and 90-second Pro generation | 47 seconds is not its universal limit ([launch](https://stability.ai/news-updates/stable-audio-using-ai-to-generate-music)) |
+| Stable Audio 2.0 (April 2024) | Up to 3 minutes of 44.1 kHz stereo; text/audio conditioning | Commercial release, trained on licensed AudioSparx data; not the Open 1.0 checkpoint ([announcement](https://stability.ai/news/stable-audio-2-0)) |
+| Stable Audio Open 1.0 (June 2024) | Up to 47 seconds, 44.1 kHz stereo; continuous autoencoder, T5, DiT | Separate open-weight model with its own license and limitations ([model card](https://huggingface.co/stabilityai/stable-audio-open-1.0)) |
 
-- **Paper**: "YuE: Scaling Open Foundation Models for Long-Form Music Generation" (Yuan et al.; arXiv:2503.08638, ICLR 2025)
-- **Authors**: Ruibin Yuan, Hanfeng Lin, Haohe Liu, and ~50 collaborators from multiple institutions
-- **Architecture**: Based on **LLaMA2** architecture, adapted for music
-  - **Track-decoupled next-token prediction**: Separates vocal and accompaniment tracks during generation to overcome the challenge of dense mixture signals in raw audio tokens
-  - **Structural progressive conditioning**: Enables long-context lyrical alignment by progressively conditioning on lyrics segments, maintaining coherence over minutes
-  - **Multitask, multiphase pre-training recipe**: Multi-stage training for convergence and generalization across diverse musical tasks
-  - **Redesigned in-context learning**: Enables versatile style transfer (e.g., converting Japanese city pop into English rap while preserving accompaniment) and bidirectional generation
-- **Scale**: Trained on **trillions of tokens**
-- **Output**: Up to **5 minutes** of music with vocals + accompaniment
-- **Capabilities**:
-  - Lyrics-to-song generation (primary task)
-  - Style transfer across genres and languages
-  - Bidirectional generation (forward and backward from a point)
-  - Music understanding: Learned representations match or exceed state-of-the-art on MARBLE music understanding benchmark
-- **Fine-tuning**: Supports additional controls and enhanced support for "tail" (underrepresented) languages
-- **Hardware**: Can run on consumer GPUs (10 GB VRAM for ~1 minute of music)
-- **Significance**: First open-source model to match or surpass proprietary systems (Suno, Udio) in musicality and vocal agility for full-song generation
-- **Limitations**: Generation speed (real-time factor); occasional lyrical misalignment; quality varies by genre
+The [Stable Audio Open paper](https://arxiv.org/html/2407.14358v1) reports **486,492 recordings total**: 472,618 from Freesound plus 13,874 from FMA, about 7,300 hours, with CC0/CC-BY/CC-Sampling+ source licenses. It is not “486K recordings plus 70K music tracks.” Its autoencoder runs at about 21.5 latent frames/s. Licensed Creative Commons works may still be copyrighted; “no copyrighted data” is an incorrect description.
 
-### 2.8 Suno (Proprietary, 2023--2026)
+By the check date, official documentation also describes **Stable Audio 3.0**. The old “Stable Audio 3 is in development in 2025” prediction is obsolete; consult the [official version guide](https://stability.ai/guides/stable-audio-3-prompt-guide) for that separate product family. Historical specifications above should not be silently applied to later models.
 
-- **Company**: Suno AI (Cambridge, MA)
-- **Architecture**: Not publicly disclosed; believed to be a combination of diffusion and autoregressive models for lyrics, vocals, and accompaniment
-- **Evolution**:
-  - V1--V3 (2023--2024): Rapid iteration, improving from simple clips to structured songs
-  - **V4** (late 2024): Major quality leap; professional-sounding output with coherent verse-chorus structure
-  - **V4.5** (2025): Further quality improvements; considered best-in-class for complete songs with vocals
-  - **V5** (anticipated 2025): In development; expected to bring further leaps in audio fidelity, vocal realism, and song structure
-- **Capabilities**:
-  - Text-to-song: Generate complete songs from text descriptions
-  - Lyrics input: Custom or AI-generated lyrics
-  - Genre/style control via prompting
-  - Maximum track length: up to 4 minutes
-  - Multi-genre support
-- **Strengths**: Best overall quality for complete songs with vocals; beginner-friendly interface; strong genre adherence
-- **Limitations**: Proprietary (no open weights); limited fine-grained control beyond prompting; occasional structural artifacts in longer generations
+### 2.7 YuE (2025)
 
-### 2.9 Udio (Proprietary, 2024--2026)
+[YuE](https://arxiv.org/abs/2503.08638), by Ruibin Yuan et al., is a LLaMA2-based family for long-form lyrics-to-song generation. The paper describes track-decoupled next-token prediction, progressive structural conditioning, multi-task/multi-phase training at trillion-token scale, and examples up to five minutes.
 
-- **Company**: Udio (formerly Uncharted Labs)
-- **Architecture**: Not publicly disclosed
-- **Capabilities**:
-  - Text-to-song generation
-  - Maximum track length: up to 2 minutes
-  - Known for more musical variety: tempo changes, syncopation, melodic variation
-  - Output often passes as non-AI more readily than competitors
-- **Evolution**: Pivoting toward being an "AI playground for superfans" rather than purely a generation tool
-- **Strengths**: More musical surprises and variation; quality perceived as more "human-like"
-- **Limitations**: Shorter max length than Suno; less accessible for beginners
+It also studies audio-reference/in-context conditioning and representation evaluation on MARBLE. The authors report competitive results against selected proprietary systems; this is not an independently established universal ranking or proof of being the “first to surpass Suno/Udio.”
 
-### 2.10 Other Notable Models
+Use the [official repository](https://github.com/multimodal-art-projection/YuE) for checkpoint, stage, context and hardware requirements. A 10 GB VRAM claim is not a general requirement for the standard pipeline; memory and latency depend on implementation, offloading, precision, and output duration.
 
-#### TangoFlux (2024)
-- 515M parameters; generates up to 30 seconds of 44.1 kHz audio
-- Uses **flow matching** (rectified flow) instead of diffusion -- a promising alternative architecture
-- Faster inference than comparable diffusion models
+### 2.8 Commercial Song Generators
 
-#### TVC-MusicGen (INTERSPEECH 2025)
-- Time-Varying Structure Control for MusicGen
-- Novel approach to background music generation with dynamic structural control over time
-- Addresses the limitation of static conditioning in MusicGen
+**Suno and Udio** offer text/lyrics-conditioned song generation, but their full architectures and training recipes are not publicly specified in the sources cited here. Do not infer AR/diffusion components, dataset scale, or a universal quality ranking from listening impressions.
 
-#### MusicLDM
-- Adapts Stable Diffusion + AudioLDM for music generation
-- Focus on reducing plagiarism risk in generated outputs
+Suno's official history records **v5 on 2025-09-23**, **v5.5 on 2026-03-26**, and **v6 on 2026-09-09**. Thus “v5 anticipated” is outdated. See [v5 release](https://suno.com/release-notes/introducing-v5-the-world-s-best-music-model) and [release history](https://suno.com/release-notes).
 
-#### ACE-Step (ACE Studio + StepFun / 阶跃星辰, 2025)
-- **Paper**: "ACE-Step: A Step Towards Music Generation Foundation Model" (Junmin Gong, Sean Zhao, et al.; arXiv:2506.00045)
-- **Open-source** foundation model for music generation (3.5B parameters v1, Apache 2.0 license)
-- **Architecture**: Integrates **diffusion-based generation with Sana's Deep Compression AutoEncoder (DCAE)** and a lightweight **linear transformer**
-- Uses **REPA (Representation Alignment)** training: leverages MERT and m-hubert to align semantic representations, enabling rapid convergence
-- **Performance**: Synthesizes up to 4 minutes of music in ~20 seconds on A100 GPU — 15x faster than LLM-based baselines
-- Strong **Chinese-language (Mandarin) lyrics and vocal** support
-- Supports voice cloning, lyric editing, remixing, lyric2vocal, singing2accompaniment
-- Vision: establish a foundation model for music AI (like Stable Diffusion for images)
+For [Udio](https://www.udio.com/), distinguish the duration of a newly generated segment from an extended complete song. Product limits, access, editing and export features should be reported with the exact version/plan and access date. This survey does not assign an unsupported universal two-minute maximum or claim its output is inherently more human-like.
 
-#### MusicFlow (ICML 2024)
-- **Paper**: "MusicFlow: Cascaded Flow Matching for Text Guided Music Generation" (K R Prajwal, Bowen Shi, et al.; arXiv:2410.20478, ICML 2024 Poster)
-- **Cascading flow matching** framework: two flow matching networks modeling conditional distributions of semantic and acoustic features, based on self-supervised representations
-- Uses **masked prediction** as training objective, enabling zero-shot generalization to music infilling and continuation
-- Achieves superior quality and text coherence on MusicCaps despite being 2--5x smaller and requiring 5x fewer iterative steps than competitors
-- Can perform music infilling and continuation tasks competitively
+### 2.9 Additional Research Systems
 
-#### SongCreator (NeurIPS 2024)
-- **Paper**: "SongCreator: Lyrics-based Universal Song Generation" (Shun Lei et al.; NeurIPS 2024 Poster)
-- **Architecture**: **Dual-Sequence Language Model (DSLM)** that processes vocals and accompaniment as parallel sequences within a single framework
-- **Key innovation**: Configurable **attention mask strategies** route the same base model toward different tasks (song generation, vocal generation, accompaniment generation, song editing, song understanding) without changing architecture
-- Supports independent control of vocal and accompaniment acoustic conditions through different audio prompts
-- Achieves SOTA or competitive performance across eight song-related tasks
+| System | Verified contribution |
+|--------|-----------------------|
+| [TangoFlux](https://arxiv.org/abs/2412.21037) (2024 preprint) | Flow-matching text-to-audio generation and CLAP-ranked preference optimization; audio generation is broader than music |
+| [MusicLDM](https://arxiv.org/abs/2308.01546) (2023 preprint, ICASSP 2024) | Music-adapted latent diffusion and beat-synchronous audio/latent mixup; novelty improvements do not guarantee absence of copying |
+| [MusicFlow](https://proceedings.mlr.press/v235/prajwal24a.html) (ICML 2024) | Cascaded flow matching for semantic and acoustic features; masked conditioning supports infilling and continuation |
+| [SongCreator](https://arxiv.org/abs/2409.06029) (2024) | Dual-Sequence Language Model with configurable attention masks for vocal/accompaniment tasks |
+| [ACE-Step](https://arxiv.org/abs/2506.00045) (2025 report) | Diffusion, music-adapted DCAE, linear Transformer, and MERT/m-HuBERT representation alignment during training |
 
-#### MusicFX (Google, 2023--2025)
-- Consumer-facing music generation tool powered by MusicLM technology
-- Released as part of Google's AI Test Kitchen
-- Generates short music clips from text prompts
-- Applies **SynthID watermarking** to generated audio for identification
-- Restricts generation of music mimicking specific artists (copyright safeguard)
-- Updated periodically with quality and diversity improvements
+ACE-Step's report describes up to four minutes generated in about 20 seconds on an A100 in its setup. That is an author-reported benchmark, not a hardware-independent latency promise. MERT/m-HuBERT are representation-alignment teachers, not the audio codec. The [project](https://ace-step.github.io/) and report should be distinguished from later ACE-Step releases when comparing capabilities.
 
-#### SkyMusic (昆仑万维, 2024--2025)
-- Chinese text-to-music generation platform from Kunlun Tech
-- Supports multilingual output (Chinese, English, and others)
-- Integrated with昆仑万维's broader AI ecosystem (Skywork models)
-- Part of the emerging Chinese AI music generation landscape targeting domestic users
+## 3. Singing Voice Synthesis
 
----
+Score-conditioned SVS predicts singing from lyrics, notes, and timing. It requires sustained-vowel modeling, note transitions, pronunciation alignment, and expressive pitch. It is distinct from both changing a recorded singer's voice and generating an entire song from a caption.
 
-## 3. Singing Voice Synthesis (SVS)
+| System | Correct description |
+|--------|---------------------|
+| [XiaoiceSing](https://arxiv.org/abs/2006.06261) (2020) | FastSpeech-style non-autoregressive spectrum/F0/duration prediction with WORLD in the original system |
+| [DiffSinger](https://arxiv.org/abs/2105.02446) (2021 preprint, AAAI 2022) | Liu, Li, Ren, Chen, Zhao; score-conditioned mel diffusion with a shallow starting point, followed by a vocoder |
+| [VISinger](https://arxiv.org/abs/2110.08813) (2021 preprint, ICASSP 2022) | Yongmao Zhang et al.; variational/flow/adversarial end-to-end synthesis with pitch and duration modeling |
+| [VISinger 2](https://arxiv.org/abs/2211.02903) (2022 preprint, INTERSPEECH 2023) | DSP harmonic/noise synthesis guides waveform decoding and improves phase handling |
+| [DiTSinger](https://arxiv.org/abs/2510.09016) (2025) | Diffusion Transformer scaling and implicit alignment constrained by character-level spans |
+| [OpenVPI DiffSinger](https://github.com/openvpi/DiffSinger) | Community framework; capabilities depend on version and voicebank |
 
-### 3.1 Overview
-
-SVS generates a singing voice from a musical score input (lyrics phoneme sequence + pitch/duration annotations). Unlike Text-to-Speech (TTS), SVS must handle sustained vowels, vibrato, pitch glides, breath control, and the expressive timing of singing.
-
-### 3.2 Key Models
-
-#### DiffSinger (Liu, Ren et al., 2021/2022)
-- **Paper**: "DiffSinger: Singing Voice Synthesis via Shallow Diffusion Mechanism" (arXiv:2105.02446, AAAI 2022)
-- **Authors**: Jinglin Liu, Zhi Ren, Yi Ren, Chen Zhang, Zhou Zhao (Zhejiang University)
-- **Architecture**:
-  - **Diffusion probabilistic model** as acoustic model: Parameterized Markov chain iteratively converts noise into **mel-spectrogram** conditioned on music score
-  - **Shallow diffusion mechanism**: Key innovation. Instead of running the full diffusion chain from pure Gaussian noise to mel-spectrogram, DiffSinger starts the diffusion from an intermediate representation provided by a simple baseline model (e.g., Feed-Forward Transformer prediction). This:
-    - Reduces the number of diffusion steps needed
-    - Improves training stability
-    - Results in higher-quality output than full-chain diffusion
-  - **Input**: Music score (phonemes + F0 pitch contour + note durations)
-  - **Output**: Mel-spectrogram, converted to waveform via neural vocoder (HiFi-GAN or similar)
-- **Training**: Reconstruction loss on mel-spectrogram + diffusion denoising objective
-- **Evaluation**: MOS scores competitive with or exceeding prior neural SVS systems
-- **Significance**: Established diffusion as a powerful approach for SVS; the "shallow diffusion" trick became widely adopted
-
-#### VISinger / VISinger 2 (Xia et al., NWPU, 2022--2023)
-
-**VISinger** (ICASSP 2022):
-- **Paper**: "VISinger: Variational Inference with Adversarial Learning for End-to-End Singing Voice Synthesis"
-- **Authors**: Yiwei Xia et al. (Northwestern Polytechnical University)
-- **Architecture**:
-  - **Fully end-to-end**: Directly generates waveform from music score, eliminating the traditional multi-stage pipeline (separate duration model, acoustic model, vocoder)
-  - **Variational Inference (VI)**: Models complex acoustic distributions needed for natural singing
-  - **Adversarial training**: Discriminator ensures realistic audio output
-  - **Advantage**: Fewer parameters than multi-stage systems; simpler training pipeline
-- **Limitation**: Phase prediction issues caused glitches and jitter in voiced segments
-
-**VISinger 2** (INTERSPEECH 2023):
-- **Paper**: "VISinger 2: High-Fidelity End-to-End Singing Voice Synthesis"
-- **Key improvement**: Integrates a **Digital Signal Processing (DSP) synthesizer** into the end-to-end framework
-  - DSP synthesizer handles phase-related components, avoiding the problematic direct text-to-phase mapping that caused artifacts in VISinger 1
-  - Results in higher-fidelity output at higher sampling rates
-- **Performance**: Achieves better quality than two-stage models with fewer parameters
-
-#### XiaoiceSing (Microsoft, 2021)
-- **Paper**: "XiaoiceSing: A High-Quality and Integrated Singing Voice Synthesis System" (Microsoft Xiaoice team)
-- **Architecture**: Sequence-to-sequence (seq2seq) model adapted from TTS
-  - **Encoder**: Encodes phoneme/musical note sequences into hidden representations
-  - **Attention mechanism**: Aligns encoder outputs with decoder frames
-  - **Decoder**: Autoregressively generates acoustic features (mel-spectrograms)
-  - **Variance adaptor**: Predicts duration, pitch (F0), and energy for expressive singing control
-  - **Vocoder**: Neural vocoder (HiFi-GAN/WaveNet) converts mel-spectrograms to waveform
-- **Singing-specific features**:
-  - Explicit F0 prediction for precise pitch following
-  - Duration control for correct musical timing
-  - Breath and vibrato modeling for expressive singing
-- **Training data**: Hours of high-quality singing recordings with precise phoneme-level pitch and duration annotations
-- **Significance**: One of the first high-quality neural SVS systems, building on Microsoft's TTS expertise
-
-#### ExpressiveSinger (2024)
-- Cascade of diffusion models for multilingual and multi-style SVS
-- Supports multiple singing styles and languages
-
-#### RDSinger (2024)
-- Reference-based diffusion network for high-fidelity SVS
-- Uses reference audio conditioning to control timbre and style
-
-#### DITSinger (2025)
-- Investigates scaling effects on SVS quality
-- Addresses unclear scaling laws and systematic methodology for SVS
-
-#### OpenDiffSinger (Community, 2022--2025)
-- Open-source community fork and extension of the DiffSinger framework
-- Major ongoing contributions: multi-speaker/multi-language support expansions, improved phoneme dictionary and duration modeling
-- New GUI tools for dataset preparation and training pipeline simplification
-- Vocoder improvements integrating NSF (Neural Source Filter) and HiFi-GAN variants
-- The OpenVPI ecosystem provides companion tools for SVS dataset creation, phoneme alignment, and training
-
-#### ACE Studio / ACE Singer (2024--2025)
-- Commercial SVS system by ACE Studio (Chinese AI music technology company)
-- Generates realistic singing from score/lyrics input — true SVS, not voice conversion
-- Offers multi-language support (Chinese, English, Japanese), expressive parameter control (breath, vibrato, dynamics), multiple voicebanks, and DAW integration via VST plugins
-- Competes with Synthesizer V (Dreamtonics) and XiaoiceSing in the commercial SVS market
-
-#### DiffSinger Acceleration (2025)
-- Multiple ongoing efforts to accelerate DiffSinger inference, including consistency distillation, progressive distillation, and fewer-step ODE solvers
-- Reduces diffusion sampling steps while maintaining quality, enabling near-real-time inference for interactive SVS applications
-- No single canonical "Lite" paper; acceleration techniques are adapted from broader diffusion model acceleration literature
-
-### 3.3 SVS Evaluation
-
-- **MOS (Mean Opinion Score)**: Gold standard; human raters score naturalness on 1--5 scale
-- **Pitch accuracy**: Measured as F0 RMSE between generated and target pitch contours
-- **Duration accuracy**: Alignment of generated phoneme durations with musical score
-- **Spectral quality**: Metrics like log-spectral distance between generated and reference spectrograms
-- **Subjective listening tests**: Comparative preference tests between systems
-- **Challenge**: No single automated metric captures the full perceptual quality of singing (intonation, expressiveness, timbre naturalness, breath control)
-
-### 3.4 Open Problems
-- **Expressive control**: Fine-grained control over vibrato, dynamics, phrasing, and emotional expression
-- **Zero-shot speaker adaptation**: Generating singing in an arbitrary voice from a short reference clip
-- **Multilingual support**: Most SVS systems are language-specific (Mandarin, English, Japanese)
-- **Real-time SVS**: Low-latency generation for interactive applications
-- **Singing technique modeling**: Belting, falsetto, growl, and other vocal techniques
-
----
+Evaluate pitch on aligned voiced frames, timing against score/phone annotations, lyrics intelligibility, naturalness, expression, and singer identity separately. See [the SVS notes](music-singing-synthesis.md) for corrected datasets and metric definitions.
 
 ## 4. Controllable Generation
 
 ### 4.1 Conditioning Modalities
 
-Controllable music generation allows users to specify musical attributes beyond free-form text.
+| Input | Intended control | Limitation |
+|-------|------------------|------------|
+| Free text | Genre, instrumentation, mood, production | Ambiguous and often too coarse for note-level requirements |
+| Melody/chroma | Pitch-class movement and melodic guidance | Chroma loses octave and does not uniquely specify notes/voicing |
+| Score/chord/beat sequence | Explicit musical content or temporal targets | Depends on annotation and supported vocabulary |
+| Reference audio | Style, timbre, continuation or editing context | May mix identity, style and content |
+| Segment descriptions and boundaries | Attributes that change over time | Boundary adherence and transition quality require separate tests |
+| Emotion labels/continuous axes | Perceived valence/arousal or other affect | Annotation and interpretation vary across listeners/cultures |
 
-#### Text-Based Conditioning
-- **Free-form text**: Natural language description of desired music (used by MusicGen, Stable Audio, Suno, Udio)
-- **Text encoders**: T5 (MusicGen, Stable Audio), CLAP (AudioLDM), MuLan (MusicLM)
-- **Limitation**: Text is inherently imprecise for musical attributes; "upbeat jazz" means different things to different models
+**Mustango** predicts/conditions on music-specific information such as tempo, beat locations, key, and chords, with a music-informed diffusion denoiser. Its **MusicBench** is a music-text training resource, not a human-preference leaderboard. [Paper](https://arxiv.org/abs/2311.08355).
 
-#### Music-Specific Attribute Control
-- **Mustango** (Melechovsky, Guo, Ghosal, Majumder, Herremans, Poria; NAACL 2024)
-  - **Architecture**: Latent diffusion model with structured text conditioning
-  - **Key innovation**: Parses music-specific attributes from text prompts -- genre, key, tempo, chords, instruments
-  - Uses a language model to extract structured musical parameters from text, then conditions generation on these explicit attributes
-  - Achieves state-of-the-art controllability for Western music
-  - **Limitation**: Controllability limited to Western music theory concepts
+### 4.2 Time-Varying Control
 
-#### Melody Conditioning
-- MusicGen: Chroma-based melody extraction from audio prompt; generates music that follows the provided melody
-- MusicLM: Humming-to-arrangement capability
-- YuE: Style transfer preserving accompaniment while changing vocal style
+[TVC-MusicGen](https://www.isca-archive.org/interspeech_2025/yang25f_interspeech.html) (INTERSPEECH 2025) conditions generation on segment boundaries and descriptions using self-supervised structure information. The study evaluates the control approach on language- and diffusion-based models; the name does not mean only the original Meta MusicGen checkpoint is involved.
 
-#### Emotion Conditioning
-- **LARA-Gen**: Enables continuous emotion control for music generation
-- **EBS (Emotion-Based Sampling)**: Algorithm for controlling generation process with emotion labels (IEEE TMM)
-- **Symbolic music with continuous-valued emotions**: Controlling texture and emotional arc in symbolic generation
-- Approaches: Valence-arousal space mapping; emotion embedding vectors injected into conditioning
+[SegTune](https://arxiv.org/abs/2510.18416) (2025 preprint; revised for ACL 2026) is a non-autoregressive song-generation framework with local prompts aligned to temporal segments and global prompts for whole-song style. Its duration predictor produces sentence-level timestamped lyrics. Local control still requires checking lyrical alignment, transitions and interaction among attributes.
 
-#### Instrument and Timbre Control
-- Specifying particular instruments or timbral qualities via text or audio reference
-- AudioLDM: Audio-to-audio style transfer
-- MusicGen: Can be conditioned on audio prompts that establish timbral references
+### 4.3 Remaining Challenges
 
-### 4.2 Fine-Grained Control Approaches
-
-#### SegTune (2025)
-- **Paper**: "SegTune: Structured and Fine-Grained Control for Song Generation" (arXiv:2510.18416)
-- Enables segment-level control over different aspects of musical output
-- Supports structured generation where different sections (intro, verse, chorus) can have different attributes
-- Fine-grained conditioning for controllable long-form text-to-audio generation
-
-#### TVC-MusicGen (INTERSPEECH 2025)
-- Time-Varying Structure Control for MusicGen
-- Dynamic structural control that changes over the course of generation
-- Addresses the limitation that standard MusicGen applies uniform conditioning throughout
-
-#### In-Context Learning (YuE)
-- YuE redesigns in-context learning for music generation
-- Enables style transfer, bidirectional generation, and few-shot adaptation
-- Can convert between genres/languages while preserving structural elements
-
-### 4.3 Taxonomy of Control Methods
-
-| Method | Granularity | Example Systems |
-|--------|-------------|-----------------|
-| Free-form text | Coarse | MusicGen, Stable Audio, Suno |
-| Structured text attributes | Medium | Mustango |
-| Melody conditioning | Medium | MusicGen, MusicLM |
-| Audio reference | Medium | AudioLDM, YuE |
-| Emotion labels/continuous | Medium | LARA-Gen, EBS |
-| Time-varying/segment | Fine | SegTune, TVC-MusicGen |
-| Score-level | Fine | Symbolic models (REMI-based) |
-
-### 4.4 Open Problems
-- **Precise harmonic control**: Specifying exact chord progressions, modulations, and voice leading
-- **Form-level control**: Controlling verse-chorus-bridge structure, song length, and transitions
-- **Real-time interactive control**: Adjusting generation parameters during playback
-- **Multi-attribute control**: Simultaneously controlling multiple attributes without interference
-- **Non-Western music**: Most controllable systems assume Western tonal harmony
-
----
+Exact chord voicing, modulations, form, simultaneous controls, live editing, and non-Western musical systems require more than richer prose prompts. Distinguish “accepts a control” from “reliably follows it,” and evaluate only the musical constraints actually specified.
 
 ## 5. Video-to-Music Generation
 
-Cross-modal music generation from visual inputs (video, images) is an emerging research direction that bridges computer vision and audio generation.
+### 5.1 Representative Models
 
-### 5.1 Key Models
+| Model | Modality and contribution |
+|-------|---------------------------|
+| [CMT](https://arxiv.org/abs/2111.08380) (2021) | **Controllable Music Transformer**: connects video timing/motion cues to symbolic music rhythm, density and strength; not “Contrastive Multimodal Transformer” |
+| [Video2Music](https://arxiv.org/abs/2311.00968) (2023) | Affective multimodal Transformer using semantic, scene, motion and emotion features; generates symbolic/chord content with dynamic rendering |
+| [M²UGen](https://arxiv.org/abs/2311.11255) (2023 preprint) | Multimodal encoders and an LLM connected to music generators for understanding and generation/editing |
+| [MuVi](https://arxiv.org/abs/2410.12957) (2024) | Visual adaptation, contrastive music-visual pretraining and flow-matching generation for semantic and rhythmic alignment |
 
-#### MuVi (arXiv:2410.07840, 2024)
-- **Paper**: "MuVi: Video-to-Music Generation with Rhythmic Alignment"
-- Generates music from video input with **rhythmic alignment** between visual motion and musical beat structure
-- **Visual Rhythm Extractor**: Extracts rhythmic cues from video (motion intensity, scene transitions) to form a "visual rhythm" representation
-- **Music Generation Module**: Uses extracted visual rhythm as conditioning to generate music that aligns temporally with video dynamics
-- Evaluation via both objective rhythmic alignment scores and subjective human evaluations
+MuVi's full title is *Video-to-Music Generation with Semantic Alignment and Rhythmic Synchronization*.
 
-#### CMT (Contrastive Multimodal Transformer)
-- Cross-modal generation framework using contrastive learning to align video and music representations
-- Transformer-based architecture processes video frames and generates corresponding music via cross-modal attention
-- Note: multiple papers use similar naming; verify specific arXiv ID for the exact work referenced
+### 5.2 Evaluation
 
-#### M2UGen (Multi-modal Music Understanding and Generation)
-- Unified framework bridging music understanding (captioning, QA, analysis) and generation (text-to-music, image-to-music)
-- LLM-based architecture integrating specialized audio and visual encoders with a music generation decoder
-- Handles text, image, and audio inputs for cross-modal music creation
+Evaluate semantic match, mood congruence, temporal synchronization, and audio/music quality independently. Declare the visual events, beat extractor, time tolerances, and negative pairs. A good soundtrack need not put a beat on every cut; intended synchrony is task-dependent.
 
-#### Video2Music
-- Generates background music conditioned on video semantics and motion
-- Extracts multi-modal features (visual, motion, semantic) from video frames as conditioning signals
-- Addresses temporal alignment: ensuring generated music rhythm and mood match scene transitions
-
-#### MuVi
-- Visual-to-music generation with attention to rhythmic alignment between video motion and musical beat structure
-
-### 5.2 Evaluation Challenges
-- **CMMD (Contrastive Music-Video Metric)**: Evaluation metric for assessing alignment between generated music and video content
-- **Temporal synchronization**: How well do musical beats align with visual scene transitions?
-- **Emotional congruence**: Does the mood of generated music match the visual content?
-- No standardized benchmark exists for video-to-music evaluation
-
-### 5.3 Emerging Trends
-- **Diffusion-based V2M**: Higher-fidelity audio generation from video using latent diffusion
-- **LLM-conditioned V2M**: Using large language models as music generation backbones with visual feature conditioning
-- **Emotion-driven generation**: Mapping visual emotional content (color, motion, facial expression) to musical parameters
-
----
+A visual/audio embedding score alone does not establish fine timing or narrative suitability. Named metrics and benchmarks must be tied to a specific paper and implementation; a generic “CMMD = Contrastive Music-Video Metric” should not be assumed to be standard.
 
 ## 6. Human Preference Alignment
 
-Aligning music generation models with human aesthetic preferences, analogous to RLHF in language models, is a rapidly emerging research area.
+RLHF-style approaches learn a reward from listener preferences and optimize generation against it. DPO-style methods optimize from preferred/dispreferred pairs relative to a reference policy; applying them to continuous diffusion or flow models requires the corresponding objective, not simply importing an LLM loss unchanged.
 
-### 6.1 RLHF for Music
+[Human preference benchmarking](https://arxiv.org/abs/2506.19085) provides model comparisons and metric analysis; it is not itself proof that a trained reward will generalize. [Aligning Generative Music AI with Human Preferences: Methods and Challenges](https://arxiv.org/abs/2511.15038) is a 2025 preprint accepted at **AAAI 2026 Senior Member Track**.
 
-- **Benchmarking Music Generation Models and Metrics via Human Preference Studies** (ICASSP 2025)
-  - Conducts systematic human preference studies benchmarking multiple music generation models and evaluation metrics
-  - Evaluates how well existing automated metrics (FAD, KL divergence, etc.) correlate with human perceptual quality
-  - Key finding: current metrics have limited correlation with human preferences, motivating preference-based alignment approaches
-  - Provides empirical foundation for future RLHF-style alignment work in music generation
-- **Music preference alignment** is an emerging direction: applying RLHF/DPO paradigms (proven for LLMs) to music generation, where evaluation is inherently subjective and multi-dimensional
-
-### 6.2 Direct Preference Optimization (DPO)
-
-- Applies the DPO framework (originally developed for LLMs) to music generation
-- Directly optimizes from preference pairs without needing a separate reward model
-- Often found to be more stable and efficient than RLHF for music alignment
-- Demonstrated improved musical quality and stylistic consistency when applied to MusicGen/AudioCraft
-
-### 6.3 Evaluation Benchmarks
-
-- **SongBench** (Make-It-Music, 2025, arXiv:2502.19324): A curated dataset with supervised musical quality labels for song generation, from Nankai University. The Make-It-Music framework is a unified song generation system that uses these quality labels to improve training
-- **FakeMusicCaps**: Dataset of AI-generated music for detection and attribution tasks, derived from MusicCaps
-- **FakeMusicCaps**: Dataset of AI-generated music for detection and attribution tasks
-
-### 6.4 Open Problems
-- **Reward modeling**: Music's multi-attribute nature (harmony, rhythm, melody, timbre) and high subjectivity make reward modeling uniquely challenging
-- **Preference data collection**: Scalable and reliable collection of pairwise human comparisons for music
-- **Multi-dimensional alignment**: Aligning across multiple musical dimensions simultaneously without trade-offs
-- **Cultural sensitivity**: Human preferences vary significantly across cultures and musical traditions
-
----
+Separate actual human comparisons from proxy labels such as CLAP-ranked outputs. Reward optimization can improve one attribute while reducing diversity or exploiting evaluator weaknesses. Keep independent listener tests, unseen prompts/styles, and source-overlap checks.
 
 ## 7. Evaluation
 
-### 7.1 Automated Metrics
+| Metric / protocol | Measures | Important limit |
+|-------------------|----------|-----------------|
+| FAD | Distance between fitted reference/generated audio embedding distributions; lower is closer | Requires a reference collection; no paired recording needed; not prompt alignment |
+| CLAP / MuLan similarity | Learned prompt–audio association | Coarse semantics, not exact notes or lyrics |
+| Classifier KL | Difference in specified label distributions | Paired or aggregate protocols must be identified |
+| FMD | Symbolic-music embedding distribution difference | Not waveform fidelity |
+| Pitch / chord / beat adherence | Agreement with musical conditions | Requires target controls and reliable extraction |
+| MOS / pairwise preference | Listener ratings or choices | Requires a defined population, task, design and uncertainty |
 
-#### Frechet Audio Distance (FAD)
-- **Origin**: Kilgour et al., INTERSPEECH 2019; adapted from Frechet Inception Distance (FID) for images
-- **Method**: Computes Frechet distance between Gaussian distributions of audio embeddings from a reference set and a generated set
-- **Embedding model**: Typically uses VGGish, PANNs (Pre-trained Audio Neural Networks), or CLAP audio encoder
-- **Properties**:
-  - **Reference-free** (at distribution level): Does not require pairwise comparison; compares distribution statistics
-  - Measures both quality and diversity
-  - Lower is better
-- **Per-song FAD** (Microsoft, 2023): Extension that computes FAD for individual samples, showing moderate-to-strong correlation with human perceptual quality (MOS). Available in `microsoft/fadtk`
-- **Limitation**: Depends on embedding model quality; may not capture all perceptually relevant dimensions; sensitive to dataset bias
+[MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) is a short-clip text-to-music evaluation resource. [AIME](https://huggingface.co/datasets/disco-eth/AIME) contains preference data. MARBLE measures music understanding representations, not direct song quality.
 
-#### KL Divergence on Label Distributions
-- Computes KL divergence between label distributions (e.g., genre, instrument tags) predicted by a classifier on reference vs. generated audio
-- Measures whether generated audio has similar high-level attributes as the reference distribution
-- **Limitation**: Less robust than FAD; can behave inconsistently on degenerate outputs (e.g., silent audio). Noted in AudioLDM evaluation toolkit as unreliable
+No single metric establishes quality, originality, structure, or cultural appropriateness. FAD results depend on encoder, reference collection, sample size and preprocessing. Per-song FAD variants need their own validation; they are not universally the best proxy for listeners. See [evaluation notes](music-evaluation.md) for formulas, protocols and sources.
 
-#### MuLan Similarity / CLAP Score
-- Computes cosine similarity between text and audio embeddings using contrastive models (MuLan, CLAP)
-- Measures text-audio alignment: how well does generated audio match the text prompt
-- Higher is better
-- Used in MusicLM and subsequent models
+## 8. Architecture Comparison
 
-#### FrEchet Music Distance (FMD) (2024)
-- **Paper**: arXiv:2412.07948 (December 2024)
-- Adaptation of FAD specifically for symbolic music evaluation
-- Operates on symbolic representations rather than audio
-- Addresses the lack of evaluation metrics for generative symbolic music models
+Durations below are paper/release settings or demonstrated examples, not uniform architectural maxima.
 
-#### Other Automated Metrics
-- **IS (Inception Score)**: Measures quality and diversity of generated samples using classifier predictions
-- **FID (Frechet Inception Distance)**: Image-domain metric occasionally adapted for spectrogram representations
-- **Log-spectral distance**: Measures spectral similarity between generated and reference audio
+| System | Generative approach | Representation / conditioning | Documented scope |
+|--------|---------------------|-------------------------------|------------------|
+| Jukebox (2020) | Hierarchical AR | Three VQ-VAE levels; metadata/lyrics | 44.1 kHz mono; windowed multi-minute generation |
+| MusicLM (2023) | Semantic/coarse/fine AR | w2v-BERT + SoundStream; MuLan | 24 kHz mono; multi-minute examples |
+| MusicGen (2023) | Single-stage AR | 32 kHz EnCodec; T5/chroma | 30-second context; mono and separate stereo variants |
+| AudioLDM (2023) | Latent diffusion | Mel VAE; CLAP | General short audio |
+| AudioLDM 2 (2023–2024) | LOA prediction + latent diffusion | AudioMAE/GPT-2 plus acoustic decoder | Speech/music/audio variants |
+| Stable Audio 2.0 (2024) | Latent diffusion | Commercial model; text/audio inputs | Up to 3 minutes, 44.1 kHz stereo |
+| Stable Audio Open 1.0 (2024) | DiT latent diffusion | Continuous autoencoder; T5 | Up to 47 seconds, 44.1 kHz stereo |
+| YuE (2025) | Track-decoupled AR | Music tokens; lyrics/style/reference | Up to five-minute examples |
+| ACE-Step (2025 report) | Diffusion with linear Transformer | Music DCAE; lyrics/text | Up to four minutes in the report |
+| MusicFlow (2024) | Cascaded flow matching | Semantic and acoustic features | Text conditioning, infilling, continuation |
+| SongCreator (2024) | Dual-sequence LM | Vocal/accompaniment streams and attention masks | Multiple song-generation/editing tasks |
+| Suno / Udio | Not specified here | Service-provided text/lyrics controls | Version- and plan-dependent |
 
-### 7.2 Human Evaluation
+Code availability, model-weight availability, training-data availability, and license are separate axes. A binary “open source: yes” column obscures those differences.
 
-#### Mean Opinion Score (MOS)
-- Gold standard for perceptual quality assessment
-- Human raters score audio on 1--5 scale (bad to excellent)
-- Typically measures overall quality, naturalness, or fidelity
-- Used as ground truth to validate automated metrics
+## 9. Open Problems and Research Practice
 
-#### Comparative Preference Tests
-- Side-by-side comparison of outputs from different models
-- Raters choose which sample is better on specific dimensions (quality, relevance to prompt, musicality)
-- Used in MusicLM, MusicGen, and most major model evaluations
+- **Long-form music:** Evaluate motif development, repeated sections, transitions, and endings over the complete output, not only its nominal duration.
+- **Precise control:** Measure adherence and interaction among melody, harmony, form, instrumentation and expression.
+- **Efficiency:** Separate first-audio latency, throughput and total generation time. Some systems run faster than audio duration on suitable hardware; that alone does not establish interactive streaming.
+- **Data and originality:** Audit training/evaluation overlap and nearest-neighbor copying separately from quality. Licensed data and open weights do not automatically establish novel output.
+- **Cultural coverage:** Evaluate supported languages, tuning systems, instruments and traditions with appropriate listeners and annotations.
+- **Evidence:** Separate paper findings, official product specifications, author-reported benchmarks and hypotheses. Avoid unverified leaderboard, venue, hardware, or architectural claims.
 
-#### MusicCaps Benchmark
-- **Dataset**: 5,521 10-second music clips with human-written captions (Google, released with MusicLM)
-- **Source**: YouTube videos via AudioSet; diverse genres
-- **Use**: Standard benchmark for text-to-music models
-- **Evaluation protocol**: Generate audio from MusicCaps captions, compute FAD and other metrics against reference clips
-- **Limitation**: Only 10-second clips; limited cultural/genre diversity despite broad coverage
-
-### 7.3 Comprehensive Evaluation Survey (2025)
-
-- **Paper**: "A Survey on Evaluation Metrics for Music Generation" (arXiv:2509.00051, 2025)
-- Consolidates evaluation approaches across the field
-- Key findings:
-  - FAD and KL divergence are most commonly used automated metrics
-  - Per-song FAD shows best correlation with human perceptual quality
-  - No single metric captures all dimensions of music quality
-  - Human evaluation remains essential for reliable assessment
-  - Benchmark datasets (MusicCaps, AudioSet) introduce their own biases
-
-### 7.4 Challenges in Evaluating Generated Music
-
-1. **Multidimensionality**: Music quality encompasses melody, harmony, rhythm, timbre, form, dynamics, and expressiveness. No single metric captures all dimensions.
-
-2. **Subjectivity**: Musical quality is inherently subjective; different listeners, cultures, and genres have different standards.
-
-3. **Long-form evaluation**: Most metrics operate on short clips (10--30 seconds). Evaluating structural coherence over minutes is underserved by existing metrics.
-
-4. **Text-audio alignment**: Measuring how well generated audio matches a text prompt requires understanding both modalities, which is itself an open research problem.
-
-5. **Originality vs. quality trade-off**: Should models prioritize generating novel music or high-quality music that may closely resemble training data? Metrics often reward the latter.
-
-6. **Distribution vs. sample-level**: Most metrics (FAD, KL) measure distributional properties, not individual sample quality. Per-song metrics are emerging but not yet standard.
-
-7. **Cultural bias**: Benchmarks and evaluation protocols are predominantly Western-music-centric.
-
-8. **Lack of standardized benchmarks**: Different papers use different datasets, splits, and protocols, making cross-paper comparison difficult.
-
-### 7.5 Emerging Evaluation Approaches
-
-- **LLM-as-judge**: Using large language models to evaluate music quality from descriptions and audio features
-- **Music understanding benchmarks**: MARBLE benchmark (used by YuE) evaluates learned representations on music understanding tasks
-- **Human preference alignment**: AAAI 2025 paper (arXiv:2511.15038) on aligning generative music AI with human preferences
-- **FakeMusicCaps**: Dataset of AI-generated music for detection and attribution tasks, derived from MusicCaps
-- **SongBench** (Make-It-Music, 2025): Song-level evaluation benchmark covering melody quality, harmony, rhythm, vocal clarity, lyrics adherence, structural coherence, and overall musicality. Goes beyond short clip evaluation to assess full songs
-- **MusicBench**: Benchmark for measuring alignment with human preferences across musicality, genre adherence, and emotional expressiveness
-
----
-
-## 8. Architecture Comparison Summary
-
-| Model | Year | Approach | Tokenizer/Codec | Max Length | Text Cond. | Open Source |
-|-------|------|----------|-----------------|------------|------------|-------------|
-| Jukebox | 2020 | Hierarchical AR (VQ-VAE) | VQ-VAE (3-level) | Several min | Lyrics + metadata | Yes |
-| MusicLM | 2023 | Hierarchical AR (semantic + acoustic) | SoundStream | Several min | MuLan text emb. | No |
-| MusicGen | 2023 | Single-stage AR Transformer | EnCodec (32 kHz, 4 CB) | ~30 sec | T5 + melody | Yes |
-| AudioLDM | 2023 | Latent Diffusion (U-Net) | VAE (mel-spectrogram) | ~10 sec | CLAP | Yes |
-| AudioLDM 2 | 2024 | Latent Diffusion + GPT-2 | VAE + improved | ~30 sec | CLAP + GPT-2 | Yes |
-| Stable Audio 2.0 | 2024 | Latent Diffusion (DiT) | Compressed autoencoder (21.5 Hz) | 3 min | T5 | Partial |
-| Stable Audio Open | 2024 | Latent Diffusion (DiT) | Autoencoder | ~47 sec | T5 | Yes |
-| YuE | 2025 | LLaMA2-based AR Transformer | Learned music tokens | 5 min | Lyrics + style | Yes |
-| Suno V4.5 | 2025 | Undisclosed | Undisclosed | 4 min | Text + lyrics | No |
-| Suno V5 | Anticipated | Undisclosed | Undisclosed | TBD | Text + lyrics | No |
-| Udio | 2024--25 | Undisclosed | Undisclosed | 2 min | Text + lyrics | No |
-| TangoFlux | 2024 | Flow Matching | Learned | 30 sec | Text | Yes |
-| ACE-Step | 2025 | DCAE + Linear Transformer + Diffusion (REPA) | DCAE (Sana) + MERT/m-hubert | 4 min | Text + lyrics | Yes (ACE Studio + StepFun) |
-| MusicFlow | 2024 | Cascaded Flow Matching | Self-supervised semantic/acoustic | ~30 sec | Text | Yes |
-| SongCreator | 2024 | Dual-Sequence LM (DSLM) + Attention Masks | EnCodec-style | Full song | Lyrics + audio prompts | Yes |
-| MusicFX | 2023--25 | MusicLM-based (Google) | SoundStream | Short clips | Text | No |
-| SkyMusic | 2024--25 | Undisclosed | Undisclosed | Full song | Text (multilingual) | No |
-
----
-
-## 9. Key Open Problems and Future Directions
-
-1. **Long-form coherence**: Maintaining musical structure, thematic development, and global form over multi-minute compositions remains the primary challenge. YuE's 5-minute output is a milestone but quality remains inconsistent.
-
-2. **Evaluation**: No comprehensive, standardized evaluation framework exists. FAD is the de facto standard but has known weaknesses. Human evaluation is expensive and subjective.
-
-3. **Controllability**: The gap between what users can specify (text prompts) and what they want to control (specific harmonies, structures, timbres) remains large. Structured control (Mustango, SegTune) is promising but limited.
-
-4. **Copyright and ethics**: Training on copyrighted music raises legal and ethical questions. Open models (Stable Audio Open) that explicitly avoid copyrighted data show the path forward but may sacrifice quality.
-
-5. **Real-time generation**: Current models are far from real-time for high-quality output. Interactive music generation for games, live performance, and creative tools requires low-latency inference.
-
-6. **Cultural diversity**: Most models are biased toward Western popular music. Support for non-Western scales, instruments, forms, and singing styles is limited.
-
-7. **Multimodal integration**: Combining music generation with video, dance, and other modalities is nascent but growing (ISMIR 2025 survey on vision-to-music generation).
-
-8. **Data scale and quality**: Proprietary systems (Suno, Udio) likely train on far larger and more diverse datasets than academic/open models, contributing to their quality advantage.
-
-9. **Convergence of AR and diffusion**: Hybrid architectures combining the strengths of autoregressive (sequential coherence, variable length) and diffusion/flow-matching (parallel generation, global structure, diversity) are a major trend.
-
-10. **Preference alignment**: Aligning generative models with human musical preferences at scale is an emerging research area (AAAI 2025), analogous to RLHF in language models.
-
----
-
-## References (Key Papers)
-
-- Huang & Vaswani: "Music Transformer" (arXiv:1809.04281, ICLR 2019)
-- Huang & Yang: "Pop Music Transformer / REMI" (arXiv:2002.00212, 2020)
-- Dhariwal et al.: "Jukebox: A Generative Model for Music" (arXiv:2005.00341, 2020)
-- Zeghidour et al.: "SoundStream" (arXiv:2107.03312, 2021)
-- Defossez et al.: "EnCodec" (arXiv:2210.13438, 2022)
-- Liu et al.: "DiffSinger" (arXiv:2105.02446, AAAI 2022)
-- Xia et al.: "VISinger" (ICASSP 2022) and "VISinger 2" (INTERSPEECH 2023)
-- Agostinelli et al.: "MusicLM" (arXiv:2301.11325, 2023)
-- Liu et al.: "AudioLDM" (2023) and "AudioLDM 2" (arXiv:2308.05734, 2023--2024)
-- Copet et al.: "MusicGen" (arXiv:2306.05284, 2023)
-- Stability AI: "Stable Audio 2.0" (April 2024)
-- Melechovsky et al.: "Mustango" (NAACL 2024, arXiv:2311.08355)
-- Yuan et al.: "YuE" (arXiv:2503.08638, ICLR 2025)
-- "A Survey on Evaluation Metrics for Music Generation" (arXiv:2509.00051, 2025)
-- "Auto-Regressive vs Flow-Matching: A Comparative Study" (arXiv:2506.08570, 2025)
-- "Aligning Generative Music AI with Human Preferences" (arXiv:2511.15038, AAAI 2025)
-- "Pianoroll-Event" (arXiv:2601.19951, 2025)
-- "REMI-z: Track-Aware Tokenization" (NeurIPS 2025)
-- "SegTune: Structured and Fine-Grained Control" (arXiv:2510.18416, 2025)
-- ACE-Step: "A Step Towards Music Generation Foundation Model" (arXiv:2506.00045, ACE Studio + StepFun, 2025)
-- MusicFlow: "Cascaded Flow Matching for Text Guided Music Generation" (arXiv:2410.20478, ICML 2024)
-- SongCreator: "Lyrics-based Universal Song Generation" (NeurIPS 2024 Poster, Shun Lei et al.)
-- "Benchmarking Music Generation Models and Metrics via Human Preference Studies" (ICASSP 2025)
-- ACE Studio / ACE Singer: Commercial SVS system (2024--2025)
-- DiffSinger Acceleration: Consistency distillation and progressive distillation for faster SVS inference (2025)
-- CMT: "Contrastive Multimodal Transformer for Video-to-Music" (verify specific arXiv ID)
-- M2UGen: "Multi-Modal Music Understanding and Generation" (verify specific arXiv ID)
-- "Make-It-Music / SongBench" (arXiv:2502.19324, 2025, Nankai Univ.)
-- OpenDiffSinger community: GitHub (ongoing, 2022--2025)
-- "Discrete Audio Tokens: More Than a Survey" (arXiv:2506.10274, 2025)
+> Related: [singing synthesis](music-singing-synthesis.md), [evaluation](music-evaluation.md), [music understanding](music-understanding-mir.md), and [audio engineering](audio-engineering.md).

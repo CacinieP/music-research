@@ -1,6 +1,6 @@
 # 音乐生成：技术研究笔记
 
-截至 2025--2026 年音乐生成技术综合调研。涵盖符号生成、音频级生成、歌声合成、可控生成与评估方法。
+精选符号生成、音频生成、歌声、控制、视频条件和评测研究。内容核对日期：2026-09-19。下述参数对应注明的论文/版本，不代表整个产品系列的所有后续版本。
 
 > English version: [music-generation.md](music-generation.md)
 
@@ -8,771 +8,272 @@
 
 ## 1. 符号音乐生成
 
-### 1.1 表示格式
+### 1.1 表示
 
-符号音乐操作离散表示（音符、时序、力度）而非原始音频。表示格式的选择从根本上决定了模型能学到什么。
+符号模型生成音符、时长、时序、配器或记谱；还需要合成器或渲染器才能转成音频。
 
-#### MIDI (Musical Instrument Digital Interface)
-- 基于事件的协议：`Note On`、`Note Off`、`Velocity`、`Time Shift`、`Program Change`
-- 复调通过带有 delta-time 偏移的重叠 note-on/note-off 事件处理
-- 标准 "MIDI-Like" 分词 (Oore et al., 2018)：按起始时间排序的事件流
-- 局限：原始 MIDI 事件缺乏显式节拍结构（小节线、拍位）；时间纯粹是相对的
+| 表示 | 编码内容 | 权衡 |
+|------|----------|------|
+| MIDI / MIDI-like 事件 | 音符开关、音高、力度、时序、乐器及可选控制 | 演奏事件紧凑，但分词须定义排序和时间分辨率 |
+| 钢琴卷帘 | 音高 × 时间的激活/力度，可按轨道分开 | 网格方便；分辨率越高越大，相邻同音重复需要起音处理 |
+| ABC 记谱 | 拍号、音高、时长、声部等文本记谱 | 紧凑可读，支持特性取决于解析器及语料 |
+| REMI | 显式小节/拍位、音高、时长、力度及选定元数据 | 直接表示节拍位置，以量化损失换取结构 |
+| Compound Word | 将属性组合，使用各自的属性嵌入/预测 | 缩短序列，需明确复合事件的结构 |
 
-#### 钢琴卷帘 (Piano Roll)
-- 二维矩阵表示：音高（行）x 时间帧（列），值表示力度/激活
-- 与 CNN 架构直接兼容（可视为图像）
-- 丢失显式音符级事件结构；边界检测是隐式的
-- 分辨率权衡：精细时间分辨率 = 非常大的矩阵
+**MIDI 与分词不同：** `Time Shift` 是模型 token，不是原生 MIDI 通道消息类型；力度是音符消息的属性。标准 MIDI 文件存储 delta time，可包含速度/拍号元数据，并能据此推导小节。可能省略节拍结构的是选定的事件词表，而非 MIDI 整体。
 
-#### ABC 记谱法
-- 民间/传统音乐中常见的文本音乐记谱
-- 紧凑、人类可读，天然适合语言模型分词
-- 仅限于单声部或简单复调音乐
+ABC 支持多声部和复调，并非只能表达单旋律。[MuPT 论文](https://arxiv.org/abs/2404.06393) 使用同步多轨 ABC（SMT-ABC）处理不同轨道的小节对齐。
 
-#### 基于 Token 的表示（当前 Transformer 标准）
+已核验的分词来源：
 
-| 格式 | 核心思想 | 参考文献 |
-|------|----------|----------|
-| **MIDI-Like** | 将原始 MIDI 事件作为 token (Note On/Off, Time Shift) | Oore et al., 2018 |
-| **REMI** | 增强的 MIDI 事件，添加显式 Bar、Position、Tempo、Chord token | Huang & Yang, 2020 (Pop Music Transformer) |
-| **Compound Word (CP)** | 将每个时间步的多个属性组合为单一复合 token | Hsiao et al., 2021 |
-| **REMI+ / REMI-z** | REMI 的多轨扩展，支持轨道感知分词 | NeurIPS 2025 |
-| **Pianoroll-Event** | 混合空间 + 序列编码，桥接钢琴卷帘和 token 视图 | arXiv 2601.19951 (2025) |
-| **MIDI-Token** | MIDITok 包中比较的各种分词策略 | Natole et al., ISMIR 2021 |
+- [Pop Music Transformer / REMI](https://arxiv.org/abs/2002.00212)，Yu-Siang Huang、Yi-Hsuan Yang，2020。
+- [Compound Word Transformer](https://arxiv.org/abs/2101.02402)，Hsiao 等，2021。
+- [REMI-z 实现及论文引用](https://github.com/Sonata165/REMI-z)，*Unifying Symbolic Music Arrangement: Track-Aware Reconstruction and Structured Tokenization*，NeurIPS 2025。REMI-z 在小节结构中按轨道组织音符；REMI+ 与 REMI-z 是不同方案，不是同一个 2025 格式的两个名称。
+- [Pianoroll-Event](https://arxiv.org/abs/2601.19951)，Qian 等，**2026 年 1 月**：用帧、间隙、模式和音乐结构事件结合网格结构与紧凑编码。
+- [MidiTok](https://miditok.readthedocs.io/en/latest/) 是支持多种方案的分词库，不是名为“MIDI-Token”的单一表示。可复现研究需固定版本与分词配置。
 
-REMI (Huang & Yang, 2020) 影响最大：它添加了显式的 `Bar`、`Position`、`Tempo` 和 `Chord` token，使模型可以直接学习节拍结构，而非从 delta-time 推断。REMI-z (2025) 将此扩展到多轨音乐，每轨独立的 token 流。
+### 1.2 代表模型
 
-### 1.2 关键模型
+**Music Transformer**（Huang 等，ICLR 2019）提出面向长音乐序列的高效相对注意力实现。原实验使用 **JSB Chorales 和 Piano-e-Competition**，不是 MAESTRO。相对序列位置有助于重复与时序建模，但本身并不编码移调不变的音程。效率改进针对中间相对位置张量，而非消除注意力的全部二次复杂度。[论文](https://arxiv.org/abs/1809.04281)。
 
-#### Music Transformer (Huang, Vaswani et al., 2018/2019)
-- **论文**: "Music Transformer: Generating Music with Long-Term Structure" (arXiv:1809.04281, ICLR 2019)
-- **作者**: Cheng-Zhi Anna Huang, Ashish Vaswani, et al. (Google Magenta)
-- **架构**: 仅解码器 Transformer，带有改进的**相对注意力**机制
-- **核心贡献**: 自注意力中的相对位置表示使模型能学习音乐中的相对音程和循环模式，而非绝对位置。这一点至关重要，因为音乐本质上是关系性的（音程、和弦进行、节奏循环）
-- **表示**: MIDI-Like 分词（来自 MAESTRO 数据集的演奏级钢琴表演）
-- **结果**: 生成具有长期结构重复（A-B-A 形式、反复主题）的连贯分钟级钢琴作品
-- **局限**: 单乐器（仅钢琴）；MIDI-Like 分词缺乏显式节拍结构
+**Pop Music Transformer** 将 Transformer-XL 式模型与 REMI 结合，进行节拍感知的流行钢琴生成。论文在其评测下显示节奏收益，不代表所有流派都一定更好。[论文](https://arxiv.org/abs/2002.00212)。
 
-#### Pop Music Transformer (Huang & Yang, 2020)
-- **架构**: 使用 REMI 分词的 Transformer
-- **核心贡献**: 引入带有显式 Bar/Position token 的 REMI 表示
-- **训练数据**: 流行钢琴编曲
-- **相对 Music Transformer 的改进**: 由于显式节拍 token，节奏结构和拍级建模更好
+**MuPT**（2024）研究符号音乐 Transformer 预训练、SMT-ABC、上下文与规模扩展。结论依赖语料和表示，“更大符号模型总能保持曲式”并非一般结论。[论文](https://arxiv.org/abs/2404.06393)。
 
-#### MuPT (2024--2025)
-- 用于符号音乐生成的预训练 Transformer
-- 旨在提高较长作品的结构一致性
-- 聚焦符号音乐的预训练规模
+### 1.3 自回归、扩散与流匹配
 
-#### Transformer-GAN 用于符号音乐 (AAAI)
-- 结合自回归 Transformer 生成器和 GAN 判别器
-- 通过对抗训练进行质量控制，生成分钟级作品
+自回归模型将 token 序列分解为：
 
-### 1.3 符号音乐的自回归 vs 扩散方法
+$$
+p(x\mid c)=\prod_{t=1}^{T}p(x_t\mid x_{<t},c).
+$$
 
-**自回归 (AR) 方法** (Music Transformer, 基于 REMI 的模型):
-- 将音乐建模为 token 序列，根据之前的 token 预测下一个
-- 优势：对序列化音乐的天然适配；处理可变长度输出；强局部连贯性
-- 劣势：长序列的误差累积；顺序生成速度慢；可能难以处理全局结构
+它天然支持顺序续写，但需付出逐步采样成本。上下文限制和训练/推理差异可能损害长程连贯性。
 
-**扩散方法**用于符号音乐:
-- 将扩散（渐进去噪）应用于钢琴卷帘或潜在表示
-- 优势：并行生成；可直接建模全局结构；较少误差累积
-- 劣势：固定输出长度；对基于事件的音乐适配不够自然；可能遗漏细粒度序列依赖
+扩散与流匹配模型迭代地将噪声转为钢琴卷帘、潜在序列或其他表示。每一步内部的位置可以并行处理，但仍有多个采样步骤。固定输出长度是部分实现的常见设置，不是数学要求；时长条件、掩码与分块可以支持可变长度。
 
-**混合方法**正在兴起：结合 AR 处理序列精细结构，用扩散进行全局规划。
+流匹配学习选定概率路径的向量场；扩散学习去噪/分数相关模型。它们是相关的连续生成方法，但不是同义词，也都不能保证在所有设置下多样性或结构更好。
 
-2025 年的一项研究 (arXiv:2506.08570) 提供了 AR vs flow-matching 用于文本到音乐生成的首次控制性比较，发现扩散/flow-matching 在多样性和可控性方面更优，而 AR 在训练稳定性和局部结构连贯性方面更好。
+[Auto-Regressive vs Flow-Matching](https://arxiv.org/abs/2506.08570)（Tal、Kreuk、Adi，2025）在控制数据与训练设置下比较**文本条件的音频音乐**。其中的质量、控制、编辑和采样结论不能用来证明所有符号音乐模型的优劣。
 
-### 1.4 关键数据集
+### 1.4 数据集
 
-| 数据集 | 内容 | 规模 |
-|--------|------|------|
-| **MAESTRO** | 对齐的 MIDI-音频钢琴演奏 | ~200 小时 |
-| **Lakh MIDI** | 多乐器 MIDI 文件 | 180K 文件 |
-| **POP909** | 含旋律/伴奏的流行钢琴编曲 | 909 首歌 |
-| **AD Pianoforte** | 古典钢琴演奏 | ~100 小时 |
-| **MetaMIDI** | 大规模 MIDI 集合 | 436K 文件 |
+| 数据集 | 内容 | 对应版本规模 |
+|--------|------|--------------|
+| [MAESTRO](https://magenta.tensorflow.org/datasets/maestro) | 紧密对齐的钢琴音频/MIDI 演奏 | 约 200 小时；使用官方版本划分 |
+| [Lakh MIDI v0.1](https://colinraffel.com/projects/lmd/) | 去重 MIDI 集合 | 176,581 个文件；LMD-matched 是较小子集 |
+| [POP909](https://arxiv.org/abs/2008.07142) | 含 melody、bridge、piano 轨的流行钢琴编曲 | 909 首歌曲 |
 
-### 1.5 开放性问题
-- **长篇结构**: 在多分钟作品中维持全局曲式（主歌-副歌-桥段）、主题发展和和声方向
-- **多轨生成**: 跨多种乐器的协调生成，包括适当的声部进行、节奏组协调和编配
-- **可控性**: 超越文本条件的精确和声、曲式、风格和力度控制
-- **表示鸿沟**: 没有单一表示能同等良好地捕获所有音乐维度（音高、节奏、力度、音色、曲式）
+文件数、不同作品数、演奏次数与片段数不同。报告训练/测试集时说明清洗、去重及歌曲/艺术家隔离。
 
----
+### 1.5 开放问题
+
+长曲式、主题再现、多轨协调、表现性演奏时序与和声控制仍是重要问题。符号结构不能直接指定录音音色和制作，也没有单一表示能同等覆盖所有音乐维度。
 
 ## 2. 音频级音乐生成
 
-### 2.1 神经音频编解码器（音频生成的基础）
+### 2.1 编解码器与连续自编码器
 
-音频级模型需要将高维波形（44,100 样本/秒）压缩为可操作的表示。
+离散编解码器将波形转为语言模型使用的 token 序列；连续自编码器为扩散/流模型提供潜在序列。因此“音频生成必须有离散 codec”不正确。
 
-#### EnCodec (Defossez et al., Meta, 2022)
-- **论文**: "High Fidelity Neural Audio Compression" (arXiv:2210.13438)
-- **架构**: 带有**残差向量量化 (RVQ)** 瓶颈的卷积编码器-解码器
-  - 编码器：跨步卷积网络将音频压缩为潜在帧
-  - RVQ：多层层次化码本将连续潜在表示量化为离散 token。残差量化：第一个码本捕获粗结构，后续码本捕获逐渐更精细的细节
-  - 解码器：转置卷积从量化的潜在表示重建波形
-  - 判别器：多尺度 STFT + 多周期判别器用于对抗训练
-- **比特率**: 1.5 到 24 kbps（24 kHz 模型）；3 到 24 kbps（48 kHz 立体声模型）
-- **帧率**: ~50 Hz（48 kHz 模型为 75 Hz），4--8 个码本层
-- **训练**: 重建损失 + 对抗损失 + 量化承诺损失
-- **角色**: 作为 MusicGen 及许多其他模型的音频分词器
+| 编解码器 | 已核验的设计与设置 |
+|----------|--------------------|
+| [SoundStream](https://arxiv.org/abs/2107.03312)（2021） | 卷积编解码器、残差向量量化（RVQ）、对抗训练及量化器 dropout；支持多种码率 |
+| [EnCodec](https://github.com/facebookresearch/encodec)（2022） | 卷积/循环编解码器、RVQ、多尺度 STFT 对抗训练；原始发布含 24 kHz 单声道与 48 kHz 立体声 |
+| [DAC](https://arxiv.org/abs/2306.06546)（2023） | 改进 RVQGAN，使用周期激活与改进的码本学习；包括高保真 44.1 kHz 压缩 |
 
-#### SoundStream (Zeghidour et al., Google, 2021)
-- EnCodec 的前身；引入了用于神经音频编解码器的 RVQ 方法
-- 用于 AudioLM 和 MusicLM 流水线
-- 24 kHz, 3 kbps 流式音频编解码器
+原始 EnCodec 配置中，24 kHz 模型为 **75 Hz** 帧率，支持 1.5/3/6/12/24 kbps；48 kHz 模型为 **150 Hz**，支持 3/6/12/24 kbps。激活码本数随码率变化。**MusicGen 使用另外训练的 32 kHz、50 Hz EnCodec 配置**，并非直接套用上述两种配置。
 
-#### DAC (Descript Audio Codec, Kumar et al., 2023)
-- 改进的神经编解码器，使用蛇形激活函数和更大的码本
-- 44.1 kHz，用于部分 Stable Audio 变体
+RVQ 逐级量化残差。前后码本的信息可能不同，但没有保证“这一层是和声、那一层是音色”的标签。帧率表示时间位置数；每秒总 token 数还取决于码本数和声道组织方式。
 
-### 2.2 Jukebox (OpenAI, 2020)
+### 2.2 Jukebox（OpenAI，2020）
 
-- **论文**: "Jukebox: A Generative Model for Music" (Dhariwal, Jun, Payne, Kim, Radford, Sutskever; arXiv:2005.00341)
-- **架构**: 层次化 VQ-VAE + 自回归 Transformer
-  - **3 层层次化 VQ-VAE**: 在三个时间分辨率上压缩原始音频
-    - 顶层: ~8 Hz -- 捕获长程音乐结构（旋律、和声、曲式）
-    - 中层: ~34 Hz -- 捕获音色、人声特征
-    - 底层: ~65 Hz 或原始 -- 精细音频细节
-  - 每层有自己的离散嵌入码本
-  - **自回归 Transformer**（仅解码器，类似 GPT-2/GPT-3）建模每层的 token 分布
-  - **上采样**: 顶层 token 有条件地上采样到中层，再到底层
-  - **歌词条件**: 歌词通过强制对齐与音频对齐，为顶层 Transformer 提供条件
-  - **艺术家/流派元数据**: 通过艺术家和流派嵌入提供额外条件
-- **训练数据**: 120 万首歌曲（60 万首英文），带歌词和元数据，来自网络
-- **输出**: 44.1 kHz 立体声音频，最长数分钟
-- **质量**: 可辨认的歌声和流派适当的器乐编配，但有明显的伪影，音质低于人类水平
-- **局限**: 生成速度极慢（单首歌曲需数小时）；与人类创作音乐的质量差距大；层次化上采样可能在层间引入不一致
-- **意义**: 证明了将 VQ-VAE + 自回归模型扩展到原始音频是可行的，为后续工作确立了范式
+[Jukebox](https://cdn.openai.com/papers/jukebox.pdf) 使用三层 VQ-VAE 和自回归先验/上采样器，以艺术家/流派元数据为条件；歌词条件模型还接收文本。论文训练数据为 120 万首歌曲，并描述了 60 万首英文歌子集。
 
-### 2.3 MusicLM (Google Brain, 2023)
+44.1 kHz **单声道**波形按 **8、32、128 倍**降采样，对应底层、中层、顶层约 **5,512.5、1,378.1、344.5 token/s**。这些是降采样因子，而非 8/34/65 Hz 的 token 速率。每层码本有 2,048 项。
 
-- **论文**: "MusicLM: Generating Music From Text" (Agostinelli, Denk, Borsos, et al.; arXiv:2301.11325)
-- **架构**: 三阶段层次化序列到序列
-  - **阶段 1 -- MuLan 文本编码**: 通过 MuLan（对比式音频-文本嵌入模型，类似于音频版 CLIP）编码文本描述。将文本映射到共享的音频-文本嵌入空间
-  - **阶段 2 -- 语义建模**: 自回归 Transformer 在 MuLan 文本嵌入条件下生成**语义 token**（高层音乐结构）。使用 SoundStream 编解码器的顶层码本
-  - **阶段 3 -- 声学建模**: 自回归 Transformer 使用 SoundStream 的完整 RVQ 堆栈将语义 token 上采样为细粒度**声学 token**（完整音频细节）
-  - 语义和声学建模的分离显著减少了顶层的有效序列长度
-- **关键组件**:
-  - **MuLan**: 对齐音乐和文本嵌入的对比式音频-文本模型
-  - **SoundStream**: 通过 RVQ 提供离散 token 的神经音频编解码器
-  - **Transformer**: 在语义和声学两层均有使用
-- **能力**: 从丰富描述的文本到音乐；旋律条件（哼唱旋律生成完整编配）；长期结构连贯性
-- **输出**: 24 kHz，最长数分钟
-- **评估**: 引入 MusicCaps 基准（来自 AudioSet/YouTube 的 5,521 个带有人工撰写字幕的 10 秒片段）。使用 FAD、KL 散度、MuLan 相似度和人工并排比较评估
-- **因训练数据版权问题未公开发布**
-- **意义**: 确立了层次化语义-声学范式和 MusicCaps 评估基准
+生成由顶层逐级条件上采样。滑动窗口支持多分钟输出，但顶层上下文约 24 秒；能生成几分钟不代表能组织重复副歌或全曲曲式。采样计算成本高。代码与 checkpoint 见[官方仓库](https://github.com/openai/jukebox)，用途应核对相应许可。
 
-### 2.4 MusicGen (Meta, 2023)
+### 2.3 MusicLM（Google，2023）
 
-- **论文**: "Simple and Controllable Music Generation" (Copet, Kreuk, Gat, Remez, Kant, Synnaeve, Adi, Defossez; arXiv:2306.05284)
-- **架构**: **单阶段自回归 Transformer**（无层次化语义/声学分离）
-  - 操作 EnCodec 离散音频 token（32 kHz, 4 个码本, 50 Hz）
-  - 单个 Transformer 使用延迟模式交错预测每个时间步的所有 4 个码本 token
-  - 文本条件通过**T5 编码器**（冻结）和/或**基于色度的旋律条件**
-  - **旋律条件**: 从音频提示中提取色度特征作为额外条件，实现"生成跟随此旋律的音乐"
-- **关键简化**: 通过使用单个 Transformer 处理 EnCodec 的多码本 token，消除了 MusicLM/Jukebox 的层次化多阶段方法
-- **训练数据**:
-  - 2 万小时授权音乐（Meta 内部数据集）
-  - Shutterstock 和 Pond5 音乐库
-  - MusicCaps 用于文本对齐评估
-- **模型规模**: 300M（小）、1.5B（中）、3.3B（大）
-- **输出**: 32 kHz，标准最长 30 秒（可通过滑动窗口扩展）
-- **框架**: 作为 Meta **AudioCraft** 库的一部分发布（开源）
-- **评估**: 发布时在 MusicCaps 基准上达到 SOTA FAD 分数；人工评估显示优于基线
-- **可控性**: 文本提示 + 可选的旋律/音频条件
-- **伴随模型 -- MAGNeT**: 非自回归（掩码）变体，使用相同 EnCodec 基础实现更快的并行生成
+[MusicLM](https://arxiv.org/html/2301.11325v1) 结合三种独立预训练的表示：
 
-### 2.5 AudioLDM 和 AudioLDM 2 (2023--2024)
+1. **MuLan** 提供音乐-文本条件。生成器训练时使用量化的 MuLan **音频**嵌入，推理时换为 **文本**嵌入。
+2. **w2v-BERT 特征经 k-means 聚类**得到 25 Hz 的语义 token。
+3. **SoundStream** 提供声学 token：本系统中为 24 kHz 单声道、50 Hz 帧率、12 层 RVQ。
 
-#### AudioLDM (Liu et al., 2023)
-- **论文**: "AudioLDM: Text-to-Audio Generation with Latent Diffusion Models" (Haohe Liu et al.)
-- **架构**: 从 Stable Diffusion 适配到音频域的潜在扩散模型 (LDM)
-  - **VAE 编码器-解码器**: 将 mel-spectrogram 压缩到低维潜在空间（基于 AudioMAE/HiFi-GAN 组件）
-  - **U-Net 扩散主干**: 在潜在空间中操作，以文本嵌入为条件
-  - **文本条件**: CLAP (Contrastive Language-Audio Pretraining) 嵌入桥接文本-音频模态差距
-  - **推理**: 在潜在空间进行扩散去噪，然后 VAE 解码为 mel-spectrogram，再经声码器转为波形
-- **输出**: 音效、环境音、短音乐片段（约 10 秒）
-- **优势**: 计算效率高（在压缩的潜在空间而非完整频谱图空间中扩散）；支持文本到音频、音频到音频和修复
+自回归阶段依次预测语义、粗声学和细声学 token。语义 token 不是 SoundStream 的第一层码本。系统展示了文本/旋律条件和多分钟样例。原论文未发布模型权重；后续消费端访问是另一个问题。
 
-#### AudioLDM 2 (Liu et al., 2023--2024)
-- **论文**: "AudioLDM 2: Learning Holistic Audio Generation with Self-supervised Pretraining" (arXiv:2308.05734)
-- **相对 AudioLDM 1 的关键改进**:
-  - **统一框架**: 单一架构处理语音、音乐和音效
-  - **GPT-2 集成**: GPT-2 语言模型与潜在扩散的联合微调，增强文本理解
-  - **自监督预训练**: 提高质量和泛化能力
-  - **优化架构**: 16 kHz 改进模型，更多训练数据
-  - **性能**: 同时在文本到音频、文本到音乐和文本到语音基准上匹配 SOTA
-- **三种变体**: 分别针对音频、音乐和语音优化
+MusicLM 引入 **MusicCaps**：5,521 个带人工描述的十秒样本。它是评测资源，不是生成器的 280,000 小时训练集合。参见[原论文](https://arxiv.org/abs/2301.11325)。
 
-### 2.6 Stable Audio (Stability AI, 2023--2024)
+### 2.4 MusicGen（Meta，2023）
 
-#### Stable Audio 1.0 (2023)
-- **架构**: 三组件潜在扩散模型
-  1. **自编码器**: 基于 VAE 的编码器将 44.1 kHz 立体声音频压缩为紧凑的潜在表示
-  2. **文本编码器**: 冻结的文本编码器（T5 或 CLAP）用于提示条件
-  3. **扩散模型**: 基于 U-Net 的去噪器，在潜在表示上操作，带文本交叉注意力
-- **输出**: 可变长度立体声音频，最长约 47 秒，44.1 kHz
-- **训练数据**: 授权音乐和音频
+[MusicGen](https://arxiv.org/abs/2306.05284) 用单个自回归 Transformer 建模 codec 流。发布模型以冻结的 T5 文本编码器为条件；旋律版本增加 chroma 特征。
 
-#### Stable Audio 2.0 (2024 年 4 月)
-- **架构升级**: 将 U-Net 主干替换为 **Diffusion Transformer (DiT)**
-  - **高压缩自编码器**: 将原始音频波形投影到连续潜在表示，潜在帧率为 **21.5 Hz**（显著压缩）
-  - **DiT 主干**: 基于 Transformer 的去噪器替换 U-Net，跟随 DiT 架构趋势（如 Stable Diffusion 3, Sora）
-  - **T5 文本编码器**: 用于文本条件
-  - **潜在扩散**: 整个扩散过程在学习的潜在空间中进行
-- **输出**: 长达 **3 分钟**的完整曲目，具有连贯的音乐结构（引子-发展-尾声）
-- **意义**: 首个生成 3 分钟结构化音乐曲目并开放权重的模型
-- **发布**: Hugging Face 上开放权重（Stable Audio Open 1.0 变体）
+单声道设置使用 32 kHz 音频、4 个 50 Hz 码本及延迟交错。一个自回归步骤中，不同码本对应**错开的 codec 时刻**，不是都对应同一个音频帧。相比展开所有码本 token，这减少了顺序模型步数。
 
-#### Stable Audio Open (2024 年 6 月)
-- 开放权重发布（约 48.6 万免版税音频录音 + 约 7 万音乐曲目）
-- 训练数据：Free Music Archive (FMA)、Freesound、Creative Commons 授权音频
-- 明确未使用受版权保护的音乐训练
-- 支持在自定义数据集上微调
-- 生成最长约 47 秒，44.1 kHz
+[官方文档](https://github.com/facebookresearch/audiocraft/blob/main/docs/MUSICGEN.md) 列出 300M、1.5B、3.3B 模型规模，20,000 小时授权训练音乐（含内部集合及 Shutterstock/Pond5），以及独立的立体声版本。立体声使用左右声道的独立码流。标准训练上下文为 30 秒，支持的实现可进行续写/扩展。
 
-#### Stable Audio 3 (2025, 开发中)
-- **语义-声学自编码器**: 新型自编码器将音频投影到紧凑的潜在空间，同时保留语义和声学信息
-- Diffusion Transformer 在改进的潜在表示上操作
-- 以文本和期望输出特征为条件
+Chroma 合并八度信息，也可能包含和声内容；它是旋律引导，不是精确乐谱或歌词控制。代码与权重条款不同：AudioCraft 代码为 MIT，发布的 MusicGen 权重在[模型卡](https://github.com/facebookresearch/audiocraft/blob/main/model_cards/MUSICGEN_MODEL_CARD.md) 中使用 CC-BY-NC 4.0。“开放权重”不等于不限用途的商业授权。
 
-### 2.7 YuE (Multimodal Art Projection, 2025)
+[MAGNeT](https://arxiv.org/abs/2401.04577) 使用掩码式非自回归音频 token 建模，是相关生成方法，不是对不变的 MusicGen checkpoint 换一个更快采样器。
 
-- **论文**: "YuE: Scaling Open Foundation Models for Long-Form Music Generation" (Yuan et al.; arXiv:2503.08638, ICLR 2025)
-- **作者**: Ruibin Yuan, Hanfeng Lin, Haohe Liu 及来自多个机构的约 50 位合作者
-- **架构**: 基于 **LLaMA2** 架构，适配音乐
-  - **轨道解耦下一 token 预测**: 生成期间分离人声和伴奏轨，克服原始音频 token 中密集混合信号的挑战
-  - **结构化渐进条件**: 通过渐进条件化歌词片段实现长上下文歌词对齐，保持分钟级连贯性
-  - **多任务多阶段预训练方案**: 多阶段训练确保收敛和跨多样音乐任务的泛化
-  - **重新设计的上下文学习**: 实现多功能的风格迁移（如将日本 City Pop 转换为英文说唱，同时保留伴奏）和双向生成
-- **规模**: 在**万亿级 token** 上训练
-- **输出**: 长达 **5 分钟**的人声 + 伴奏音乐
-- **能力**:
-  - 歌词到歌曲生成（主要任务）
-  - 跨流派和语言的风格迁移
-  - 双向生成（从某点向前和向后）
-  - 音乐理解：学习的表示在 MARBLE 音乐理解基准上匹配或超越 SOTA
-- **微调**: 支持额外控制和对"长尾"（代表性不足的）语言的增强支持
-- **硬件**: 可在消费级 GPU 上运行（10 GB 显存生成约 1 分钟音乐）
-- **意义**: 首个在全曲生成的音乐性和人声灵活性方面匹配或超越专有系统（Suno, Udio）的开源模型
-- **局限**: 生成速度（实时倍率）；偶尔的歌词错位；质量因流派而异
+### 2.5 AudioLDM 与 AudioLDM 2
 
-### 2.8 Suno（专有，2023--2026）
+**AudioLDM**（2023）在 VAE 的 mel 频谱潜在空间中训练扩散模型，再由 VAE 解码和 HiFi-GAN 声码器生成波形。训练时使用 CLAP 音频嵌入，采样时可换为 CLAP 文本嵌入。AudioMAE 并不是 AudioLDM 1 的定义性 VAE 组件。原设置面向音效、音乐等短通用音频。[论文](https://arxiv.org/abs/2301.12503)。
 
-- **公司**: Suno AI (Cambridge, MA)
-- **架构**: 未公开；据信结合了扩散模型和自回归模型，分别处理歌词、人声和伴奏
-- **演进**:
-  - V1--V3 (2023--2024): 快速迭代，从简单片段提升到结构化歌曲
-  - **V4** (2024 年末): 质量重大飞跃；专业水准的输出，具有连贯的主歌-副歌结构
-  - **V4.5** (2025): 进一步质量提升；被认为是带人声的完整歌曲类的最佳模型
-  - **V5** (预计 2025): 开发中；预计在音频保真度、人声真实感和歌曲结构方面带来进一步飞跃
-- **能力**:
-  - 文本到歌曲：从文本描述生成完整歌曲
-  - 歌词输入：自定义或 AI 生成的歌词
-  - 通过提示进行流派/风格控制
-  - 最长曲目：4 分钟
-  - 多流派支持
-- **优势**: 带人声的完整歌曲整体质量最佳；对初学者友好的界面；强的流派遵循能力
-- **局限**: 专有（无开放权重）；超越提示的细粒度控制有限；较长生成中偶尔出现结构性伪影
+**AudioLDM 2**（2023 年预印；2024 年期刊版）引入基于 AudioMAE 的 **language of audio（LOA）**。GPT-2 式模型从条件模态预测 LOA，潜在扩散再以 LOA 为条件生成音频。这比“联合微调 GPT-2 改善文本理解”更具体。应区分语音、音乐和通用音频 checkpoint；采样率与时长依赖 checkpoint 和实现。[论文](https://arxiv.org/abs/2308.05734)。
 
-### 2.9 Udio（专有，2024--2026）
+### 2.6 Stable Audio 版本
 
-- **公司**: Udio（前身为 Uncharted Labs）
-- **架构**: 未公开
-- **能力**:
-  - 文本到歌曲生成
-  - 最长曲目：2 分钟
-  - 以更多音乐变化著称：速度变化、切分、旋律变化
-  - 输出比竞争对手更容易被误认为非 AI 作品
-- **演进**: 正转向成为"超级粉丝的 AI 游乐场"而非纯粹的生成工具
-- **优势**: 更多音乐惊喜和变化；质量被认为更"人性化"
-- **局限**: 最大长度短于 Suno；对初学者不如 Suno 易用
+| 版本 | 官方记录的行为 | 区别 |
+|------|----------------|------|
+| Stable Audio 1.0（2023 年 9 月） | 发布时提供免费版 45 秒、Pro 90 秒生成 | 47 秒不是其通用上限（[发布说明](https://stability.ai/news-updates/stable-audio-using-ai-to-generate-music)） |
+| Stable Audio 2.0（2024 年 4 月） | 最长 3 分钟、44.1 kHz 立体声，支持文本/音频条件 | 商业发布，使用授权 AudioSparx 数据；不是 Open 1.0 checkpoint（[公告](https://stability.ai/news/stable-audio-2-0)） |
+| Stable Audio Open 1.0（2024 年 6 月） | 最长 47 秒、44.1 kHz 立体声；连续自编码器、T5、DiT | 独立开放权重模型，有各自许可和能力边界（[模型卡](https://huggingface.co/stabilityai/stable-audio-open-1.0)） |
 
-### 2.10 其他值得关注的模型
+[Stable Audio Open 论文](https://arxiv.org/html/2407.14358v1) 报告**总计 486,492 条录音**：Freesound 472,618 条加 FMA 13,874 条，约 7,300 小时，源素材许可包括 CC0/CC-BY/CC-Sampling+。不是“48.6 万录音再加 7 万音乐”。自编码器约为每秒 21.5 潜在帧。Creative Commons 授权作品仍可能受版权保护，不能描述为“没有版权数据”。
 
-#### TangoFlux (2024)
-- 515M 参数；生成长达 30 秒的 44.1 kHz 音频
-- 使用 **flow matching**（整流流）代替扩散——一种有前景的替代架构
-- 推理速度比同等扩散模型更快
+截至核对日期，官方文档已经介绍 **Stable Audio 3.0**。旧稿“Stable Audio 3 在 2025 年开发中”的预测已过时；这个独立产品系列应查询[官方版本指南](https://stability.ai/guides/stable-audio-3-prompt-guide)。不能将上述历史参数直接用于后续版本。
 
-#### TVC-MusicGen (INTERSPEECH 2025)
-- MusicGen 的时变结构控制
-- 用于背景音乐生成的新方法，具有动态时间结构控制
-- 解决 MusicGen 中静态条件的局限
+### 2.7 YuE（2025）
 
-#### MusicLDM
-- 将 Stable Diffusion + AudioLDM 适配于音乐生成
-- 聚焦降低生成输出的抄袭风险
+[YuE](https://arxiv.org/abs/2503.08638) 由 Ruibin Yuan 等提出，是基于 LLaMA2 的长篇歌词到歌曲模型系列。论文描述了轨道解耦下一 token 预测、渐进结构条件、多任务/多阶段万亿 token 规模训练，并展示最长五分钟样例。
 
-#### ACE-Step (ACE Studio + 阶跃星辰/StepFun, 2025)
-- **论文**: "ACE-Step: A Step Towards Music Generation Foundation Model" (Junmin Gong, Sean Zhao, et al.; arXiv:2506.00045)
-- **开源**音乐生成基础模型（3.5B 参数 v1，Apache 2.0 许可）
-- **架构**: 集成**扩散生成与 Sana 的深度压缩自编码器 (DCAE)** 和轻量级**线性 Transformer**
-- 使用 **REPA（表示对齐）**训练：利用 MERT 和 m-hubert 对齐语义表示，实现快速收敛
-- **性能**: 在 A100 GPU 上约 20 秒合成长达 4 分钟的音乐——比 LLM 方法快 15 倍
-- 强大的**中文（普通话）歌词与人声**支持
-- 支持声音克隆、歌词编辑、混音、歌词到人声、歌唱到伴奏
-- 目标：建立音乐 AI 基础模型（类似 Stable Diffusion 对图像的影响）
+它还研究音频参考/上下文条件，以及 MARBLE 上的表示评测。作者报告相对选定专有系统有竞争力的结果；这不是独立确认的普遍排名，也不能证明“首个超越 Suno/Udio”。
 
-#### MusicFlow (ICML 2024)
-- **论文**: "MusicFlow: Cascaded Flow Matching for Text Guided Music Generation" (K R Prajwal, Bowen Shi, et al.; arXiv:2410.20478, ICML 2024 Poster)
-- **级联流匹配**框架：两个流匹配网络分别建模语义和声学特征的条件分布，基于自监督表示
-- 使用**掩码预测**作为训练目标，支持零样本泛化到音乐填充和续写任务
-- 在 MusicCaps 上实现更优质量和文本一致性，尽管模型体积 2--5 倍更小、迭代步数仅需 1/5
+Checkpoint、阶段、上下文和硬件要求应查[官方仓库](https://github.com/multimodal-art-projection/YuE)。10 GB 显存不是标准管线的通用要求；内存和延迟取决于实现、卸载、精度及输出时长。
 
-#### SongCreator (NeurIPS 2024)
-- **论文**: "SongCreator: Lyrics-based Universal Song Generation" (Shun Lei et al.; NeurIPS 2024 Poster)
-- **架构**: **双序列语言模型 (DSLM)** 在单一框架内将人声和伴奏作为并行序列处理
-- **核心创新**: 可配置的**注意力掩码策略**将同一基础模型路由到不同任务（歌曲生成、人声生成、伴奏生成、歌曲编辑、歌曲理解），无需更改架构
-- 支持通过不同音频提示独立控制人声和伴奏的声学条件
-- 在八个歌曲相关任务上达到 SOTA 或竞争力性能
+### 2.8 商业歌曲生成器
 
-#### MusicFX (Google, 2023--2025)
-- 基于 MusicLM 技术的消费级音乐生成工具
-- 作为 Google AI Test Kitchen 的一部分发布
-- 从文本提示生成短音乐片段
-- 对生成音频应用 **SynthID 水印**以识别
-- 禁止生成模仿特定艺术家的音乐（版权保障）
-- 定期更新以提升质量和多样性
+**Suno 与 Udio** 提供文本/歌词条件歌曲生成，但本文所引来源没有公开其完整架构与训练方案。不能从听感推断 AR/扩散组件、训练数据规模或通用质量排名。
 
-#### SkyMusic (昆仑万维, 2024--2025)
-- 昆仑万维的中文文本到音乐生成平台
-- 支持多语言输出（中文、英文及其他）
-- 集成于昆仑万维的 AI 生态（Skywork 模型）
-- 新兴中国 AI 音乐生成领域的组成部分
+Suno 官方记录为 **v5 于 2025-09-23 发布**、**v5.5 于 2026-03-26 发布**、**v6 于 2026-09-09 发布**。因此“v5 预计发布”已过时。参见 [v5 发布](https://suno.com/release-notes/introducing-v5-the-world-s-best-music-model) 与[版本记录](https://suno.com/release-notes)。
 
----
+对于 [Udio](https://www.udio.com/)，应区分新生成片段与续写后完整歌曲的时长。产品限制、访问、编辑和导出能力需同时注明版本/套餐及访问日期。本文不采用无依据的通用两分钟上限，也不声称其输出天然更像人类。
 
-## 3. 歌声合成 (Singing Voice Synthesis, SVS)
+### 2.9 其他研究系统
 
-### 3.1 概述
+| 系统 | 已核验的贡献 |
+|------|--------------|
+| [TangoFlux](https://arxiv.org/abs/2412.21037)（2024 年预印） | 流匹配文本到音频和 CLAP 排序偏好优化；音频任务范围比音乐更广 |
+| [MusicLDM](https://arxiv.org/abs/2308.01546)（2023 年预印，ICASSP 2024） | 音乐适配潜在扩散、节拍同步音频/潜在 mixup；新颖性改善不保证绝无复现 |
+| [MusicFlow](https://proceedings.mlr.press/v235/prajwal24a.html)（ICML 2024） | 语义和声学特征的级联流匹配，掩码条件支持填充和续写 |
+| [SongCreator](https://arxiv.org/abs/2409.06029)（2024） | 双序列语言模型，通过可配置注意力掩码处理人声/伴奏任务 |
+| [ACE-Step](https://arxiv.org/abs/2506.00045)（2025 年报告） | 扩散、音乐适配 DCAE、线性 Transformer，以及训练时的 MERT/m-HuBERT 表示对齐 |
 
-SVS 从乐谱输入（歌词音素序列 + 音高/时长标注）生成歌声。与文本到语音 (TTS) 不同，SVS 需要处理持续元音、颤音、音高滑音、呼吸控制和表现性的歌唱时序。
+ACE-Step 报告在其设置下用 A100 约 20 秒生成最长四分钟音乐。这是作者报告的测试结果，不是脱离硬件的延迟承诺。MERT/m-HuBERT 是表示对齐教师，不是音频 codec。比较能力时应将该[项目](https://ace-step.github.io/)及报告与后续 ACE-Step 版本区分。
 
-### 3.2 关键模型
+## 3. 歌声合成
 
-#### DiffSinger (Liu, Ren et al., 2021/2022)
-- **论文**: "DiffSinger: Singing Voice Synthesis via Shallow Diffusion Mechanism" (arXiv:2105.02446, AAAI 2022)
-- **作者**: Jinglin Liu, Zhi Ren, Yi Ren, Chen Zhang, Zhou Zhao (浙江大学)
-- **架构**:
-  - **扩散概率模型**作为声学模型：参数化马尔可夫链迭代地将噪声转换为以乐谱为条件的 **mel-spectrogram**
-  - **浅层扩散机制**: 核心创新。DiffSinger 不是运行从纯高斯噪声到 mel-spectrogram 的完整扩散链，而是从简单基线模型（如前馈 Transformer 预测）提供的中间表示开始扩散。这：
-    - 减少了所需的扩散步数
-    - 提高了训练稳定性
-    - 产生比全链扩散更高质量的输出
-  - **输入**: 乐谱（音素 + F0 音高轮廓 + 音符时长）
-  - **输出**: Mel-spectrogram，通过神经声码器（HiFi-GAN 等）转换为波形
-- **训练**: Mel-spectrogram 上的重建损失 + 扩散去噪目标
-- **评估**: MOS 分数与之前的神经 SVS 系统持平或超越
-- **意义**: 确立了扩散作为 SVS 的强大方法；"浅层扩散"技巧被广泛采用
+乐谱条件 SVS 根据歌词、音符与时序预测歌声，需要处理长元音、音符过渡、发音对齐和表现性音高。它不同于改变录音中的歌手声音，也不同于根据文字描述生成整首歌。
 
-#### VISinger / VISinger 2 (Xia et al., NWPU, 2022--2023)
+| 系统 | 正确描述 |
+|------|----------|
+| [XiaoiceSing](https://arxiv.org/abs/2006.06261)（2020） | FastSpeech 式非自回归频谱/F0/时长预测，原系统使用 WORLD |
+| [DiffSinger](https://arxiv.org/abs/2105.02446)（2021 年预印，AAAI 2022） | Liu、Li、Ren、Chen、Zhao；以浅起点进行乐谱条件 mel 扩散，再经声码器 |
+| [VISinger](https://arxiv.org/abs/2110.08813)（2021 年预印，ICASSP 2022） | Yongmao Zhang 等；含音高/时长建模的变分/流/对抗端到端合成 |
+| [VISinger 2](https://arxiv.org/abs/2211.02903)（2022 年预印，INTERSPEECH 2023） | DSP 谐波/噪声合成引导波形解码，改善相位处理 |
+| [DiTSinger](https://arxiv.org/abs/2510.09016)（2025） | 扩散 Transformer 扩展与字级时间范围约束的隐式对齐 |
+| [OpenVPI DiffSinger](https://github.com/openvpi/DiffSinger) | 社区框架，能力取决于版本和声音库 |
 
-**VISinger** (ICASSP 2022):
-- **论文**: "VISinger: Variational Inference with Adversarial Learning for End-to-End Singing Voice Synthesis"
-- **作者**: Yiwei Xia et al. (西北工业大学)
-- **架构**:
-  - **完全端到端**: 直接从乐谱生成波形，消除传统多阶段流水线（独立的时长模型、声学模型、声码器）
-  - **变分推断 (VI)**: 建模自然歌声所需的复杂声学分布
-  - **对抗训练**: 判别器确保真实的音频输出
-  - **优势**: 参数少于多阶段系统；更简单的训练流水线
-- **局限**: 相位预测问题导致有声段出现故障和抖动
-
-**VISinger 2** (INTERSPEECH 2023):
-- **论文**: "VISinger 2: High-Fidelity End-to-End Singing Voice Synthesis"
-- **关键改进**: 将 **数字信号处理 (DSP) 合成器**集成到端到端框架中
-  - DSP 合成器处理相位相关成分，避免了 VISinger 1 中导致伪影的问题性直接文本到相位映射
-  - 在更高采样率下产生更高保真度的输出
-- **性能**: 以更少参数实现比两阶段模型更好的质量
-
-#### XiaoiceSing (Microsoft, 2021)
-- **论文**: "XiaoiceSing: A High-Quality and Integrated Singing Voice Synthesis System" (Microsoft Xiaoice 团队)
-- **架构**: 从 TTS 适配的序列到序列 (seq2seq) 模型
-  - **编码器**: 将音素/音符序列编码为隐藏表示
-  - **注意力机制**: 对齐编码器输出与解码器帧
-  - **解码器**: 自回归地生成声学特征 (mel-spectrogram)
-  - **方差适配器**: 预测时长、音高 (F0) 和能量，用于表现性歌唱控制
-  - **声码器**: 神经声码器 (HiFi-GAN/WaveNet) 将 mel-spectrogram 转换为波形
-- **歌声特定特征**:
-  - 显式 F0 预测实现精确音高跟踪
-  - 时长控制确保正确的音乐时序
-  - 呼吸和颤音建模实现表现性歌唱
-- **训练数据**: 数小时高质量歌唱录音，带有精确的音素级音高和时长标注
-- **意义**: 最早的高质量神经 SVS 系统之一，建立在 Microsoft 的 TTS 技术基础上
-
-#### ExpressiveSinger (2024)
-- 用于多语言和多风格 SVS 的级联扩散模型
-- 支持多种歌唱风格和语言
-
-#### RDSinger (2024)
-- 基于参考的扩散网络，用于高保真 SVS
-- 使用参考音频条件控制音色和风格
-
-#### DITSinger (2025)
-- 研究 SVS 质量的缩放效应
-- 解决 SVS 中不明确的缩放规律和系统方法论
-
-#### OpenDiffSinger (社区, 2022--2025)
-- DiffSinger 框架的开源社区分支和扩展
-- 主要持续贡献：多说话人/多语言支持扩展、改进的音素字典和时长建模
-- 新增数据集准备和训练流水线简化的 GUI 工具
-- 声码器改进集成 NSF (神经源滤波器) 和 HiFi-GAN 变体
-- OpenVPI 生态系统提供 SVS 数据集创建、音素对齐和训练的配套工具
-
-#### ACE Studio / ACE Singer (2024--2025)
-- ACE Studio（中国 AI 音乐科技公司）的商业 SVS 系统
-- 从乐谱/歌词输入生成真实歌声——真正的 SVS，非语音转换
-- 支持多语言（中文、英文、日文）、表现力参数控制（呼吸、颤音、力度）、多个声音库和 DAW 集成（VST 插件）
-- 在商业 SVS 市场与 Synthesizer V (Dreamtonics) 和 XiaoiceSing 竞争
-
-#### DiffSinger 加速 (2025)
-- 多项持续努力加速 DiffSinger 推理，包括一致性蒸馏、渐进蒸馏和少步 ODE 求解器
-- 在保持质量的同时减少扩散采样步数，实现接近实时推理
-- 无单一规范 "Lite" 论文；加速技术来自更广泛的扩散模型加速文献
-
-### 3.3 SVS 评估
-
-- **MOS (Mean Opinion Score)**: 金标准；人工评分者在 1--5 分制上评价自然度
-- **音高准确度**: 以生成与目标音高轮廓之间的 F0 RMSE 衡量
-- **时长准确度**: 生成的音素时长与乐谱的对齐程度
-- **频谱质量**: 生成与参考频谱图之间的对数频谱距离等指标
-- **主观听音测试**: 系统间的对比偏好测试
-- **挑战**: 没有单一自动化指标能捕获歌唱的完整感知质量（音准、表现力、音色自然度、呼吸控制）
-
-### 3.4 开放性问题
-- **表现性控制**: 对颤音、力度、分句和情感表达的细粒度控制
-- **零样本说话人适配**: 从短参考片段生成任意声音的歌唱
-- **多语言支持**: 大多数 SVS 系统是语言特定的（中文、英文、日文）
-- **实时 SVS**: 用于交互式应用的低延迟生成
-- **歌唱技巧建模**: 嘶吼、假声、怒音及其他声乐技巧
-
----
+应分别评估对齐有声帧的音高、相对乐谱/音素标注的时序、歌词可懂度、自然度、表现力和歌手身份。更正后的数据集及指标定义见[SVS 笔记](music-singing-synthesis-zh.md)。
 
 ## 4. 可控生成
 
 ### 4.1 条件模态
 
-可控音乐生成允许用户指定超越自由文本的音乐属性。
+| 输入 | 预期控制 | 局限 |
+|------|----------|------|
+| 自由文本 | 流派、配器、情绪、制作 | 有歧义，通常不足以表达音符级要求 |
+| 旋律/chroma | 音高类变化和旋律引导 | Chroma 丢失八度，不能唯一确定音符/和弦排列 |
+| 乐谱/和弦/节拍序列 | 显式音乐内容或时间目标 | 依赖标注与支持词表 |
+| 参考音频 | 风格、音色、续写或编辑上下文 | 可能混合身份、风格与内容 |
+| 段落描述和边界 | 随时间变化的属性 | 边界遵循与过渡质量要单独测试 |
+| 情绪标签/连续坐标 | 感知效价/唤醒度等情绪 | 标注和解释随听者/文化变化 |
 
-#### 基于文本的条件
-- **自由文本**: 所需音乐的自然语言描述（用于 MusicGen, Stable Audio, Suno, Udio）
-- **文本编码器**: T5 (MusicGen, Stable Audio), CLAP (AudioLDM), MuLan (MusicLM)
-- **局限**: 文本对音乐属性本质上不精确；"upbeat jazz" 对不同模型意味着不同的东西
+**Mustango** 预测或条件化速度、节拍位置、调性、和弦等音乐信息，并使用音乐信息感知的扩散去噪器。其 **MusicBench** 是音乐-文本训练资源，不是人类偏好排行榜。[论文](https://arxiv.org/abs/2311.08355)。
 
-#### 音乐特定属性控制
-- **Mustango** (Melechovsky, Guo, Ghosal, Majumder, Herremans, Poria; NAACL 2024)
-  - **架构**: 带有结构化文本条件的潜在扩散模型
-  - **核心创新**: 从文本提示中解析音乐特定属性——流派、调性、速度、和弦、乐器
-  - 使用语言模型从文本中提取结构化音乐参数，然后以这些显式属性为条件进行生成
-  - 在西方音乐上达到 SOTA 可控性
-  - **局限**: 可控性限于西方音乐理论概念
+### 4.2 时变控制
 
-#### 旋律条件
-- MusicGen：从音频提示中基于色度的旋律提取；生成跟随所提供旋律的音乐
-- MusicLM：哼唱到编配的能力
-- YuE：风格迁移，在改变人声风格时保留伴奏
+[TVC-MusicGen](https://www.isca-archive.org/interspeech_2025/yang25f_interspeech.html)（INTERSPEECH 2025）用自监督结构信息，使生成受段落边界与描述控制。研究在语言模型和扩散模型上测试此方法；名称并不表示只涉及 Meta 原始 MusicGen checkpoint。
 
-#### 情感条件
-- **LARA-Gen**: 实现音乐生成的连续情感控制
-- **EBS (Emotion-Based Sampling)**: 使用情感标签控制生成过程的算法 (IEEE TMM)
-- **带连续值情感的符号音乐**: 在符号生成中控制织体和情感弧线
-- 方法：效价-唤醒度空间映射；注入到条件中的情感嵌入向量
+[SegTune](https://arxiv.org/abs/2510.18416)（2025 年预印；后修订为 ACL 2026 论文）是非自回归歌曲生成框架，以局部提示对应时间段，以全局提示控制整体风格。时长预测器生成句级时间戳歌词。局部控制仍需检验歌词对齐、过渡及属性相互影响。
 
-#### 乐器和音色控制
-- 通过文本或音频参考指定特定乐器或音色特征
-- AudioLDM：音频到音频的风格迁移
-- MusicGen：可通过建立音色参考的音频提示进行条件生成
+### 4.3 剩余挑战
 
-### 4.2 细粒度控制方法
-
-#### SegTune (2025)
-- **论文**: "SegTune: Structured and Fine-Grained Control for Song Generation" (arXiv:2510.18416)
-- 实现对音乐输出不同方面的段落级控制
-- 支持结构化生成，其中不同段落（前奏、主歌、副歌）可以具有不同属性
-- 用于可控长篇文本到音频生成的细粒度条件
-
-#### TVC-MusicGen (INTERSPEECH 2025)
-- MusicGen 的时变结构控制
-- 在生成过程中变化的动态结构控制
-- 解决标准 MusicGen 始终应用统一条件的局限
-
-#### 上下文学习 (YuE)
-- YuE 为音乐生成重新设计上下文学习
-- 实现风格迁移、双向生成和少样本适配
-- 可在保留结构元素的同时在流派/语言间转换
-
-### 4.3 控制方法分类
-
-| 方法 | 粒度 | 示例系统 |
-|------|------|----------|
-| 自由文本 | 粗 | MusicGen, Stable Audio, Suno |
-| 结构化文本属性 | 中 | Mustango |
-| 旋律条件 | 中 | MusicGen, MusicLM |
-| 音频参考 | 中 | AudioLDM, YuE |
-| 情感标签/连续值 | 中 | LARA-Gen, EBS |
-| 时变/段落 | 细 | SegTune, TVC-MusicGen |
-| 乐谱级 | 细 | 符号模型（基于 REMI） |
-
-### 4.4 开放性问题
-- **精确和声控制**: 指定精确的和弦进行、转调和声部进行
-- **曲式级控制**: 控制主歌-副歌-桥段结构、歌曲长度和过渡
-- **实时交互控制**: 在播放期间调整生成参数
-- **多属性控制**: 同时控制多个属性而不相互干扰
-- **非西方音乐**: 大多数可控系统假设西方调性和声
-
----
+精确和弦排列、转调、曲式、多重控制、实时编辑及非西方音乐系统需要超越更丰富的文字提示。应区分“接受某控制输入”和“可靠遵循控制”，只评估实际指定的音乐约束。
 
 ## 5. 视频到音乐生成
 
-跨模态音乐生成——从视觉输入（视频、图像）生成音乐——是连接计算机视觉和音频生成的新兴研究方向。
+### 5.1 代表模型
 
-### 5.1 关键模型
+| 模型 | 模态和贡献 |
+|------|------------|
+| [CMT](https://arxiv.org/abs/2111.08380)（2021） | **Controllable Music Transformer**：将视频时序/运动连接到符号音乐节奏、密度与强度，不是“Contrastive Multimodal Transformer” |
+| [Video2Music](https://arxiv.org/abs/2311.00968)（2023） | 情感多模态 Transformer，使用语义、场景、运动和情绪特征，生成符号/和弦内容后动态渲染 |
+| [M²UGen](https://arxiv.org/abs/2311.11255)（2023 年预印） | 多模态编码器和 LLM 连接音乐生成器，支持理解、生成/编辑 |
+| [MuVi](https://arxiv.org/abs/2410.12957)（2024） | 视觉适配、音乐-视觉对比预训练和流匹配生成，处理语义与节奏对齐 |
 
-#### MuVi (arXiv:2410.07840, 2024)
-- **论文**: "MuVi: Video-to-Music Generation with Rhythmic Alignment"
-- 从视频输入生成音乐，实现视觉运动和音乐节拍结构之间的**节奏对齐**
-- **视觉节奏提取器**: 从视频提取节奏线索（运动强度、场景转换）形成"视觉节奏"表示
-- **音乐生成模块**: 使用提取的视觉节奏作为条件，生成与视频动态时间对齐的音乐
-- 通过客观节奏对齐分数和主观人工评估验证
+MuVi 的完整标题为 *Video-to-Music Generation with Semantic Alignment and Rhythmic Synchronization*。
 
-#### CMT (对比多模态 Transformer)
-- 使用对比学习对齐视频和音乐表示的跨模态生成框架
-- Transformer 架构处理视频帧并通过跨模态注意力生成对应音乐
-- 注意：多篇论文使用类似命名；引用时需确认具体 arXiv ID
+### 5.2 评测
 
-#### M2UGen (多模态音乐理解与生成)
-- 统一框架桥接音乐理解（字幕、问答、分析）和生成（文本到音乐、图像到音乐）
-- 基于 LLM 的架构，集成专用音频和视觉编码器与音乐生成解码器
-- 处理文本、图像和音频输入进行跨模态音乐创作
+分别评价语义匹配、情绪一致、时间同步和音频/音乐质量。注明视觉事件定义、节拍提取器、时间容差与负样本对。好配乐不一定在每个剪辑点都落一拍，同步目标取决于任务。
 
-#### Video2Music
-- 基于视频语义和运动条件生成背景音乐
-- 从视频帧提取多模态特征（视觉、运动、语义）作为条件信号
-- 解决时间对齐：确保生成音乐的节奏和情绪匹配场景转换
-
-#### MuVi
-- 视觉到音乐生成，关注视频运动和音乐节拍结构之间的节奏对齐
-
-### 5.2 评估挑战
-- **CMMD (对比音乐-视频度量)**: 评估生成音乐与视频内容对齐度的指标
-- **时间同步**: 音乐节拍与视觉场景转换的对齐程度
-- **情感一致性**: 生成音乐的情绪与视觉内容的匹配程度
-- 视频到音乐评估缺乏标准化基准
-
-### 5.3 新兴趋势
-- **基于扩散的 V2M**: 使用潜在扩散从视频生成更高保真度的音频
-- **LLM 条件 V2M**: 以大语言模型作为音乐生成骨干，视觉特征作为条件
-- **情感驱动生成**: 将视觉情感内容（颜色、运动、面部表情）映射到音乐参数
-
----
+视觉/音频嵌入分数不能单独证明精细时序或叙事适配。指标和基准名称需对应具体论文与实现，不能默认存在通用“CMMD = 对比音乐-视频度量”标准。
 
 ## 6. 人类偏好对齐
 
-将音乐生成模型与人类审美偏好对齐，类似于语言模型中的 RLHF，是快速兴起的研究领域。
+RLHF 类方法从听者偏好学习奖励，再按奖励优化生成。DPO 类方法从偏好/非偏好样本对、相对参考策略进行优化；用于连续扩散或流模型时需要相应目标函数，不能直接照搬语言模型损失。
 
-### 6.1 音乐偏好基准
+[人类偏好基准研究](https://arxiv.org/abs/2506.19085) 提供模型比较和指标分析，但本身不能证明训练出的奖励能泛化。[Aligning Generative Music AI with Human Preferences: Methods and Challenges](https://arxiv.org/abs/2511.15038) 是 2025 年预印本，录用于 **AAAI 2026 Senior Member Track**。
 
-- **音乐生成模型与指标的人类偏好基准研究** (ICASSP 2025)
-  - 系统的人类偏好研究，基准测试多个音乐生成模型和评估指标
-  - 评估现有自动化指标（FAD、KL 散度等）与人类感知质量的相关性
-  - 关键发现：当前指标与人类偏好相关性有限，推动偏好对齐方法的发展
-  - 为未来音乐生成中的 RLHF 式对齐工作提供实证基础
-- **音乐偏好对齐**是新兴方向：将 RLHF/DPO 方法（在 LLM 中已验证）应用于音乐生成
+区分真实听者比较与 CLAP 排序等代理标签。奖励优化可能改善一个属性，却减少多样性或利用评审弱点。保留独立听测、未见提示/风格与源素材重叠检查。
 
-### 6.2 DPO 与偏好对齐方向
+## 7. 评测
 
-- 将 DPO 框架（最初为 LLM 开发）应用于音乐生成是活跃研究方向
-- 直接从偏好配对优化，无需单独的奖励模型，理论上更稳定和高效
-- 多篇 2025 年论文探索此方向，但尚无统一公认的框架名称
+| 指标 / 协议 | 衡量内容 | 重要边界 |
+|-------------|----------|----------|
+| FAD | 参考/生成音频嵌入拟合分布的距离，越低越接近 | 需要参考集合但不需成对录音；不测提示对齐 |
+| CLAP / MuLan 相似度 | 学到的提示-音频关联 | 粗语义，不是精确音符或歌词 |
+| 分类器 KL | 已定义标签分布的差异 | 必须说明成对还是总体协议 |
+| FMD | 符号音乐嵌入分布差异 | 不是波形保真度 |
+| 音高 / 和弦 / 节拍遵循 | 与音乐条件的一致程度 | 需要目标控制和可靠提取 |
+| MOS / 成对偏好 | 听者评分或选择 | 需要明确人群、任务、设计及不确定性 |
 
-### 6.3 评估基准
+[MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) 是短片段文本到音乐评测资源；[AIME](https://huggingface.co/datasets/disco-eth/AIME) 包含偏好数据。MARBLE 衡量音乐理解表示，不直接评价歌曲质量。
 
-- **SongBench** (Make-It-Music, 2025, arXiv:2502.19324): 南开大学提出的带监督音乐质量标签的策划数据集，用于歌曲生成。Make-It-Music 框架利用这些质量标签改进训练
-- **FakeMusicCaps**: 用于检测和归因任务的 AI 生成音乐数据集
+没有单一指标能证明质量、原创性、结构或文化适切性。FAD 依赖编码器、参考集、样本量和预处理；逐曲 FAD 变体需单独验证，不是普遍最好的听感代理。公式、协议与来源见[评测笔记](music-evaluation-zh.md)。
 
-### 6.4 开放性问题
-- **奖励建模**: 音乐的多属性特性（和声、节奏、旋律、音色）和高主观性使奖励建模独特困难
-- **偏好数据收集**: 可扩展可靠的音乐配对人类比较收集
-- **多维对齐**: 同时对齐多个音乐维度而不产生权衡
-- **文化敏感性**: 人类偏好在不同文化和音乐传统之间差异显著
+## 8. 架构对比
 
----
+以下时长是论文/版本设置或展示样例，不是统一的架构极限。
 
-## 7. 评估
+| 系统 | 生成方式 | 表示 / 条件 | 文档记录的范围 |
+|------|----------|-------------|----------------|
+| Jukebox（2020） | 层次 AR | 三层 VQ-VAE；元数据/歌词 | 44.1 kHz 单声道，窗口式多分钟生成 |
+| MusicLM（2023） | 语义/粗/细 AR | w2v-BERT + SoundStream；MuLan | 24 kHz 单声道，多分钟样例 |
+| MusicGen（2023） | 单阶段 AR | 32 kHz EnCodec；T5/chroma | 30 秒上下文；单声道及独立立体声版本 |
+| AudioLDM（2023） | 潜在扩散 | Mel VAE；CLAP | 通用短音频 |
+| AudioLDM 2（2023–2024） | LOA 预测 + 潜在扩散 | AudioMAE/GPT-2 及声学解码 | 语音/音乐/通用音频变体 |
+| Stable Audio 2.0（2024） | 潜在扩散 | 商业模型；文本/音频输入 | 最长 3 分钟，44.1 kHz 立体声 |
+| Stable Audio Open 1.0（2024） | DiT 潜在扩散 | 连续自编码器；T5 | 最长 47 秒，44.1 kHz 立体声 |
+| YuE（2025） | 轨道解耦 AR | 音乐 token；歌词/风格/参考 | 最长五分钟样例 |
+| ACE-Step（2025 报告） | 线性 Transformer 扩散 | 音乐 DCAE；歌词/文本 | 报告中最长四分钟 |
+| MusicFlow（2024） | 级联流匹配 | 语义与声学特征 | 文本条件、填充、续写 |
+| SongCreator（2024） | 双序列 LM | 人声/伴奏流和注意力掩码 | 多种歌曲生成/编辑任务 |
+| Suno / Udio | 此处未明确 | 服务提供文本/歌词控制 | 随版本和套餐变化 |
 
-### 7.1 自动化指标
+代码可用、权重可用、训练数据可用及许可是不同维度，简单“开源：是/否”会遮蔽这些区别。
 
-#### Frechet Audio Distance (FAD)
-- **来源**: Kilgour et al., INTERSPEECH 2019；从图像域的 Frechet Inception Distance (FID) 适配而来
-- **方法**: 计算参考集和生成集的音频嵌入高斯分布之间的 Frechet 距离
-- **嵌入模型**: 通常使用 VGGish、PANNs (Pre-trained Audio Neural Networks) 或 CLAP 音频编码器
-- **特性**:
-  - **分布级无需参考**: 不需要成对比较；比较分布统计量
-  - 同时衡量质量和多样性
-  - 越低越好
-- **逐曲 FAD** (Microsoft, 2023): 扩展版本为单个样本计算 FAD，与人类感知质量 (MOS) 呈中到强相关。可在 `microsoft/fadtk` 获取
-- **局限**: 依赖嵌入模型质量；可能无法捕获所有感知相关维度；对数据集偏差敏感
+## 9. 开放问题与研究实践
 
-#### 标签分布上的 KL 散度
-- 计算分类器在参考音频 vs 生成音频上预测的标签分布（如流派、乐器标签）之间的 KL 散度
-- 衡量生成音频是否具有与参考分布相似的高层属性
-- **局限**: 不如 FAD 稳健；在退化输出（如静默音频）上可能行为不一致。在 AudioLDM 评估工具包中被标记为不可靠
+- **长篇音乐：** 在完整输出中评价动机发展、重复段落、过渡与结尾，而非只看标称时长。
+- **精确控制：** 测量旋律、和声、曲式、配器与表现力的遵循及相互影响。
+- **效率：** 区分首段音频延迟、吞吐量及总生成时间。部分系统在合适硬件上快于音频时长，但这不等于交互式流式生成。
+- **数据与原创性：** 独立检查训练/测试重叠及近邻复现。授权数据和开放权重不自动证明输出新颖。
+- **文化覆盖：** 由合适听者和标注评测支持的语言、律制、乐器及传统。
+- **证据：** 区分论文发现、官方产品规格、作者报告的测试与假设，避免未验证的排行榜、会场、硬件和架构断言。
 
-#### MuLan 相似度 / CLAP 分数
-- 使用对比模型 (MuLan, CLAP) 计算文本和音频嵌入之间的余弦相似度
-- 衡量文本-音频对齐度：生成的音频与文本提示匹配的程度
-- 越高越好
-- 用于 MusicLM 及后续模型
-
-#### FrEchet Music Distance (FMD) (2024)
-- **论文**: arXiv:2412.07948 (2024 年 12 月)
-- 专门为符号音乐评估适配的 FAD
-- 操作符号表示而非音频
-- 解决生成式符号音乐模型评估指标的缺失
-
-#### 其他自动化指标
-- **IS (Inception Score)**: 使用分类器预测衡量生成样本的质量和多样性
-- **FID (Frechet Inception Distance)**: 图像域指标，偶尔适配于频谱图表示
-- **对数频谱距离**: 衡量生成与参考音频之间的频谱相似度
-
-### 7.2 人工评估
-
-#### Mean Opinion Score (MOS)
-- 感知质量评估的金标准
-- 人工评分者在 1--5 分制上为音频打分（差到优）
-- 通常衡量整体质量、自然度或保真度
-- 用作验证自动化指标的真值
-
-#### 对比偏好测试
-- 不同模型输出的并排比较
-- 评分者在特定维度（质量、与提示的相关性、音乐性）上选择哪个样本更好
-- 用于 MusicLM、MusicGen 及大多数主要模型评估
-
-#### MusicCaps 基准
-- **数据集**: 5,521 个带人工撰写字幕的 10 秒音乐片段（Google，随 MusicLM 发布）
-- **来源**: 通过 AudioSet 来自 YouTube 视频；多样化流派
-- **用途**: 文本到音乐模型的标准基准
-- **评估协议**: 从 MusicCaps 字幕生成音频，计算与参考片段的 FAD 和其他指标
-- **局限**: 仅 10 秒片段；尽管覆盖广泛，文化/流派多样性有限
-
-### 7.3 综合评估综述 (2025)
-
-- **论文**: "A Survey on Evaluation Metrics for Music Generation" (arXiv:2509.00051, 2025)
-- 整合该领域的评估方法
-- 关键发现：
-  - FAD 和 KL 散度是最常用的自动化指标
-  - 逐曲 FAD 与人类感知质量相关性最佳
-  - 没有单一指标能捕获音乐质量的所有维度
-  - 人工评估对可靠评估仍然是必要的
-  - 基准数据集（MusicCaps, AudioSet）引入了自身的偏差
-
-### 7.4 评估生成音乐的挑战
-
-1. **多维性**: 音乐质量涵盖旋律、和声、节奏、音色、曲式、力度和表现力。没有单一指标能捕获所有维度。
-
-2. **主观性**: 音乐质量本质上是主观的；不同的听众、文化和流派有不同的标准。
-
-3. **长篇评估**: 大多数指标在短片段（10--30 秒）上操作。评估分钟级的结构连贯性缺乏现有指标的支持。
-
-4. **文本-音频对齐**: 衡量生成音频与文本提示的匹配程度需要理解两种模态，这本身就是一个开放研究问题。
-
-5. **原创性 vs 质量的权衡**: 模型应优先生成新颖音乐还是可能非常接近训练数据的高质量音乐？指标往往奖励后者。
-
-6. **分布级 vs 样本级**: 大多数指标（FAD, KL）衡量分布属性，而非单个样本质量。逐曲指标正在兴起但尚未标准化。
-
-7. **文化偏差**: 基准和评估方法以西方音乐为中心。
-
-8. **缺乏标准化基准**: 不同论文使用不同的数据集、划分和协议，使跨论文比较困难。
-
-### 7.5 新兴评估方法
-
-- **LLM 作为评审**: 使用大语言模型从描述和音频特征评估音乐质量
-- **音乐理解基准**: MARBLE 基准（YuE 使用）在音乐理解任务上评估学习的表示
-- **人类偏好对齐**: AAAI 2025 论文 (arXiv:2511.15038) 关于将生成式音乐 AI 与人类偏好对齐
-- **FakeMusicCaps**: 从 MusicCaps 派生的 AI 生成音乐数据集，用于检测和归属任务
-- **SongBench** (Make-It-Music, 2025, arXiv:2502.19324): 南开大学提出的带监督音乐质量标签的策划数据集
-
----
-
-## 8. 架构对比总结
-
-| 模型 | 年份 | 方法 | 分词器/编解码器 | 最大长度 | 文本条件 | 开源 |
-|------|------|------|-----------------|----------|----------|------|
-| Jukebox | 2020 | 层次化 AR (VQ-VAE) | VQ-VAE (3 层) | 数分钟 | 歌词 + 元数据 | 是 |
-| MusicLM | 2023 | 层次化 AR (语义 + 声学) | SoundStream | 数分钟 | MuLan 文本嵌入 | 否 |
-| MusicGen | 2023 | 单阶段 AR Transformer | EnCodec (32 kHz, 4 CB) | ~30 秒 | T5 + 旋律 | 是 |
-| AudioLDM | 2023 | 潜在扩散 (U-Net) | VAE (mel-spectrogram) | ~10 秒 | CLAP | 是 |
-| AudioLDM 2 | 2024 | 潜在扩散 + GPT-2 | VAE + 改进 | ~30 秒 | CLAP + GPT-2 | 是 |
-| Stable Audio 2.0 | 2024 | 潜在扩散 (DiT) | 压缩自编码器 (21.5 Hz) | 3 分钟 | T5 | 部分 |
-| Stable Audio Open | 2024 | 潜在扩散 (DiT) | 自编码器 | ~47 秒 | T5 | 是 |
-| YuE | 2025 | 基于 LLaMA2 的 AR Transformer | 学习的音乐 token | 5 分钟 | 歌词 + 风格 | 是 |
-| Suno V4.5 | 2025 | 未公开 | 未公开 | 4 分钟 | 文本 + 歌词 | 否 |
-| Suno V5 | 预计 | 未公开 | 未公开 | TBD | 文本 + 歌词 | 否 |
-| Udio | 2024--25 | 未公开 | 未公开 | 2 分钟 | 文本 + 歌词 | 否 |
-| TangoFlux | 2024 | Flow Matching | 学习的 | 30 秒 | 文本 | 是 |
-| ACE-Step | 2025 | DCAE + 线性 Transformer + 扩散 (REPA) | DCAE (Sana) + MERT/m-hubert | 4 分钟 | 文本 + 歌词 | 是 (ACE Studio + StepFun) |
-| MusicFlow | 2024 | 级联流匹配 | 自监督语义/声学 | ~30 秒 | 文本 | 是 |
-| SongCreator | 2024 | 双序列 LM (DSLM) + 注意力掩码 | EnCodec 风格 | 全曲 | 歌词 + 音频提示 | 是 |
-| MusicFX | 2023--25 | 基于 MusicLM (Google) | SoundStream | 短片段 | 文本 | 否 |
-| SkyMusic | 2024--25 | 未公开 | 未公开 | 全曲 | 文本 (多语言) | 否 |
-
----
-
-## 9. 关键开放性问题与未来方向
-
-1. **长篇连贯性**: 在多分钟作品中维持音乐结构、主题发展和全局曲式仍然是主要挑战。YuE 的 5 分钟输出是一个里程碑，但质量仍然不一致。
-
-2. **评估**: 缺乏全面、标准化的评估框架。FAD 是事实标准但存在已知弱点。人工评估昂贵且主观。
-
-3. **可控性**: 用户能指定的（文本提示）与他们想控制的（特定和声、结构、音色）之间的差距仍然很大。结构化控制（Mustango, SegTune）有前景但有限。
-
-4. **版权与伦理**: 在受版权保护的音乐上训练引发法律和伦理问题。明确避免版权数据的开放模型（Stable Audio Open）指明了方向，但可能牺牲质量。
-
-5. **实时生成**: 当前模型离高质量的实时输出还很远。游戏、现场表演和创意工具的交互式音乐生成需要低延迟推理。
-
-6. **文化多样性**: 大多数模型偏向西方流行音乐。对非西方音阶、乐器、曲式和歌唱风格的支持有限。
-
-7. **多模态集成**: 音乐生成与视频、舞蹈等其他模态的结合尚处于起步阶段但正在增长（ISMIR 2025 关于视觉到音乐生成的综述）。
-
-8. **数据规模与质量**: 专有系统（Suno, Udio）可能在远大于学术/开放模型的数据集上训练，这是其质量优势的原因之一。
-
-9. **AR 与扩散的融合**: 结合自回归（序列连贯性、可变长度）和扩散/flow-matching（并行生成、全局结构、多样性）优势的混合架构是一个主要趋势。
-
-10. **偏好对齐**: 将生成模型与人类音乐偏好大规模对齐是一个新兴研究领域 (AAAI 2025)，类似于语言模型中的 RLHF。
-
----
-
-## 参考文献（关键论文）
-
-- Huang & Vaswani: "Music Transformer" (arXiv:1809.04281, ICLR 2019)
-- Huang & Yang: "Pop Music Transformer / REMI" (arXiv:2002.00212, 2020)
-- Dhariwal et al.: "Jukebox: A Generative Model for Music" (arXiv:2005.00341, 2020)
-- Zeghidour et al.: "SoundStream" (arXiv:2107.03312, 2021)
-- Defossez et al.: "EnCodec" (arXiv:2210.13438, 2022)
-- Liu et al.: "DiffSinger" (arXiv:2105.02446, AAAI 2022)
-- Xia et al.: "VISinger" (ICASSP 2022) and "VISinger 2" (INTERSPEECH 2023)
-- Agostinelli et al.: "MusicLM" (arXiv:2301.11325, 2023)
-- Liu et al.: "AudioLDM" (2023) and "AudioLDM 2" (arXiv:2308.05734, 2023--2024)
-- Copet et al.: "MusicGen" (arXiv:2306.05284, 2023)
-- Stability AI: "Stable Audio 2.0" (April 2024)
-- Melechovsky et al.: "Mustango" (NAACL 2024, arXiv:2311.08355)
-- Yuan et al.: "YuE" (arXiv:2503.08638, ICLR 2025)
-- "A Survey on Evaluation Metrics for Music Generation" (arXiv:2509.00051, 2025)
-- "Auto-Regressive vs Flow-Matching: A Comparative Study" (arXiv:2506.08570, 2025)
-- "Aligning Generative Music AI with Human Preferences" (arXiv:2511.15038, AAAI 2025)
-- "Pianoroll-Event" (arXiv:2601.19951, 2025)
-- "REMI-z: Track-Aware Tokenization" (NeurIPS 2025)
-- "SegTune: Structured and Fine-Grained Control" (arXiv:2510.18416, 2025)
-- ACE-Step: "A Step Towards Music Generation Foundation Model" (arXiv:2506.00045, ACE Studio + StepFun, 2025)
-- MusicFlow: "Cascaded Flow Matching for Text Guided Music Generation" (arXiv:2410.20478, ICML 2024)
-- SongCreator: "Lyrics-based Universal Song Generation" (NeurIPS 2024 Poster, Shun Lei et al.)
-- "Benchmarking Music Generation Models and Metrics via Human Preference Studies" (ICASSP 2025)
-- CMT: "Contrastive Multimodal Transformer for Video-to-Music" (需确认具体 arXiv ID)
-- M2UGen: "Multi-Modal Music Understanding and Generation" (需确认具体 arXiv ID)
-- "Make-It-Music / SongBench" (arXiv:2502.19324, 2025, 南开大学)
-- OpenDiffSinger community: GitHub (持续更新, 2022--2025)
-- "Discrete Audio Tokens: More Than a Survey" (arXiv:2506.10274, 2025)
+> 相关：[歌声合成](music-singing-synthesis-zh.md)、[评测](music-evaluation-zh.md)、[音乐理解](music-understanding-mir-zh.md)、[音频工程](audio-engineering-zh.md)。

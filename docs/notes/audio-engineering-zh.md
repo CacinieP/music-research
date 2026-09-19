@@ -1,8 +1,8 @@
+# 音乐 AI 的音频工程：技术笔记
+
 > English version: [audio-engineering.md](audio-engineering.md)
 
-# 音乐AI的音频工程：技术笔记
-
-全面的技术参考，涵盖特征表示、神经音频编解码器、扩散模型、实时处理和音频标记化。反映了截至2025-2026年的最新技术水平。
+涵盖特征表示、神经编解码器、扩散、流式处理与音频标记化。内容于 **2026-09-19** 对照所链接的论文与实现核对。下文模型结果对应具体公开配置，不构成完整的最新排行榜。
 
 ---
 
@@ -20,808 +20,338 @@
 
 ### 1.1 梅尔频谱图
 
-现代音乐AI的主力表示方法。被MusicGen、AudioLDM、Stable Audio、Jukebox以及大多数音乐生成/源分离模型所使用。
+梅尔频谱图通过梅尔尺度滤波器组聚合 STFT 频点。**功率**梅尔频谱图为：
 
-**定义：**
-
-梅尔频谱图是短时傅里叶变换（STFT）的幅度经过梅尔尺度滤波器组后的结果：
-
-```
-Mel_spec(t, m) = sum_k |STFT(t, k)|^2 * H_m(k)
+```text
+M(t, m) = sum_k H_m(k) * |X(t, k)|^2
 ```
 
-其中 `H_m(k)` 是第m个梅尔滤波器组的三角窗。梅尔尺度近似人类的音高感知：
+`X` 为复数 STFT，`H_m` 为滤波器权重。将 `|X|^2` 换成 `|X|` 得到幅度梅尔频谱图。对数压缩需要正数下限，例如 `log(max(M, epsilon))`。复现时应明确幂次、归一化、对数定义与参考电平。
 
-```
-mel(f) = 2595 * log10(1 + f / 700)
-```
+HTK 梅尔公式是 `2595 * log10(1 + f / 700)`，但这只是其中一种约定；librosa 默认采用 Slaney 约定，除非设置 `htk=True`。`n_fft` 控制 FFT 长度，`win_length` 控制实际窗长，`hop_length` 控制帧间隔；应满足 `fmax <= sample_rate / 2`。[librosa 梅尔频谱图文档](https://librosa.org/doc/0.11.0/generated/librosa.feature.melspectrogram.html)
 
-**关键参数：**
-- `n_fft`（FFT窗口大小）：音乐（44.1/48 kHz）通常为2048或4096
-- `hop_length`：通常为 `n_fft / 4`（例如512）
-- `n_mels`（梅尔频带数）：64、80或128
-- `fmin`、`fmax`：频率范围（例如0-8000 Hz或0-22050 Hz）
-
-**权衡：**
-- **优点**：感知对齐；紧凑（n_mels远小于n_fft/2）；在PyTorch/Torchaudio中可微分；经过充分验证。
-- **缺点**：相位信息被丢弃（无法在没有Griffin-Lim或神经声码器的情况下完美重建波形）；固定的时频分辨率；梅尔尺度是一个粗略近似。
-
-**何时使用**：分类、生成、标注和大多数监督学习任务的默认选择。配合神经声码器（HiFi-GAN）用于波形生成。
+梅尔特征丢弃相位并合并频率细节。Griffin–Lim 或神经声码器能由估计频谱合成波形，但都不保证还原原始波形。梅尔特征常用于标签任务和 AudioLDM；MusicGen 建模编解码器 token，Jukebox 使用波形 VQ-VAE 编码。采用频谱损失不意味着模型直接生成梅尔频谱图。
 
 ### 1.2 色度特征
 
-捕获与八度无关的音高级别内容。十二个区间对应12个半音（C、C#、D、...、B）。
+色度特征将跨八度的频谱能量折叠到音级，十二平均律音乐通常使用 12 维。加权表达式为：
 
-**定义：**
-
-色度特征将频谱表示（STFT、CQT）的频率轴映射到12个音高类别：
-
-```
-Chroma(t, c) = sum_{f in pitch_class(c)} |X(t, f)|
+```text
+C(t, c) = sum_k W(c, k) * |X(t, k)|^p
 ```
 
-其中 `pitch_class(c)` 包含所有音高类别为 `c` 的频率。
+映射 `W` 取决于调音、频率表示与归一化；`p` 常取 1 或 2。STFT 色度、CQT 色度，以及平滑、量化后的 CENS 各有不同的不变性目标。色度适合和声、调性、对齐和版本识别，但损失八度与音色细节。十二维色度并不能普遍表示所有调律体系。
 
-**变体：**
-- **色度STFT**：基于STFT幅度
-- **色度CQT**：基于CQT（与音乐音高的频率对齐更好）
-- **CENS色度特征（色度能量归一化统计量）**：经量化、平滑和归一化处理；对动态和音色具有鲁棒性
+### 1.3 恒定 Q 变换（CQT）
 
-**何时使用**：和弦识别、调性检测、谐波分析、翻唱歌曲检测、音乐相似度。不适合作为生成任务的主要表示。
+CQT 使用几何间隔的中心频率，并保持近似恒定的中心频率与带宽之比：
 
-### 1.3 恒定Q变换（CQT）
-
-提供几何间距的频率区间，匹配音乐音高的对数特性。品质因数Q（中心频率/带宽）在所有区间保持恒定。
-
-**定义：**
-
-```
-X_CQT[k] = sum_n x[n] * w_k[n] * exp(-j * 2pi * f_k * n / f_s)
+```text
+f_k = f_min * 2^(k / B),  k = 0, ..., K-1
+Q = f_k / bandwidth_k
+X_CQT(t, k) = sum_n x[t*H + n] * w_k[n] * exp(-j*2*pi*f_k*n/f_s)
 ```
 
-其中 `Q = f_k / delta_f_k` 为常数，`f_k` 为几何间距排列。
+`B` 为每八度频点数，`H` 为帧移。窗长随频率变化，低频使用更长的窗。如果包含两端中心频率，频点数为 `K = 1 + floor(B * log2(f_max / f_min))`，还需满足奈奎斯特频率和滤波器支持范围限制。省略 `+1` 的常见近似描述的是区间跨度，而非包含端点的精确频点数。
 
-**关键性质：**
-- 每个八度的区间数是用户参数（通常为12、24或48）
-- 低频具有更好的频率分辨率，高频具有更好的时间分辨率
-- 总区间数：`n_bins = B * log2(fmax / fmin)`，其中B = 每八度区间数
+**复数 CQT 系数保留相位**，幅度 CQT 才丢弃相位。能否逆变换取决于具体变换与采样方案，幅度表示并不自动可逆。Brown 1991 年的论文是基础工作；实现与逆变换见 [librosa CQT 文档](https://librosa.org/doc/0.11.0/generated/librosa.cqt.html)。
 
-**计算考量：**
-- 计算开销高于STFT；高效实现使用稀疏核或基于FFT的方法
-- 库：`librosa.cqt()`、`nnAudio`（GPU加速，可微分）
+### 1.4 可变 Q 变换（VQT）
 
-**关键论文**：Brown (1991) "Calculation of a constant Q spectral transform"——奠基性工作。Schorkhuber & Klapuri (2010) 针对高效计算。
+librosa 的滤波器带宽定义为：
 
-**何时使用**：自动音乐转录（AMT）、音高估计、和弦识别，以及任何需要与音乐音高结构对齐的任务。
-
-### 1.4 变量Q变换（VQT）
-
-CQT的推广，其中Q可以在不同频率区间变化，允许在不同频谱区域灵活权衡时间和频率分辨率。
-
-**定义：**
-
-VQT放宽了恒定Q约束。当Q的变化趋向匹配STFT行为（恒定带宽）时，VQT变为STFT。CQT是Q为常数时的特殊情况。
-
-VQT通过"gamma"值进行参数化，在恒定Q（gamma=0）和恒定带宽（gamma=1）行为之间插值：
-
-```
-Effective bandwidth_k = Q_k * f_k + gamma
+```text
+bandwidth_k = alpha * f_k + gamma
+Q_k = f_k / bandwidth_k
 ```
 
-**实现**：`librosa.vqt()` 通过 `gamma` 参数同时支持CQT和VQT。
-
-**何时使用**：当纯粹的频率对数间距（CQT）或纯粹的线性间距（STFT）都不理想时。在自适应分辨率有益的音乐转录和分析任务中逐渐兴起。
+`alpha` 为相对带宽系数，`gamma` 为以 Hz 为单位的带宽偏移量。`gamma=0` 时为恒定 Q；正的 `gamma` 相对 CQT 拓宽低频滤波器，改善其时间分辨率。它**不是** 0 到 1 的插值参数：`gamma=1` 不会使 VQT 变成 STFT，改变 gamma 也不会把几何间隔的中心频率变为线性间隔。变换返回复数系数。[librosa VQT 文档](https://librosa.org/doc/0.11.0/generated/librosa.vqt.html)
 
 ### 1.5 MFCC（梅尔频率倒谱系数）
 
-通过离散余弦变换（DCT）从梅尔频谱图导出的紧凑表示：
+MFCC 对对数梅尔能量应用离散余弦变换：
 
+```text
+MFCC(t, d) = DCT_m(log(max(M(t, m), epsilon)))[d]
 ```
-MFCC(t, d) = DCT(log(Mel_spec(t, m)))
-```
 
-通常仅保留前13-20个系数（低阶系数捕获频谱形状；高阶系数捕获细节）。
-
-**历史意义**：在语音处理（ASR、说话人识别）中占主导地位数十年。在音乐中用于流派分类、乐器识别和音乐相似度。
-
-**现状**：很大程度上已被学习特征（输入深度网络的梅尔频谱图）和自监督表示（MERT、MusicHuBERT、CLAP嵌入）所取代。MFCC仍可作为低资源场景下的轻量级特征使用。
-
-**何时使用**：低延迟/低算力任务（例如嵌入式设备上的实时分类）；传统机器学习流水线（GMM、SVM）；作为音乐相似度的紧凑描述符。不建议作为现代神经网络生成任务的主要输入。
+保留少量系数可获得紧凑的频谱包络描述，适合传统分类器、聚类与有限算力场景。系数数目、是否包含第 0 项、DCT 归一化和对数约定都是定义的一部分。MFCC 并非无损音频表示。
 
 ### 1.6 原始波形
 
-直接使用原始音频采样点作为输入，让网络自行学习特征提取。
+波形前端在学习压缩前保留采样信号。例如，SincNet 使用参数化带通卷积，SoundStream、EnCodec 和 DAC 使用卷积编码器；WaveNet 则逐采样点自回归预测。算力开销取决于下采样、架构与序列长度，波形输入不等于逐采样点自回归推理。[SincNet](https://arxiv.org/abs/1808.00158)、[WaveNet](https://arxiv.org/abs/1609.03499)
 
-**方法：**
-- **可学习前端**：SincNet（Ravanelli & Bengio, 2018）用由截止频率参数化的可学习带通滤波器替代梅尔滤波器组
-- **一维卷积编码器**：如EnCodec、SoundStream、DAC所使用——编码器从原始采样点中学习提取特征
-- **采样点级自回归模型**：WaveNet、SampleRNN
+### 1.7 学习得到的表示
 
-**权衡：**
-- **优点**：没有手工特征造成的信息损失；有可能学习到任务最优的表示。
-- **缺点**：计算开销大得多（44.1 kHz音频 = 每秒44,100个时间步）；需要更多数据和训练时间；中间表示的可解释性较差。
+| 模型 | 训练表示 | 常见用途 |
+|---|---|---|
+| MERT（Li 等；2023 预印本，ICLR 2024） | 掩码预测，使用 RVQ-VAE 声学目标和 CQT 音乐目标；原始版本有 95M/330M 参数 | 音乐理解特征 |
+| MusicFM（Won、Hung、Le；2023 预印本） | 音频自监督表示学习 | 帧级与片段级 MIR |
+| LAION-CLAP（Wu 等；2022 预印本） | 音频与文本对比对齐 | 检索、提示驱动的零样本分类 |
+| Jukebox 表示 | 音乐生成模型的隐藏状态 | 迁移特征；需选择合适层 |
 
-**何时使用**：端到端训练音频编解码器时；任务需要相位信息时；有充足算力和数据时。
+训练目标应区分：音频文本对比模型使用配对文本监督，纯音频自监督模型则需要额外机制才能完成文本检索。参数量和帧率依检查点而定。[MERT](https://arxiv.org/abs/2306.00107)、[MusicFM](https://arxiv.org/abs/2311.03318)、[CLAP](https://arxiv.org/abs/2211.06687)
 
-### 1.7 自监督学习表示
+| 表示 | 形状，省略批次或声道轴 | 相位 | 主要限制 |
+|---|---|---|---|
+| 功率梅尔 | `n_mels × T` | 丢弃 | 合并频率细节 |
+| 色度 | 通常 `12 × T` | 丢弃 | 丢失八度与音色信息 |
+| 复数 CQT/VQT | `n_bins × T`，复数 | 保留 | 分辨率和逆变换依实现而定 |
+| MFCC | `n_coeffs × T` | 丢弃 | 截断移除频谱细节 |
+| 波形 | `channels × n_samples` | 包含于信号中 | 压缩前采样率高 |
 
-日益重要的一类方法，在大规模音频语料上预训练的模型产生通用特征嵌入。
-
-| 模型 | 训练方式 | 规模 | 应用场景 |
-|-------|----------|------|----------|
-| **MERT** (Min et al., 2023) | 音乐上的掩码语言建模 | 最高330M参数 | 音乐理解、标注、问答 |
-| **MusicHuBERT** (Huang et al., 2024) | 音乐上的HuBERT风格预训练 | ~95M | 音乐信息检索 |
-| **CLAP** (Wu et al., 2023) | 对比音频-文本 | ~400M | 音频-语言对齐、检索 |
-| **Jukebox-5B嵌入** | VQ-VAE自回归 | 5B | 音乐生成特征 |
-
-### 比较表
-
-| 表示方法 | 维度 | 可微分 | 相位信息 | 音乐对齐 | 计算开销 |
-|---|---|---|---|---|---|
-| 梅尔频谱图 | n_mels x T | 是 | 否 | 部分（梅尔尺度） | 低 |
-| 色度特征 | 12 x T | 是 | 否 | 是（音高类别） | 低 |
-| CQT | n_bins x T | 是（nnAudio） | 否 | 是（对数频率） | 中 |
-| VQT | n_bins x T | 是（nnAudio） | 否 | 自适应 | 中 |
-| MFCC | 13-20 x T | 是 | 否 | 部分 | 低 |
-| 原始波形 | 1 x T_samples | 是 | 是 | 学习得到 | 非常高 |
-
-### 关键论文
-
-- McFee et al. (2015/2020) -- librosa: Audio and Music Signal Analysis in Python
-- Brown (1991) -- Calculation of a constant Q spectral transform
-- Schorkhuber & Klapuri (2010) -- Constant-Q Transform Toolbox for Music Processing
-- Ravanelli & Bengio (2018) -- SincNet (speaker recognition with learnable filters)
-- Min et al. (2023) -- MERT: Acoustic Music Understanding with Large-Scale Pre-training
-- Wu et al. (2023) -- CLAP: Large-Scale Contrastive Language-Audio Pretraining
-
-### 特征表示研究的常用数据集
-
-- **AudioSet** (Gemmeke et al., 2017)：超过200万个10秒YouTube片段，527个事件类别
-- **FMA** (Defferrard et al., 2017)：约100K首曲目，用于流派分类
-- **MUSDB18-HQ** (Rafii et al., 2019)：150首带有分轨的完整曲目，用于源分离
-- **MusicCaps** (Agostinelli et al., 2023)：5,521个音乐片段，附带丰富文本描述
-- **NSynth** (Engel et al., 2017)：306K个单音符，用于乐器/音色任务
-- **MedleyDB** (Bittner et al., 2014)：122个多轨录音，用于MIR
+可微性取决于实现。NumPy/librosa 特征提取不属于 PyTorch 自动微分计算图；nnAudio 等张量实现可提供可微变换。
 
 ---
 
 ## 2. 神经音频编解码器
 
-### 2.1 架构概述
+### 2.1 架构与码率计算
 
-神经音频编解码器遵循**编码器-量化器-解码器**范式：
-
+```text
+waveform -> encoder -> latent vectors -> quantizer -> indices
+indices -> codebook vectors -> decoder -> reconstructed waveform
 ```
-Raw Audio -> [Encoder] -> Continuous Latent -> [Quantizer] -> Discrete Codes -> [Decoder] -> Reconstructed Audio
+
+对 `N` 个大小为 `K` 的码本，帧率为 `F` 时，定长编码的名义有效载荷为：
+
+```text
+indices_per_second = F * N
+bits_per_second = F * N * ceil(log2(K))
 ```
 
-编码器将波形压缩为低维潜在表示。量化器将连续潜在向量离散化为有限编码集（这对语言建模至关重要）。解码器从离散编码重建音频。
+这不包含包头、缩放元数据、填充或熵编码影响。帧率、索引数和 Transformer 自回归步数是不同量。PCM 名义码率为 `sample_rate * bits_per_sample * channels`。
 
-所有主要编解码器共享这一结构，但在以下方面有所不同：(1) 编码器/解码器架构，(2) 量化方法，(3) 判别器设计，(4) 损失函数。
+### 2.2 SoundStream
 
-### 2.2 SoundStream (Google, 2021)
+Zeghidour 等，[SoundStream: An End-to-End Neural Audio Codec](https://arxiv.org/abs/2107.03312)，2021 年预印本 / TASLP 第 30 卷（2022）。结合卷积编码器/解码器、残差向量量化（RVQ）、对抗训练和重建目标。量化器层丢弃使一个训练模型支持多档码率。论文评估了 24 kHz 音频、3–18 kbps 配置，并包含流式处理以及联合压缩与增强实验。没有历史比较依据时，不应称其为首个支持实时压缩的神经编解码器。
 
-**论文**：Zeghidour et al., "SoundStream: An End-to-End Neural Audio Codec" (ICML 2021 / IEEE/ACM TASLP 2022)
+### 2.3 EnCodec
 
-**架构：**
-- **编码器**：一维步进卷积，下采样因子为320（24 kHz下 -> 75 Hz帧率）
-- **量化器**：残差向量量化（RVQ），N个码本（通常4-12个）
-- **解码器**：转置卷积，上采样回原始采样率
-- **判别器**：多尺度波形判别器
+Défossez 等，[High Fidelity Neural Audio Compression](https://arxiv.org/abs/2210.13438)，2022 年预印本 / TMLR 2023。使用 SEANet 风格卷积、LSTM 和 RVQ 瓶颈。训练要点包括多尺度 STFT 判别器、损失平衡器、波形/频谱重建与对抗特征匹配。发布的 RVQ 使用 EMA 更新码本并替换低使用率编码，不应默认它另有通过梯度更新的码本损失。
 
-**关键贡献**：首个证明单一模型可以同时执行音频压缩和实时流处理的神经音频编解码器。
+[官方模型定义](https://github.com/facebookresearch/encodec/blob/main/encodec/model.py) 区分如下：
 
-**比特率**：3-18 kbps（根据使用的RVQ层数可变）
+| 发布模型 | 因果性 | 编码器帧移 | 帧率 | 名义码率 |
+|---|---|---|---|---|
+| 24 kHz 单声道 | 因果 | 320 采样点 | 75 Hz | 1.5、3、6、12、24 kbps |
+| 48 kHz 立体声 | 非因果 | 320 采样点 | 150 Hz | 3、6、12、24 kbps |
 
-### 2.3 EnCodec (Meta, 2022)
+每个索引从 1,024 个编码中选择，即 10 比特。24 kHz、6 kbps 配置使用八个码本：`75 * 8 * 10 = 6000` 比特/秒。48 kHz 发布模型采用归一化与重叠分段，并非因果流式模型。
 
-**论文**：Defossez et al., "High Fidelity Neural Audio Compression" (arXiv: 2210.13438, 2022)
+### 2.4 DAC — Descript Audio Codec
 
-**架构（SEANet主干网络）：**
-- **编码器**：使用步进卷积的卷积编码器
-  - 下采样因子：320（24 kHz模型）或640（48 kHz模型）
-  - 每个下采样块内的残差单元
-  - 两种变体：**因果**（用于流式/实时处理）和**非因果**（用于离线处理）
-  - 因果变体仅向左填充（仅使用过去上下文），非因果变体使用对称填充
-- **量化器**：残差向量量化（RVQ）
-  - 码本大小：每层1024个条目（每个编码10比特）
-  - 嵌入维度：128或256
-  - 量化器层数：最多32层（通过截断实现可变比特率）
-  - **直通估计器（STE）**：在反向传播期间以恒等映射方式传递梯度，穿过不可微的最近邻查找
-  - **指数移动平均（EMA）**：码本嵌入通过已分配编码器输出的EMA更新（源自VQ-VAE v2）
-  - **码本重置**：过期（低使用率的）码本条目被重新初始化为编码器输出，以防止码本坍缩
-- **解码器**：编码器的镜像，使用转置卷积
-- **判别器**：
-  - 多尺度STFT判别器（在不同频谱分辨率上操作）
-  - 多尺度子带判别器（MSBD，在多个时间尺度上操作于波形）
+Kumar 等，[High-Fidelity Audio Compression with Improved RVQGAN](https://arxiv.org/abs/2306.06546)，NeurIPS 2023。关键设计包括低维分解式码本查找、查找向量 L2 归一化、周期性 Snake 激活、量化器层丢弃，以及多尺度频谱/对抗目标。码本条目通过码本损失学习，与 EnCodec 的 EMA 更新不同。1,024 个条目并不比 EnCodec 的码本更大。
 
-**损失函数：**
-- **重建损失**：L1距离 + 多尺度频谱损失（多个窗口大小的STFT）
-- **对抗损失**：来自判别器的铰链损失（某些变体使用最小二乘损失）
-- **感知损失**：平衡重建保真度与对抗真实性
-- **承诺损失**：`||z_e - sg(e)||^2`——鼓励编码器输出"承诺"于码本条目
-- **码本损失**：将码本嵌入向编码器输出更新
+[44.1 kHz 默认架构](https://github.com/descriptinc/descript-audio-codec/blob/main/dac/model/dac.py) 的帧移为 512，使用九个 1,024 项码本。因此约为 `86.13` 帧/秒、`775.20` 个索引/秒、不含额外开销的 `7.75` kbps。相对 **单声道** 44.1 kHz/16-bit PCM，名义压缩比约为 91 倍。这些算术结果不代表听觉透明或无损。[量化器实现](https://github.com/descriptinc/descript-audio-codec/blob/main/dac/nn/quantize.py)
 
-**发布模型：**
-- 24 kHz单声道：支持1.5、3、6、12、24 kbps
-- 48 kHz立体声：支持3、6、12、24 kbps
+### 2.5 FunCodec
 
-**帧率**：24 kHz下为75 Hz（320倍下采样）
+[FunCodec](https://github.com/modelscope/FunCodec) 是神经语音编解码研究工具包，提供模块化训练和推理组件。工具包能力、发布检查点与某个特定编解码器的属性应分别描述。面向语音的工具包本身不能证明高保真音乐性能。
 
-### 2.4 DAC -- Descript Audio Codec (2023)
+### 2.6 SemantiCodec
 
-**论文**：Kumar et al., "High-Fidelity Audio Compression with Improved RVQGAN" (arXiv: 2306.06546, 2023)
+Liu 等，[SemantiCodec](https://arxiv.org/abs/2405.00233)，2024。语义编码器使用经 k-means 离散化的 AudioMAE 特征，声学编码器表示剩余细节，再由扩散解码器结合两者重建音频。论文介绍了总计 25/50/100 token 每秒、约 0.31–1.40 kbps 的配置。语义与声学编码仍是不同组件，不能简单当作与 WavTokenizer 等价的单码本标记器。
 
-**相对于EnCodec/SoundStream的关键改进：**
-- **改进的RVQ训练**：在RVQ层之间的残差计算上停止梯度，防止早期量化器层被后期层的误差干扰
-- **量化器丢弃**：训练期间随机丢弃量化器层，确保在较低比特率下优雅降级
-- **多尺度梅尔损失**：在多个STFT窗口大小上计算，兼顾短期和长期频谱保真度
-- **更大码本**：1024个条目，但具有改进的码本利用率
-- **44.1 kHz支持**：在44.1 kHz下运行（接近CD品质）
+### 2.7 WavTokenizer
 
-**压缩**：约90倍压缩比（从44.1 kHz/16位降至8 kbps）
+Ji 等，[WavTokenizer](https://arxiv.org/abs/2408.16532)，2024 年预印本 / ICLR 2025。它使用 **可学习的向量量化码本**，大小为 4,096，在 24 kHz 音频上生成 40 或 75 token 每秒。扩大 VQ 空间、码本利用率机制、注意力与傅里叶解码器支持其单量化器设计。它**不使用**二值无查找量化。4,096 选一的索引需要 12 比特，并不意味着学习到的潜在向量是 12 维二值向量。[官方实现](https://github.com/jishengpeng/WavTokenizer)
 
-**架构**：9个RVQ层，约86 Hz帧率，产生约774个token/秒
+### 2.8 其他已核实的编解码方向
 
-**判别器**：多尺度STFT判别器 + 多子带判别器
+- **HiFi-Codec**（Yang 等，2023）：分组残差向量量化，论文系统使用四个码本，评估重点为语音/TTS 数据集。[论文](https://arxiv.org/abs/2305.02765)
+- **TQCodec**（He 等，2026 年 3 月预印本）：面向 44.1 kHz、32–128 kbps 音乐，使用 SEANet、SimVQ、相位感知损失和感知驱动的分频带比特分配。论文并未提出网格量化（trellis quantization）。[论文](https://arxiv.org/abs/2603.01592)
+- **SUNAC**（Aihara 等，2025 年预印本 / ICASSP 2026）：通过声源类别提示，从混合音频中直接选择并编码声源，也可处理同一类型的多个声源。其目标超出了普通领域感知。[论文](https://arxiv.org/abs/2511.16126)
 
-### 2.5 FunCodec (阿里巴巴/ModelScope, 2023)
+### 2.9 如何比较质量
 
-**论文**：Du et al., "Funcodec: A Fundamental, Reproducible and Integrable Open Source Toolkit for Neural Speech Codec"
+不存在通用的“达到某码率就听觉透明”阈值；听觉透明也不等于无损。应同时比较采样率、声道数、数据集、码率计算方法、重建协议和延迟。
 
-一个开源研究工具包（而非单一编解码器模型），设计用于：
-- 音频量化实验
-- 下游应用：TTS、音乐生成
-- 可复现的编解码器研究
+- **MUSHRA / 听音测试**：适合评价中间质量的音频，需报告受试者、锚点、置信区间和测试材料。
+- **ViSQOL**：客观感知质量估计，应明确语音/音频模式与版本，不能替代听音测试。[实现](https://github.com/google/visqol)
+- **PESQ、STOI**：面向语音质量/可懂度，不能当作通用的音乐保真度指标。
+- **频谱误差**：可诊断重建变化，但不能完整描述听觉伪影或立体声声像。
 
-提供用于构建和训练神经音频编解码器的模块化组件，具有可配置的编码器/解码器/量化器架构。
-
-**GitHub**：https://github.com/modelscope/FunCodec
-
-### 2.6 SemantiCodec (2024)
-
-**论文**：Liu et al., 2024
-
-**关键创新**：解耦语义和声学信息的双编码器架构：
-- **语义编码器**：捕获高级内容（音素、音符、声音事件）
-- **声学编码器**：捕获细粒度音频细节（音色、房间声学、说话人身份）
-- 面向**超低比特率**应用（每秒token数显著少于EnCodec/DAC）
-
-这种解耦的动机来自于观察到对于音频上的语言建模，语义token比原始声学token（可以有条件地预测）更有价值。
-
-### 2.7 WavTokenizer (2024)
-
-**论文**：Pan et al., "WavTokenizer: An Efficient Acoustic Discrete Codec Tokenizer for Audio Language Models" (arXiv: 2408.16532, 2024)
-
-**激进的简化**：使用**无查找量化（LFQ）**替代RVQ。
-
-**LFQ机制：**
-- 没有可学习的码本嵌入。相反，潜在向量的每个维度独立量化为二值（每个维度的符号）。
-- 对于d维潜在向量，这产生2^d个可能的token。WavTokenizer使用d=12 -> 4,096个token。
-- **直通估计器**处理梯度流：前向传播使用二值，反向传播以恒等映射方式传递梯度。
-- **熵正则化**：鼓励所有可能token的均匀利用（无需码本重置即可避免码本坍缩）。
-- **承诺损失**：`||z_e - sg(z_q)||^2`，类似于VQ-VAE。
-
-**架构：**
-- 单码本（1层LFQ），无残差堆叠
-- 约75 Hz帧率 -> 约75个token/秒（相比之下EnCodec为600-2400）
-- VQGAN风格训练，使用多尺度判别器
-
-**对语言建模的影响**：10秒片段 = 约750个token（单流），而使用多码本RVQ则需要数千个。这直接映射到标准LLM的下一个token预测。
-
-### 2.8 最新编解码器 (2025-2026)
-
-**TQCodec** (arXiv: 2603.01592)：提出基于网格的量化，用于高比特率、高保真音乐流传输。面向质量优先于极端压缩的应用。
-
-**SUNAC** (MERL, 2026)：源感知统一神经音频编解码器。单一模型处理语音、音乐和音效，在编解码器内部构建领域感知能力。
-
-**SDCodec**：在单一编解码器框架内使用三个领域特定的RVQ模块（语音、音乐、音效）。
-
-**HiFi-Codec** (Yang et al., 2024)：提出分组RVQ（GRVQ），在保持质量的同时减少码本需求。
-
-### 2.9 量化方法比较
-
-| 方法 | 码本数 | 比特/编码 | token数/秒 | 码本学习 | 坍缩风险 |
-|--------|-----------|-----------|------------|-------------------|---------------|
-| **VQ**（单层） | 1 | 10 | 75-86 | EMA或SGD | 高 |
-| **RVQ** (EnCodec) | 8-32 | 10 | 600-2,400 | EMA + 码本重置 | 中 |
-| **RVQ** (DAC) | 9 | 10 | ~774 | EMA + 残差停止梯度 | 低 |
-| **LFQ** (WavTokenizer) | 1 | 12 | ~75 | 无（二值） | 非常低 |
-| **GRVQ** (HiFi-Codec) | 4-8（分组） | 10 | ~300-600 | 分组EMA | 低 |
-
-### 2.10 比特率-质量权衡
-
-一般基准测试（ViSQOL、PESQ、MOS）：
-- **1.5 kbps**：EnCodec——语音可理解，音乐质量下降
-- **3-6 kbps**：可接受的语音质量；音乐缺乏高频细节
-- **8 kbps**：DAC——语音接近透明；音乐有轻微伪影
-- **12-24 kbps**：EnCodec/DAC——良好的音乐质量，接近透明
-- **48+ kbps**：接近透明到透明（接近无损）
-
-标准评估指标：
-- **ViSQOL** (Virtual Speech Quality Objective Listener)：1-5分制，与MOS相关
-- **PESQ** (Perceptual Evaluation of Speech Quality)：-0.5到4.5，ITU-T P.862
-- **MOS** (Mean Opinion Score)：主观1-5分制
-- **STOI** (Short-Time Objective Intelligibility)：0-1，语音可理解度
-
-### 关键论文
-
-- Zeghidour et al. (2021) -- SoundStream
-- Defossez et al. (2022) -- EnCodec
-- Kumar et al. (2023) -- DAC (Improved RVQGAN)
-- Du et al. (2023) -- FunCodec
-- Liu et al. (2024) -- SemantiCodec
-- Pan et al. (2024) -- WavTokenizer
-- Yang et al. (2024) -- HiFi-Codec
-- TQCodec (2025/2026) -- arXiv: 2603.01592
-- SUNAC (MERL, 2026)
-
-### 编解码器训练与评估的常用数据集
-
-- **DNS Challenge**：语音+噪声，用于语音编解码器评估
-- **VCTK**：多说话人英语语音
-- **LibriSpeech**：朗读英语语音（1000小时）
-- **MUSDB18-HQ**：音乐曲目，用于音乐编解码器评估
-- **AudioSet**：通用音频，用于通用编解码器训练
-- **MusicCaps**：带文本描述的音乐
+使用未参与训练的音乐，例如正确隔离的 MUSDB18-HQ 测试曲目。AudioSet、语音数据集和 MusicCaps 用途不同，带有描述文本并不自动使数据集成为标准编解码基准。
 
 ---
 
 ## 3. 基于扩散的音频模型
 
-### 3.1 理论基础
+### 3.1 DDPM 与基于分数的模型
 
-#### DDPM（去噪扩散概率模型）
+DDPM 中设 `0 < beta_t < 1`，`alpha_t = 1 - beta_t`，`alpha_bar_t = product_{s=1..t}(alpha_s)`：
 
-**论文**：Ho et al., "Denoising Diffusion Probabilistic Models" (NeurIPS 2020)
-
-前向扩散过程在T个时间步中逐步添加高斯噪声：
-
-```
-q(x_t | x_{t-1}) = N(x_t; sqrt(1 - beta_t) * x_{t-1}, beta_t * I)
+```text
+q(x_t | x_(t-1)) = Normal(sqrt(alpha_t)*x_(t-1), beta_t*I)
+x_t = sqrt(alpha_bar_t)*x_0 + sqrt(1-alpha_bar_t)*epsilon
+p_theta(x_(t-1) | x_t) = Normal(mu_theta(x_t,t), sigma_t^2*I)
 ```
 
-其中 `beta_t` 是方差调度。反向过程学习去噪：
+常见网络预测的是 `epsilon_theta`，反向均值 `mu_theta` 由该预测与调度计算，两者不是同一个输出。预测 `x_0` 或 velocity 是其他参数化方法，对应的损失权重也需要明确。[Ho 等，DDPM](https://arxiv.org/abs/2006.11239)
 
-```
-p_theta(x_{t-1} | x_t) = N(x_{t-1}; mu_theta(x_t, t), sigma_t^2 * I)
-```
+当扩散系数 `g(t)` 为与状态无关的标量时，分数 SDE 为：
 
-模型 `mu_theta` 被训练来预测所添加的噪声（或等价地，预测 `x_0`）。
-
-对于音频，此框架可以应用于：
-- **频谱图**：将梅尔频谱图视为2D图像，应用图像扩散技术
-- **波形**：将扩散直接应用于1D音频采样点（计算开销大得多）
-
-#### 基于分数的生成模型（SDE框架）
-
-**论文**：Song et al., "Score-Based Generative Modeling through Stochastic Differential Equations" (ICLR 2021)
-
-在连续时间SDE框架下统一了DDPM和分数匹配（NCSN/SMLD）。
-
-**前向SDE**（数据 -> 噪声）：
-```
-dx = f(x, t)dt + g(t)dw
+```text
+forward:      dx = f(x,t) dt + g(t) dw
+reverse:      dx = [f(x,t) - g(t)^2 * grad_x log p_t(x)] dt + g(t) dw_bar
+probability flow ODE:
+              dx = [f(x,t) - 0.5*g(t)^2 * grad_x log p_t(x)] dt
 ```
 
-**反向SDE**（噪声 -> 数据）：
-```
-dx = [f(x, t) - g(t)^2 * nabla_x log p_t(x)] dt + g(t) dw_bar
-```
+反向 SDE 从较大的 `t` 积分到较小的 `t`，即 `dt < 0`。使用精确分数函数时，概率流 ODE 具有相同的单时刻边缘分布。学习的分数与数值求解器引入近似误差；计算似然还需要积分散度。VE、VP、sub-VP 是该框架内不同的噪声过程。[Song 等，ICLR 2021](https://arxiv.org/abs/2011.13456)
 
-其中 `nabla_x log p_t(x)` 是**分数函数**，由神经网络 `s_theta(x, t)` 估计。
+### 3.2 音频模型系列
 
-**三种SDE类型：**
-1. **方差爆炸型（VE）**：对应NCSN/SMLD。`f(x,t) = 0`，噪声方差递增。
-2. **方差保留型（VP）**：对应DDPM。均值随方差递增而缩小。
-3. **次VP**：约束似然的变体。
+| 模型 | 表示与条件 | 来源 |
+|---|---|---|
+| AudioLDM（Liu 等，2023） | 在梅尔频谱 VAE 潜在空间中扩散；训练扩散模型时用 CLAP 音频嵌入，推理时换成文本嵌入；由声码器重建波形 | [论文](https://arxiv.org/abs/2301.12503) |
+| AudioLDM 2（Liu 等，2023/2024） | AudioMAE 派生的 **Language of Audio（LOA）**；语言模型预测中间表示，用于潜在扩散条件 | [论文](https://arxiv.org/abs/2308.05734) |
+| 初代 Stable Audio（Evans 等，2024） | 波形自编码器潜在表示、卷积扩散架构、CLAP 文本特征、时间条件 | [Fast Timing-Conditioned Latent Audio Diffusion](https://arxiv.org/abs/2402.04825) |
+| Stable Audio Open（Evans 等，2024） | 波形 VAE、T5 文本条件、扩散 Transformer；44.1 kHz 立体声，最长 47 秒 | [论文](https://arxiv.org/abs/2407.14358) |
+| DiffWave（Kong 等，ICLR 2021） | 波形扩散，包含频谱条件的音频合成 | [论文](https://arxiv.org/abs/2009.09761) |
 
-**概率流ODE**：对于每个SDE，存在具有相同边缘分布的确定性ODE：
-```
-dx = [f(x, t) - (1/2) * g(t)^2 * nabla_x log p_t(x)] dt
-```
-这实现了精确的似然计算、潜在空间操控和确定性采样。
-
-**采样方法：**
-- DDIM（去噪扩散隐式模型）：确定性变体，所需步数更少
-- DPM-Solver：高阶ODE求解器，10-20步即可获得良好质量
-- 一致性模型：通过蒸馏扩散模型实现单步生成
-
-### 3.2 音频的潜在扩散
-
-不是在高维音频/频谱图空间中应用扩散，潜在扩散首先将音频压缩到紧凑的潜在空间（使用VAE或自编码器），然后在该空间中运行扩散。
-
-**优势：**
-- 计算效率大幅提高（潜在空间比频谱图空间小4-64倍）
-- 相同计算预算下音频质量更好
-- 更容易以文本/嵌入为条件进行生成
-
-#### AudioLDM (Liu et al., 2023)
-
-**论文**："AudioLDM: Text-to-Audio Generation with Latent Diffusion Models" (ICML 2023)
-
-- 使用在音频频谱图上训练的**VAE**创建潜在空间
-- **CLAP**（对比语言-音频预训练）嵌入用于文本条件
-- 带有无分类器引导的潜在扩散
-- 从文本描述生成音频
-
-#### AudioLDM 2 (Liu et al., 2023-2024)
-
-**论文**："AudioLDM 2: Learning Holistic Audio Generation with Self-Supervised Pretraining" (IEEE TASLP 2024)
-
-- 面向语音、音乐和音效生成的**统一框架**
-- 引入**"音频文本"**中间表示，桥接文本和音频
-- 两阶段：文本 -> 音频文本表示 -> 通过潜在扩散生成音频
-- 自监督预训练提高所有领域的生成质量
-
-#### Stable Audio (Stability AI, 2024)
-
-**论文**：Roberts et al., "Stable Audio: Fast Timing-Conditioned Latent Audio Diffusion" (arXiv: 2402.04825, 2024)
-
-**架构：**
-- **自编码器**：在44.1 kHz立体声音频上训练，压缩为潜在表示
-- **潜在扩散模型**：潜在空间中的DiT（扩散Transformer）架构
-- **时间条件**：模型以起始时间和总时长为条件，能够生成特定片段
-- **文本条件**：通过CLAP文本嵌入 + T5文本编码器
-
-**Stable Audio 2.0** (2024)：生成具有连贯音乐结构（前奏、展开、尾声）的完整曲目。
-
-**Stable Audio Open** (2024)：用于研究用途的开放权重变体。
-
-**关键技术细节：**
-- 以44.1 kHz立体声生成
-- DiT主干网络，使用交叉注意力进行文本条件
-- 推理时使用无分类器引导
-- 使用DPM-Solver++进行高效采样
+不同 Stable Audio 版本的架构与文本编码器不同，不能把 CLAP 和 T5 合并成未公开的配置。开放权重也有模型许可，与代码许可分别适用。
 
 ### 3.3 无分类器引导（CFG）
 
-**论文**：Ho & Salimans, "Classifier-Free Diffusion Guidance" (2022)
+训练时对一部分样本丢弃条件。采用常见的 **scale `s`** 约定：
 
-一种控制条件扩散模型中质量与多样性权衡的技术：
-
-1. **训练**：模型同时在有条件信息（如文本提示）和无条件信息的情况下进行训练。条件信息以一定概率随机丢弃（如10%的时间）并替换为空嵌入。
-
-2. **推理**：预测在条件输出和无条件输出之间进行外推：
-
-```
-tilde_epsilon = (1 + w) * epsilon_theta(x_t, c) - w * epsilon_theta(x_t, empty)
+```text
+epsilon_guided = epsilon_uncond + s * (epsilon_cond - epsilon_uncond)
 ```
 
-其中 `w` 是引导尺度：
-- `w = 0`：标准条件生成（无引导）
-- `w = 1`：无引导效果（与训练时相同）
-- `w > 1`：更强地遵循条件，"质量"更高但多样性更低
-- 音频的典型值：`w = 3-7`
+- `s=0`：无条件预测。
+- `s=1`：普通条件预测。
+- `s>1`：向条件方向外推，可能改善条件遵循度，同时减少多样性或引入伪影。
 
-**相对于分类器引导的优势**：无需在嘈杂的潜在空间中训练单独的分类器。
+原论文也使用 `(1+w)*epsilon_cond - w*epsilon_uncond`，对应关系是 **`s = 1 + w`**。在该约定下 `w=0` 才是普通条件预测，`w=1` 已经添加引导。具体 scale 应针对检查点与采样器选择。[Ho 与 Salimans](https://arxiv.org/abs/2207.12598)
 
-### 3.4 扩散应用于频谱图与波形的比较
+### 3.4 采样与权衡
 
-| 方面 | 频谱图扩散 | 波形扩散 |
-|--------|----------------------|--------------------|
-| **维度** | 较低（例如80 x T） | 高得多（44100 * T） |
-| **计算** | 单GPU可行 | 非常昂贵 |
-| **质量** | 需要声码器转换为波形 | 直接输出波形 |
-| **相位** | 未建模（由声码器填充） | 显式建模 |
-| **代表性模型** | AudioLDM、Grad-TTS | DiffWave |
-| **延迟** | 扩散 + 声码器 | 仅扩散（但更慢） |
+频谱扩散需要波形重建阶段，波形扩散直接建模采样信号，波形潜在扩散则通过自编码器缩短序列。瓶颈在表示能力与算力之间做权衡。
 
-### 3.5 关键论文
-
-- Ho et al. (2020) -- DDPM
-- Song et al. (2021) -- Score-Based Generative Modeling through SDEs
-- Ho & Salimans (2022) -- Classifier-Free Diffusion Guidance
-- Liu et al. (2023) -- AudioLDM
-- Liu et al. (2024) -- AudioLDM 2 (IEEE TASLP)
-- Roberts et al. (2024) -- Stable Audio
-- Dhariwal & Nichol (2021) -- DiffWave (diffusion on waveforms)
-- Popov et al. (2021) -- Grad-TTS (diffusion for TTS)
-- Kong et al. (2021) -- DiffWave: A Versatile Diffusion Model for Audio
-- Chen et al. (2023) -- Make-An-Audio
-
-### 3.6 当前挑战
-
-- **采样速度**：标准扩散需要50-1000个去噪步骤；即使使用DPM-Solver（10-20步），生成速度仍慢于自回归方法
-- **长形式生成**：Stable Audio 2.0解决了部分问题，但在数分钟内保持连贯性仍然困难
-- **细粒度控制**：文本条件提供粗粒度控制；音符级或乐器级控制仍是开放问题
-- **实时生成**：一致性模型和对抗蒸馏正在被探索用于实时扩散
+DDIM 在随机性参数为零时可确定性采样；DPM-Solver 类方法可减少模型求值次数；一致性模型可通过训练或蒸馏实现少步生成。速度取决于序列长度、模型大小、采样器与硬件，扩散并非必然比自回归生成慢。长时音乐结构、精细事件控制与立体声一致性仍需专门评估。
 
 ---
 
 ## 4. 实时音频处理
 
-### 4.1 流式架构要求
+### 4.1 处理期限与因果性
 
-实时音频处理施加了严格的约束：
+对采样率 `f_s`、每块 `B` 个采样点的系统，每块处理期限是 `B/f_s` 秒。平均实时因子小于 1 只是必要条件，长尾延时仍可造成可听见的缓冲欠载。现场监听常要求总延迟只有几毫秒，可接受值依乐器、信号链与演奏者而定。
 
-- **延迟**：现场表演应用通常要求 < 10-20 ms（在44.1 kHz下，10 ms = 441个采样点）
-- **因果性**：模型不得访问未来采样点（除小缓冲区外无前瞻）
-- **计算预算**：必须在每个音频块的时长内完成处理（实时因子 < 1.0）
-- **确定性内存**：固定内存分配，音频线程中不进行动态分配
-- **无系统调用**：音频线程不得执行I/O、内存分配或阻塞操作
+音频回调应避免阻塞 I/O、无界等待的锁、内存分配及其他耗时不可预测的操作。预分配缓冲，在回调外准备模型，并在目标机器上测量最坏情况。
+
+因果系统只使用当前与过去输入；可流式系统也可以使用有限前瞻并延后输出。流式、严格因果和低延迟是不同属性。
 
 ### 4.2 因果卷积
 
-标准卷积是非因果的：时刻 `t` 的输出依赖于过去和未来的输入。对于流式处理，我们需要**因果卷积**，其输出仅依赖于过去和当前输入。
+步长为 1 的因果卷积可写为：
 
-**实现**：对输入进行左填充，使卷积核仅"看到"过去上下文：
-
-```
-Standard:  y[t] = sum_k x[t + k - K//2] * w[k]   (centered)
-Causal:    y[t] = sum_k x[t - k] * w[k]            (left-aligned)
+```text
+y[t] = sum_(k=0..K-1) w[k] * x[t - d*k]
+receptive_field = 1 + sum_l (K_l - 1)*d_l
 ```
 
-实践中，对于核大小为K的卷积，因果版本引入(K-1)个采样点的延迟。
+感受野公式假设所有层步长为 1。核大小为 `K`，扩张率为 `1,2,...,2^(L-1)` 时，得到 `1 + (K-1)*(2^L-1)`。有步进下采样的网络必须计入步长乘积。
 
-**膨胀因果卷积**（来自WaveNet, van den Oord et al., 2016）：
-- 使用膨胀在不增加参数的情况下指数级扩大感受野
-- 膨胀模式：1、2、4、8、16、...（倍增）
-- 对于核大小K和最大膨胀D的L层，感受野 = (K-1) * sum(2^l)，l=0..L-1
+过去上下文意味着缓存需求，不自动引入 `(K-1)` 个采样点延迟。因果 FIR 在 `x[t]` 到达后即可计算 `y[t]`。前瞻、分帧、重采样和调度决定算法延迟；线性相位滤波器的群延迟又是另一概念，不能单凭因果性推断。
 
-### 4.3 EnCodec流式模式
+### 4.3 编解码器流式处理
 
-EnCodec明确提供了其SEANet架构的**因果变体**用于流式处理：
-- 所有卷积使用因果（仅左侧）填充
-- 模型以小块处理音频（通常1-10 ms）
-- 内部状态（卷积缓冲区）跨块维护
-- 引入等于编码器总感受野的小额算法延迟
+EnCodec 24 kHz 模型是因果的，但公开的整文件接口本身并不是有状态的流式实现。部署必须保留卷积与循环网络状态，并匹配离线填充和边界行为。
 
-**EnCodec 24 kHz的延迟分解：**
-- 编码器步幅：320个采样点 = 24 kHz下13 ms（即帧率）
-- 来自卷积上下文的额外回溯：因模型深度而异
-- 总延迟：通常20-50 ms（对流式处理可接受，对实时监听太高）
+24 kHz 下 320 个采样点帧移，意味着 **每个潜在帧 13.33 ms**，即 **75 帧/秒**。这既不是实测端到端延迟，也不是整个感受野。应分别测量编解码缓冲、重采样、推理、封包和设备延迟。[EnCodec 实现](https://github.com/facebookresearch/encodec)
 
-### 4.4 可流化的非因果模型
+### 4.4 非因果流式处理
 
-**论文**："Streamable Neural Audio Synthesis with Non-Causal Convolutions" (Semantic Scholar)
+Caillon 与 Esling 的 [Streamable Neural Audio Synthesis With Non-Causal Convolutions](https://arxiv.org/abs/2204.07064)（DAFx 2022）在训练后通过缓存运算与插入延迟，将非因果卷积模型转为流式，同时保持计算图及并行分支对齐。其方法比普通 overlap-add 更具体。所需未来上下文会转化为延迟；48 kHz 下 20 ms 对应 960 个采样点。
 
-一个关键洞察：非因果（双向）模型通常比因果模型产生更高质量，因为它们可以使用未来上下文。本文提出通过以下方法使非因果模型可流化：
-- 以重叠块处理音频
-- 使用前瞻缓冲区提供"未来"上下文
-- 在延迟和质量之间权衡：更多前瞻 = 更高质量但更高延迟
+### 4.5 推理框架
 
-**实际权衡**：48 kHz下20 ms前瞻缓冲区 = 960个采样点的额外延迟，但使得在流式上下文中使用非因果卷积成为可能。
+| 工具 | 范围与部署要点 |
+|---|---|
+| [RTNeural](https://github.com/jatinchowdhury18/RTNeural) | 为支持的层类型提供 C++ 推理；文档流程是将 TensorFlow/PyTorch 权重导出 JSON、准备模型、调用 forward，不是通用 ONNX 导入器。 |
+| [anira](https://arxiv.org/abs/2506.12665) | Ackva 与 Schulz；IS2 2024 论文，2025 arXiv 版本。使用静态线程池将推理移出音频回调并管理延迟；论文评估了 ONNX Runtime、LibTorch、TensorFlow Lite。 |
+| 通用张量/ONNX 运行时 | 可支持多种模型，但不会自动保证回调耗时有界；预热、分配行为、调度与线程数均影响结果。 |
+| [Faust](https://faust.grame.fr/) | DSP 语言与工具链，神经推理集成依所选后端或外部组件而定。 |
 
-### 4.5 实时神经推理框架
+### 4.6 延迟预算与验证
 
-#### RTNeural (Jatin Chowdhury)
+```text
+round_trip = ADC + input_buffers + algorithmic_delay
+             + processing/scheduling + output_buffers + DAC
+```
 
-**GitHub**：https://github.com/jatinchowdhury18/RTNeural
-
-专为**实时音频速率神经网络推理**设计的C++库：
-- 加载在TensorFlow、PyTorch或ONNX中训练的模型
-- 针对逐采样点处理进行了优化（无批次维度）
-- 支持：Dense、Conv1D、LSTM、GRU层
-- 面向**硬实时约束**设计：音频回调中不进行内存分配
-- 用于：吉他放大器建模、音频效果模拟、神经合成插件
-- 通过JUCE部署为VST/AU插件
-
-**工作流**：在Python中训练 -> 导出权重（JSON/ONNX） -> 在RTNeural C++中加载 -> 在音频回调中运行
-
-#### ANIRA (2025)
-
-**论文**：arXiv: 2506.12665
-
-在实时设置中对三种神经网络架构进行音频效果模拟基准测试，比较推理后端和延迟特性。
-
-#### 其他框架
-
-- **Neural Amp Modeler (NAM)**：使用神经网络的开源吉他放大器建模器
-- **Proteus**：吉他放大器/踏板模拟
-- **TorchAudio + TorchScript**：在实时约束下部署PyTorch模型
-- **ONNX Runtime**：通用神经推理，适用于音频模型
-- **Faust**：函数式音频编程语言；可集成神经网络推理
-
-### 4.6 现场音乐的延迟考量
-
-| 应用场景 | 最大可接受延迟 | 备注 |
-|-------------|----------------------|-------|
-| 吉他放大器建模 | 1-5 ms | 演奏者能感知5-10 ms以上的延迟 |
-| 人声处理 | 5-10 ms | 比吉他稍宽容 |
-| 实时监听 | < 10 ms | 一般准则 |
-| 现场电子音乐 | 10-50 ms | 通常更宽容 |
-| 非交互式（流传输） | 100+ ms | 适用于广播/电信 |
-
-**延迟来源：**
-1. **算法延迟**：模型固有延迟（来自因果填充、下采样）
-2. **计算延迟**：处理一帧音频的时间（必须小于帧时长）
-3. **缓冲延迟**：音频接口缓冲区大小（通常64-256个采样点 = 44.1 kHz下1.5-6 ms）
-4. **总往返延迟**：A/D转换 + 缓冲 + 处理 + 缓冲 + D/A转换
-
-### 4.7 关键论文
-
-- van den Oord et al. (2016) -- WaveNet: A Generative Model for Raw Audio
-- Defossez et al. (2022) -- EnCodec (causal/non-causal streaming architecture)
-- "Streamable Neural Audio Synthesis with Non-Causal Convolutions" -- bridging non-causal models and real-time
-- Chowdhury -- RTNeural: Real-time neural inference for audio
-- "Fast Temporal Convolutions for Real-Time Audio Signal Processing" (DAFx 2020)
-
-### 4.8 当前挑战
-
-- **质量-延迟权衡**：更高质量的模型（更多层、非因果）具有更高延迟
-- **模型大小**：大型模型（EnCodec、MusicGen）无法在嵌入式硬件上以音频速率运行
-- **ARM/嵌入式部署**：移动和边缘设备上的计算能力有限
-- **动态模型**：具有可变计算量的模型（如注意力机制）可能导致缓冲区欠载
-- **训练-推理不匹配**：流式模式的性能可能与离线模式不同
+不要重复计算已被缓冲隐藏的计算耗时。使用脉冲或回环测量真实输入到输出路径，并报告采样率、块大小、硬件、后端与负载。检查流式/离线结果一致性、状态重置、启动与尾部处理，以及计算超期时的行为。离线跑得快不足以证明可以稳定用于现场。
 
 ---
 
 ## 5. 音频标记化与离散表示
 
-### 5.1 为什么要离散化音频？
+### 5.1 VQ 与 RVQ
 
-连续音频波形是高维的（CD品质下44,100个采样点/秒）。对于语言模型方法（AudioLM、MusicLM、MusicGen、VALL-E），音频必须转换为类似于文本token的**离散token序列**：
+对码本 `C={e_1,...,e_K}`：
 
-```
-Audio waveform -> [Neural Codec] -> Token sequence -> [Language Model] -> Token sequence -> [Codec Decoder] -> Audio waveform
-```
-
-标记化的特性决定了：
-- **序列长度**：更少的token = 更高效的语言建模
-- **信息保持**：token必须捕获足够的信息以实现高保真重建
-- **语义内容**：理想情况下，token应捕获有意义的结构（音素、音符）
-- **语言模型兼容性**：单流token比多流token更易于标准LLM处理
-
-### 5.2 向量量化（VQ）
-
-基础构建块。给定连续向量 `z` 和码本 `C = {e_1, ..., e_K}`：
-
-```
-VQ(z) = argmin_k ||z - e_k||^2
+```text
+index(z) = argmin_k ||z - e_k||^2
+VQ(z) = e_index(z)
 ```
 
-量化向量是最近的码本条目。这将连续空间映射到K个离散编码。
+索引是离散值，量化向量是对应码本嵌入。直通估计器向编码器提供替代梯度。码本可以采用独立梯度损失，或对分配计数与向量和做 EMA 更新；简单平均每批均值通常不等价于该 EMA 算法。[VQ-VAE](https://arxiv.org/abs/1711.00937)
 
-**训练**：码本条目与编码器/解码器联合学习。两种主要更新策略：
-1. **基于梯度**：通过标准梯度下降更新码本嵌入（使用STE处理不可微的argmin）
-2. **EMA（指数移动平均）**：每个码本条目跟踪分配给它的编码器输出的移动平均值：`e_k = decay * e_k + (1 - decay) * mean(z_i where VQ(z_i) = k)`
+RVQ 逐层细化残差：
 
-**码本坍缩**：一种常见故障模式，仅使用码本中的一小部分条目。模型"忽略"大部分码本，降低了有效容量。
-
-**坍缩的解决方案：**
-- **码本重置**：重新初始化未使用的条目（EnCodec）
-- **熵正则化**：添加鼓励均匀使用码本的损失项
-- **LFQ**：完全避免可学习码本（WavTokenizer）
-- **乘积量化**：拆分向量并独立量化子向量
-
-### 5.3 残差向量量化（RVQ）
-
-当前编解码器中的主要量化方法。堆叠多个VQ层，每层量化前一层的残差（误差）：
-
-```
-Step 1: q_1 = VQ_1(z)           -> residual r_1 = z - q_1
-Step 2: q_2 = VQ_2(r_1)         -> residual r_2 = r_1 - q_2
-Step 3: q_3 = VQ_3(r_2)         -> residual r_3 = r_2 - q_3
-...
-Step N: q_N = VQ_N(r_{N-1})
+```text
+r_0 = z
+q_i = VQ_i(r_(i-1))
+r_i = r_(i-1) - q_i
+z_hat = sum_i q_i
 ```
 
-**重建**：`z_hat = q_1 + q_2 + ... + q_N`
+截断经过可变码率训练的模型可减少载荷。更多层通常增加表示容量，但不能保证每个信号的听觉质量都单调上升。前几层也不保证对应显式音符或音素。低维归一化查找（DAC）、低使用率编码替换（EnCodec）、初始化与利用率正则化分别采用不同方式处理码本利用不足。
 
-**可变比特率**：仅使用前K层（K <= N）以获得较低比特率；使用更多层则质量提高。
+### 5.2 无查找量化与分组量化
 
-**数学解释**：RVQ执行迭代细化。每层捕获从粗到细的细节级别。前几层捕获大部分能量/信息；后面的层添加精细细节。
+二值 LFQ 将 `d` 个分量分别映射到符号值，产生最多 `2^d` 种离散组合。不使用可学习码本并不保证 token 均匀分布，熵目标与训练设计仍然重要。LFQ 与 WavTokenizer 的可学习 VQ 是不同方法。[LFQ 参考：Language Model Beats Diffusion — Tokenizer is Key to Visual Generation](https://arxiv.org/abs/2310.05737)
 
-**在DAC中**（Kumar et al., 2023）：关键改进是在训练期间在RVQ层之间应用**停止梯度**。否则，后期量化器层的梯度会破坏早期层的稳定性。DAC还在训练期间使用量化器丢弃。
+分组 RVQ 把通道划分为组，在各组内做残差量化，HiFi-Codec 即为一例。分组数与层数共同决定编码流总数，优势应在匹配的质量和码率下检验。
 
-**实践中的参数：**
-- **EnCodec**：N = 8-32层，K = 1024编码/层，10比特/层
-- **DAC**：N = 9层，K = 1024编码/层
-- **SoundStream**：N = 4-12层
+### 5.3 语义与声学 Token
 
-### 5.4 无查找量化（LFQ）
+AudioLM/MusicLM 组合自监督音频特征与神经编解码器生成的多层级 token。较粗的语义表示帮助建模长程内容，声学编码支持波形细节。这是学习得到的分工，并非把“音符”和“音色”严格符号化拆开；语义特征可能保留声学信息，编解码器编码也可包含语义。[AudioLM](https://arxiv.org/abs/2209.03143)、[MusicLM](https://arxiv.org/abs/2301.11325)
 
-在WavTokenizer中使用（Pan et al., 2024）。不学习码本嵌入，LFQ将每个维度独立量化为二值：
+### 5.4 Token 速率与 MusicGen 延迟模式
 
-```
-LFQ(z_i) = sign(z_i)   (per dimension i)
-```
+| 配置 | 帧率 | 编码流数 | 每秒索引总数 |
+|---|---|---|---|
+| EnCodec 24 kHz、6 kbps | 75 Hz | 8 | 600 |
+| EnCodec 24 kHz、24 kbps | 75 Hz | 32 | 2,400 |
+| DAC 44.1 kHz、九个码本 | 约 86.13 Hz | 9 | 约 775.20 |
+| MusicGen 的 32 kHz 编解码器 | 50 Hz | 4 | 200 |
+| WavTokenizer | 40 或 75 Hz | 1 | 40 或 75 |
 
-对于d维向量，这产生2^d个可能的编码。当d=12时，即4,096个编码。
+MusicGen 使用 32 kHz EnCodec 配置、四个码本、50 Hz 帧率。它错开各码本流，并通过不同输出头在每个 Transformer 步骤预测多个索引，因此每秒约需 **50 个自回归步骤**，另有边界开销；并非展平成 200 步序列。这些数字对应原始单声道配置。[Copet 等，MusicGen](https://arxiv.org/abs/2306.05284)
 
-**优势：**
-- **无码本坍缩**：所有2^d个编码都是可达的；没有可学习的参数可以坍缩
-- **简单性**：无需码本存储，无需EMA更新
-- **效率**：二值量化速度极快
+### 5.5 实用评估
 
-**训练损失：**
-- **承诺损失**：`||z - sg(z_q)||^2`——鼓励编码器产生接近量化二值的值
-- **熵损失**：`H(z_q)`——鼓励所有编码的均匀分布（最大化码本利用率）
-- **直通估计器**：前向传播使用量化值；反向传播以恒等方式传递梯度
-
-### 5.5 分组和结构化变体
-
-**分组RVQ（GRVQ）**——HiFi-Codec (Yang et al., 2024)：
-- 将潜在维度划分为组，每组使用独立的RVQ进行量化
-- 减少所需的总码本数
-
-**跨尺度RVQ（CS-RVQ）**——ESC (EMNLP 2024)：
-- 跨尺度组合不同的量化粒度
-
-**网格量化**——TQCodec (2025/2026)：
-- 以网格结构组织码本条目，用于高效序列编码
-
-### 5.6 语义token与声学token的分离
-
-来自AudioLM（Borsos et al., 2022）和MusicLM（Agostinelli et al., 2023）的关键洞察：
-
-**语义token**（高级内容）：
-- 从自监督模型提取（w2v-BERT、HuBERT、MERT）
-- 捕获音素、音符、节奏模式
-- 时间分辨率较低
-- 对语言建模更相关（"是什么"）
-
-**声学token**（精细细节）：
-- 来自神经编解码器码本（SoundStream、EnCodec）
-- 捕获音色、房间声学、说话人身份
-- 时间分辨率较高
-- 对重建更相关（"怎么做"）
-
-**层次化生成**（AudioLM/MusicLM）：
-1. 自回归生成语义token（建模高级结构）
-2. 以语义token为条件生成粗粒度声学token（添加韵律、音色）
-3. 以粗粒度token为条件生成精细声学token（添加波形细节）
-
-这种层次结构产生比直接建模所有编解码器token更好的结果，因为语言模型可以在填充细节之前专注于语义层面的结构。
-
-### 5.7 从多码本到单流
-
-2024-2025年的一个主要趋势是减少token流数量：
-
-| 方法 | token流 | token数/秒 | LLM复杂度 |
-|----------|--------------|------------|-----------------|
-| EnCodec RVQ (8层) | 8并行 | 600 | 延迟模式交错 |
-| EnCodec RVQ (32层) | 32并行 | 2,400 | 复杂展平 |
-| MusicGen | 4并行（带延迟模式） | 300 | 交错自回归 |
-| WavTokenizer (LFQ) | 1 | ~75 | 标准下一token预测 |
-
-**MusicGen的方法**：使用EnCodec的4层码本，配合**延迟模式**，其中每个码本流偏移一个位置，然后展平为单个序列。Transformer并行预测每个时间步的所有码本层。
-
-**单流编解码器**（WavTokenizer、SemantiCodec）：完全消除了多流问题，使得可以直接使用标准LLM架构（LLaMA风格的Transformer），无需特殊的交错或延迟模式。
-
-### 5.8 关键论文
-
-- van den Oord et al. (2017) -- VQ-VAE: Neural Discrete Representation Learning
-- Razavi et al. (2019) -- Generating Diverse High-Fidelity Images with VQ-VAE-2
-- Zeghidour et al. (2021) -- SoundStream
-- Defossez et al. (2022) -- EnCodec
-- Borsos et al. (2022) -- AudioLM: A Language Modeling Approach to Audio Generation
-- Agostinelli et al. (2023) -- MusicLM: Generating Music From Text
-- Kumar et al. (2023) -- DAC (Improved RVQGAN)
-- Copet et al. (2023) -- MusicGen: Simple and Controllable Music Generation
-- Pan et al. (2024) -- WavTokenizer
-- Liu et al. (2024) -- SemantiCodec
-- Yang et al. (2024) -- HiFi-Codec
-
-### 5.9 当前挑战
-
-- **token效率**：平衡重建质量与token数量。更少的token使语言建模更容易，但可能损失音频保真度。
-- **语义对齐**：编解码器token捕获声学细节，但可能与语义概念（音符、音素）对齐不佳。SemantiCodec和相关工作解决了这一问题。
-- **token不一致性**：音频中的微小扰动可能导致离散token的大幅变化（ACL 2025论文分析了这一问题）。
-- **领域通用性**：在语音上训练的编解码器可能无法推广到音乐，反之亦然。SUNAC和SDCodec解决了多领域标记化问题。
-- **重建上限**：生成音频的质量从根本上受编解码器重建质量的限制。即使完美的语言模型预测，如果编解码器无法忠实重建，效果也会很差。
-- **立体声/空间音频**：大多数编解码器以单声道运行。空间音频标记化的研究仍然不足。
+应分别评估重建质量、语言模型可预测性、下游语义、领域覆盖和立体声表现。减少 token 可能降低建模开销，同时增加解码器负担。编解码重建保真度是重要瓶颈，但不是所有生成样本听觉质量的严格上界：生成潜在向量可能不同于测试音频编码得到的向量。单一编解码指标不足以证明完整系统的音乐实用性。
 
 ---
 
 ## 附录：工具与库
 
-| 工具 | 用途 | 链接 |
-|------|---------|------|
-| **librosa** | 音频分析、特征提取 | https://librosa.org |
-| **torchaudio** | PyTorch音频，可微分变换 | https://pytorch.org/audio |
-| **nnAudio** | GPU加速，可微分音频变换 | https://github.com/KinWaiCheuk/nnAudio |
-| **demucs** | 源分离 (Meta) | https://github.com/facebookresearch/demucs |
-| **audiocraft** | MusicGen、AudioGen、EnCodec (Meta) | https://github.com/facebookresearch/audiocraft |
-| **descript-audio-codec** | DAC推理/训练 | https://github.com/descriptinc/descript-audio-codec |
-| **stable-audio-tools** | Stable Audio训练/推理 | https://github.com/Stability-AI/stable-audio-tools |
-| **diffusers** | HuggingFace扩散流水线（包含AudioLDM 2） | https://github.com/huggingface/diffusers |
-| **RTNeural** | 音频的实时神经推理 | https://github.com/jatinchowdhury18/RTNeural |
-| **WavTokenizer** | 基于LFQ的音频标记器 | https://github.com/novelfm/WavTokenizer |
-| **FunCodec** | 神经编解码器研究工具包 | https://github.com/modelscope/FunCodec |
-| **Faust** | 函数式音频编程语言 | https://faust.grame.fr |
+| 工具 | 用途 |
+|---|---|
+| [librosa](https://librosa.org/) | 音频分析与特征提取 |
+| [nnAudio](https://github.com/KinWaiCheuk/nnAudio) | 基于张量的音频变换 |
+| [AudioCraft](https://github.com/facebookresearch/audiocraft) | MusicGen 与相关音频模型 |
+| [DAC](https://github.com/descriptinc/descript-audio-codec) | 编解码器训练与推理 |
+| [stable-audio-tools](https://github.com/Stability-AI/stable-audio-tools) | Stable Audio 模型工具 |
+| [RTNeural](https://github.com/jatinchowdhury18/RTNeural) | 面向音频的 C++ 神经推理 |
+| [anira](https://github.com/anira-project/anira) | 音频应用的推理调度 |
+| [WavTokenizer](https://github.com/jishengpeng/WavTokenizer) | 单码本音频标记器 |
+| [FunCodec](https://github.com/modelscope/FunCodec) | 神经语音编解码工具包 |
 
----
-
-*最后更新：2026年5月*
+数据集、MIR 指标及模型评测背景见[音乐理解 / MIR](music-understanding-mir-zh.md)。

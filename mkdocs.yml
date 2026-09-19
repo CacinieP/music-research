@@ -1,0 +1,58 @@
+site_name: 音乐研究 · Music Research
+site_description: 乐理、音频工程、MIR、音乐生成与评测的中英文研究笔记
+site_url: https://caciniep.github.io/music-research/
+repo_url: https://github.com/CacinieP/music-research
+repo_name: CacinieP/music-research
+edit_uri: ''
+docs_dir: .site-docs
+site_dir: site
+strict: true
+copyright: CC BY 4.0 · CacinieP
+theme:
+  name: material
+  language: zh
+  font: false
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle: {icon: material/weather-night, name: 切换深色模式}
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle: {icon: material/weather-sunny, name: 切换浅色模式}
+  features:
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+plugins:
+  - search:
+      lang: [zh, en]
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.details
+extra_javascript:
+  - assets/mathjax-config.js
+  - assets/mathjax/tex-chtml.js
+extra_css:
+  - assets/reading.css
+validation:
+  links:
+    not_found: warn
+    anchors: warn
+hooks:
+  - scripts/hooks.py

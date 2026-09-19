@@ -1,151 +1,111 @@
-# Reading List
+# Verified Reading List
 
-## Music Understanding
+[中文版](README-zh.md)
 
-| Paper | Year | Topic |
-|-------|------|-------|
-| Music Tagging Transformers (Won et al.) | 2021 | Auto-tagging |
-| CLAP (Wu et al.) | 2023 | Audio-language contrastive learning |
-| MusicFM (Kumar et al.) | 2024 | Music foundation model |
+Checked on 2026-09-19. Papers link to original sources. Years denote first preprint submission unless a conference/publication is explicitly distinguished; product launch, preprint, and proceedings dates can differ. This list verifies bibliographic identity and brief subject descriptions, not independent reproduction of experimental results.
 
-## Music Generation
+## Music understanding
 
-| Paper | Year | Topic |
-|-------|------|-------|
-| Music Transformer (Huang et al.) | 2018 | Symbolic generation |
-| Jukebox (Dhariwal et al.) | 2020 | Audio generation via VQ-VAE |
-| AudioLDM (Liu et al.) | 2023 | Latent diffusion for audio |
-| MusicGen (Copet et al.) | 2023 | Text-to-music |
-| Stable Audio (Roberts et al.) | 2023 | Latent diffusion, real-time |
-| YuE (team) | 2025 | Full-song generation |
-| ACE-Step (ACE Studio + StepFun) | 2025 | Foundation model: DCAE + linear transformer + diffusion (REPA) |
-| MusicFlow (Prajwal et al., Meta) | 2024 | Cascaded flow matching for text-to-music (ICML 2024) |
-| SongCreator (Shun Lei et al.) | 2024 | Lyrics-based universal song generation (NeurIPS 2024, DSLM) |
-| MusicFX (Google) | 2023--25 | Consumer text-to-music (MusicLM-based) |
+| Paper and source | Authors | Year | Topic |
+|---|---|---|---|
+| [Semi-Supervised Music Tagging Transformer](https://arxiv.org/abs/2111.13457) | Minz Won, Keunwoo Choi, Xavier Serra | 2021 | Music tagging with convolution and self-attention |
+| [Large-scale Contrastive Language-Audio Pretraining with Feature Fusion and Keyword-to-Caption Augmentation](https://arxiv.org/abs/2211.06687) | Yusong Wu et al. | 2022 | LAION-CLAP; audio-text contrastive learning |
+| [A Foundation Model for Music Informatics](https://arxiv.org/abs/2311.03318) | Minz Won, Yun-Ning Hung, Duc Le | 2023 | MusicFM; self-supervised music representations |
+| [MERT: Acoustic Music Understanding Model with Large-Scale Self-supervised Training](https://arxiv.org/abs/2306.00107) | Yizhi Li et al. | 2023 | Acoustic and musical teacher targets; ICLR 2024 |
 
-## Video-to-Music Generation
+## Music generation
 
-| Paper | Year | Topic |
-|-------|------|-------|
-| CMT (Contrastive Multimodal Transformer) | 2025 | Video-to-music via contrastive cross-modal alignment |
-| M2UGen | 2025 | Multi-modal music understanding and generation |
-| Video2Music | 2025 | Video-conditioned background music |
-| MuVi | 2025 | Visual-to-music with rhythmic alignment |
+| Paper and source | Authors | Year | Topic |
+|---|---|---|---|
+| [Music Transformer](https://arxiv.org/abs/1809.04281) | Cheng-Zhi Anna Huang et al. | 2018 | Relative attention for symbolic music |
+| [Jukebox: A Generative Model for Music](https://arxiv.org/abs/2005.00341) | Prafulla Dhariwal et al. | 2020 | VQ-VAE and autoregressive audio modeling |
+| [AudioLM: a Language Modeling Approach to Audio Generation](https://arxiv.org/abs/2209.03143) | Zalán Borsos et al. | 2022 | Hierarchical semantic/acoustic token modeling |
+| [MusicLM: Generating Music From Text](https://arxiv.org/abs/2301.11325) | Andrea Agostinelli et al. | 2023 | Text-conditioned music audio generation |
+| [AudioLDM: Text-to-Audio Generation with Latent Diffusion Models](https://arxiv.org/abs/2301.12503) | Haohe Liu et al. | 2023 | Continuous latent diffusion for audio |
+| [AudioLDM 2: Learning Holistic Audio Generation with Self-supervised Pretraining](https://arxiv.org/abs/2308.05734) | Haohe Liu et al. | 2023 | Shared audio representation and latent diffusion |
+| [Simple and Controllable Music Generation](https://arxiv.org/abs/2306.05284) | Jade Copet et al. | 2023 | MusicGen; text/melody-conditioned codec language model |
+| [Fast Timing-Conditioned Latent Audio Diffusion](https://arxiv.org/abs/2402.04825) | Zach Evans et al. | 2024 | Stable Audio research model; text and timing conditions |
+| [MusicFlow: Cascaded Flow Matching for Text Guided Music Generation](https://arxiv.org/abs/2410.20478) | K R Prajwal et al. | 2024 | Cascaded semantic/acoustic flow matching |
+| [SongCreator: Lyrics-based Universal Song Generation](https://arxiv.org/abs/2409.06029) | Shun Lei et al. | 2024 | Dual-sequence language model for vocals/accompaniment |
+| [YuE: Scaling Open Foundation Models for Long-Form Music Generation](https://arxiv.org/abs/2503.08638) | Ruibin Yuan et al. | 2025 | Long-form lyrics-to-song generation |
+| [ACE-Step: A Step Towards Music Generation Foundation Model](https://arxiv.org/abs/2506.00045) | Junmin Gong et al. | 2025 | DCAE, linear transformer, diffusion and REPA |
+| [ACE-Step 1.5: Pushing the Boundaries of Open-Source Music Generation](https://arxiv.org/abs/2602.00744) | Junmin Gong et al. | 2026 | Distinct follow-up with LM planning and DiT generation |
+| [Multitrack Music Transformer](https://arxiv.org/abs/2207.06983) | Hao-Wen Dong et al. | 2022 | Multitrack symbolic representation; ICASSP 2023 |
 
-## Human Preference Alignment
+## Video and multimodal conditioning
 
-| Paper | Year | Topic |
-|-------|------|-------|
-| Benchmarking Music Gen Models and Metrics via Human Preference Studies | 2025 | Human preference benchmark for music generation (ICASSP 2025) |
-| Aligning Generative Music AI with Human Preferences | 2025 | Preference alignment (AAAI 2025) |
-| Make-It-Music / SongBench (Nankai Univ.) | 2025 | Song generation framework with supervised quality labels (arXiv:2502.19324) |
+| Paper and source | Authors | Year | Topic |
+|---|---|---|---|
+| [Video Background Music Generation with Controllable Music Transformer](https://arxiv.org/abs/2111.08380) | Shangzhe Di et al. | 2021 | CMT means Controllable Music Transformer |
+| [M²UGen: Multi-modal Music Understanding and Generation with the Power of Large Language Models](https://arxiv.org/abs/2311.11255) | Shansong Liu et al. | 2023 | Multimodal understanding and music generation |
+| [Video2Music: Suitable Music Generation from Videos using an Affective Multimodal Transformer model](https://arxiv.org/abs/2311.00968) | Jaeyong Kang, Soujanya Poria, Dorien Herremans | 2023 | Video-conditioned symbolic music framework |
+| [MuVi: Video-to-Music Generation with Semantic Alignment and Rhythmic Synchronization](https://arxiv.org/abs/2410.12957) | Ruiqi Li et al. | 2024 | Video-conditioned audio with semantic/rhythmic alignment |
 
-## Audio Engineering
+## Codecs and generative foundations
 
-| Paper | Year | Topic |
-|-------|------|-------|
-| EnCodec (Defossez et al.) | 2022 | Neural audio codec, SEANet architecture, RVQ |
-| SoundStream (Zeghidour et al.) | 2021 | First end-to-end neural audio codec |
-| DAC / Improved RVQGAN (Kumar et al.) | 2023 | High-fidelity codec, improved RVQ training |
-| FunCodec (Du et al.) | 2023 | Open-source neural codec toolkit |
-| SemantiCodec (Liu et al.) | 2024 | Dual-encoder semantic/acoustic codec |
-| WavTokenizer (Pan et al.) | 2024 | LFQ-based single-codebook tokenizer |
-| HiFi-Codec (Yang et al.) | 2024 | Grouped-RVQ for efficient codec |
-| TQCodec | 2025/2026 | Trellis quantization, high-fidelity music |
-| SUNAC (MERL) | 2026 | Source-aware unified neural audio codec |
-| WaveNet (van den Oord et al.) | 2016 | Dilated causal convolutions for audio |
-| DDPM (Ho et al.) | 2020 | Denoising diffusion probabilistic models |
-| Score-Based SDE (Song et al.) | 2021 | Unified SDE framework for diffusion |
-| CFG (Ho & Salimans) | 2022 | Classifier-free diffusion guidance |
-| AudioLDM (Liu et al.) | 2023 | Latent diffusion for audio |
-| AudioLDM 2 (Liu et al.) | 2024 | Unified audio generation, IEEE TASLP |
-| Stable Audio (Roberts et al.) | 2024 | Timing-conditioned latent diffusion |
-| AudioLM (Borsos et al.) | 2022 | Hierarchical language model for audio |
-| MusicLM (Agostinelli et al.) | 2023 | Text-to-music via hierarchical tokens |
-| MusicGen (Copet et al.) | 2023 | Transformer + EnCodec for music |
-| VQ-VAE (van den Oord et al.) | 2017 | Neural discrete representation learning |
-| SincNet (Ravanelli & Bengio) | 2018 | Learnable audio frontend |
-| MERT (Min et al.) | 2023 | Music foundation model, self-supervised |
-| CLAP (Wu et al.) | 2023 | Contrastive language-audio pretraining |
-| Brown (CQT) | 1991 | Constant-Q transform for music |
-| Schorkhuber & Klapuri | 2010 | CQT toolbox for music processing |
+| Paper and source | Authors | Year | Topic |
+|---|---|---|---|
+| [SoundStream: An End-to-End Neural Audio Codec](https://arxiv.org/abs/2107.03312) | Neil Zeghidour et al. | 2021 | End-to-end neural codec with residual vector quantization |
+| [High Fidelity Neural Audio Compression](https://arxiv.org/abs/2210.13438) | Alexandre Défossez et al. | 2022 | EnCodec; neural audio compression |
+| [High-Fidelity Audio Compression with Improved RVQGAN](https://arxiv.org/abs/2306.06546) | Rithesh Kumar et al. | 2023 | Descript Audio Codec (DAC) |
+| [FunCodec: A Fundamental, Reproducible and Integrable Open-source Toolkit for Neural Speech Codec](https://arxiv.org/abs/2309.07405) | Zhihao Du et al. | 2023 | Speech-codec toolkit and reproducible recipes |
+| [HiFi-Codec: Group-residual Vector quantization for High Fidelity Audio Codec](https://arxiv.org/abs/2305.02765) | Dongchao Yang et al. | 2023 | Group-residual vector quantization |
+| [SemantiCodec: An Ultra Low Bitrate Semantic Audio Codec for General Sound](https://arxiv.org/abs/2405.00233) | Haohe Liu et al. | 2024 | Semantic/acoustic encoders and diffusion decoder |
+| [WavTokenizer: an Efficient Acoustic Discrete Codec Tokenizer for Audio Language Modeling](https://arxiv.org/abs/2408.16532) | Shengpeng Ji et al. | 2024 | Single-quantizer VQ codec; not LFQ |
+| [WaveNet: A Generative Model for Raw Audio](https://arxiv.org/abs/1609.03499) | Aaron van den Oord et al. | 2016 | Autoregressive raw-audio modeling |
+| [Neural Discrete Representation Learning](https://arxiv.org/abs/1711.00937) | Aaron van den Oord, Oriol Vinyals, Koray Kavukcuoglu | 2017 | VQ-VAE |
+| [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239) | Jonathan Ho, Ajay Jain, Pieter Abbeel | 2020 | DDPM |
+| [Score-Based Generative Modeling through Stochastic Differential Equations](https://arxiv.org/abs/2011.13456) | Yang Song et al. | 2020 | Score-based SDE framework; ICLR 2021 |
+| [Classifier-Free Diffusion Guidance](https://arxiv.org/abs/2207.12598) | Jonathan Ho, Tim Salimans | 2022 | Conditional/unconditional guidance |
 
-## Music Theory & Foundations
+## Evaluation and human preference
 
-| Paper / Book | Year | Topic |
-|--------------|------|-------|
-| Piston, W. *Harmony* (revised ed.) | 1987 | Functional harmony, standard textbook |
-| Kostka, S. & Payne, D. *Tonal Harmony* (8th ed.) | 2018 | Modern harmony textbook |
-| Aldwell, E. & Cadwallader, A. *Harmony and Voice Leading* (4th ed.) | 2018 | Voice-leading-oriented harmony |
-| Krumhansl, C.L. *Cognitive Foundations of Musical Pitch* | 1990 | Pitch perception, key-finding theory |
-| Bregman, A.S. *Auditory Scene Analysis* | 1990 | Cognitive basis for source separation |
-| Müller, M. *Fundamentals of Music Processing* (2nd ed.) | 2021 | Computational musicology textbook |
-| Zbikowski, L.M. *Conceptualizing Music* | 2002 | Music cognition and computational models |
+| Paper and source | Authors | Year | Topic |
+|---|---|---|---|
+| [Fréchet Audio Distance: A Metric for Evaluating Music Enhancement Algorithms](https://arxiv.org/abs/1812.08466) | Kevin Kilgour et al. | 2018 | FAD; audio-embedding distribution comparison |
+| [MusicRL: Aligning Music Generation to Human Preferences](https://arxiv.org/abs/2402.04229) | Geoffrey Cideron et al. | 2024 | Reward-based and human-feedback music alignment |
+| [Benchmarking Music Generation Models and Metrics via Human Preference Studies](https://arxiv.org/abs/2506.19085) | Florian Grötschla et al. | 2025 | Human preference comparisons and metric evaluation |
+| [Aligning Text-to-Music Evaluation with Human Preferences](https://arxiv.org/abs/2503.16669) | Yichen Huang et al. | 2025 | MusicPrefs and MAUVE Audio Divergence (MAD) |
+| [Aligning Generative Music AI with Human Preferences: Methods and Challenges](https://arxiv.org/abs/2511.15038) | Dorien Herremans, Abhinaba Roy | 2025 | Perspective on alignment methods and challenges |
 
-## Music Styles & Genre
+## Singing and accompaniment
 
-| Paper / Book | Year | Topic |
-|--------------|------|-------|
-| Serrà, J. et al. "Correlation and Causality in Music Style Construction" | 2012 | Statistical analysis of musical style |
-| Huang, C.Z.A. *Music Style Modeling and Generation* (PhD thesis) | 2017 | Computational approaches to style |
-| Lomax, A. *Folk Song Style and Culture* | 1968 | Anthropological approach to musical style |
-| Park, J. et al. "Multitrack Music Transformer" | 2022 | Multi-instrument style modeling |
-| Hung, H.T. et al. "Emotional Music Generation via Disentangled Representations" | 2022 | Style disentanglement for generation |
-| Brée, D. *AI and Music: A Comprehensive Survey* | — | Technical survey covering style in AI music |
+| Paper and source | Authors | Year | Topic |
+|---|---|---|---|
+| [DiffSinger: Singing Voice Synthesis via Shallow Diffusion Mechanism](https://arxiv.org/abs/2105.02446) | Jinglin Liu et al. | 2021 | Score-conditioned SVS; AAAI 2022 |
+| [SingSong: Generating musical accompaniments from singing](https://arxiv.org/abs/2301.12662) | Chris Donahue et al. | 2023 | AudioLM-based accompaniment from input vocals |
 
-## Music Evaluation
+## Style, datasets, and cultural analysis
 
-| Paper / System | Year | Topic |
-|----------------|------|-------|
-| FAD (Fréchet Audio Distance) | 2021 | Distribution-based audio quality metric |
-| CLAP Score | 2023 | Text-audio alignment metric |
-| Benchmarking Music Gen Models via Human Preference Studies | 2025 | Human preference benchmark (ICASSP 2025) |
-| Aligning Generative Music AI with Human Preferences | 2025 | Preference alignment (AAAI 2025) |
-| SongBench | 2025 | Supervised quality labels for song generation |
-| PEMO-Q | — | Perceptual audio quality evaluation (ITU-R) |
-| ViSQOL | — | Virtual speech/audio quality objective listener |
-
-## Singing Voice Synthesis
-
-| Paper / System | Year | Topic |
-|----------------|------|-------|
-| DiffSinger | 2021 | Diffusion-based SVS, landmark open-source |
-| OpenDiffSinger | 2022--25 | Community fork with multi-speaker/language |
-| So-VITS-SVC | 2022 | VITS-based singing voice conversion |
-| SingSong (Google) | 2023 | Diffusion-based singing extraction + synthesis |
-| ACE Singer (ACE Studio) | 2024--25 | Commercial multi-language SVS, DAW integration |
-| RDCM | 2025 | Recurrent diffusion for long-form singing |
-| A Survey on Singing Voice Synthesis | 2024 | Comprehensive SVS survey |
-
-## Music Recommendation
-
-| Paper / System | Year | Topic |
-|----------------|------|-------|
-| Spotify audio features | 2010s | Danceability, energy, valence features |
-| MERT for recommendation | 2023 | Self-supervised embeddings for music similarity |
-| CLAP for music search | 2023 | Text-based music retrieval |
-| MusicFM | 2023 | Foundation model for recommendation |
-
-## Cover Detection & Melody Extraction
-
-| Paper / System | Year | Topic |
-|----------------|------|-------|
-| Chromaprint / AcoustID | 2008-- | Chroma-based fingerprinting for cover detection |
-| DeepSalience | 2018 | Deep learning pitch salience for melody extraction |
-| SecondHandSongs | — | Crowdsourced cover metadata (~1M works) |
-| Da-TACOS | 2019 | Large-scale cover song benchmark (~17K) |
-| Covers80 | 2011 | Classic small benchmark (80 pairs) |
+| Paper and source | Authors | Year | Topic |
+|---|---|---|---|
+| [Measuring the evolution of contemporary western popular music](https://arxiv.org/abs/1205.5651) | Joan Serrà et al. | 2012 | Corpus-based pitch, timbre, and loudness analysis |
+| [The GTZAN dataset: Its contents, its faults, their effects on evaluation, and its future use](https://arxiv.org/abs/1306.1461) | Bob L. Sturm | 2013 | Genre-dataset audit and evaluation methodology |
+| [Da-TACOS: A Dataset for Cover Song Identification and Understanding](https://archives.ismir.net/ismir2019/paper/000038.pdf) | Furkan Yesiler et al. | 2019 | Original ISMIR paper; distinct analysis/benchmark subsets |
 
 ## Surveys
 
-| Paper | Year | Scope |
-|-------|------|-------|
-| A Survey on Deep Learning for Music Generation | 2023 | Comprehensive music gen survey |
-| Music Source Separation: A Brief Overview | 2023 | Source separation |
-| Discrete Audio Tokens: More Than a Survey (arXiv 2506.10274) | 2025 | Comprehensive survey on audio tokenization |
-| Discrete Tokenization for Multimodal LLMs | 2025 | VQ/RVQ tokenization for multimodal systems |
-| Codec SUPERB | 2024 | Neural audio codec benchmarking |
+| Paper and source | Authors | Year | Topic |
+|---|---|---|---|
+| [Deep Learning Techniques for Music Generation — A Survey](https://arxiv.org/abs/1709.01620) | Jean-Pierre Briot, Gaëtan Hadjeres, François-David Pachet | 2017 | Generation objectives, representations, architectures, and strategies |
+| [A Comprehensive Survey on Deep Music Generation: Multi-level Representations, Algorithms, Evaluations, and Future Directions](https://arxiv.org/abs/2011.06801) | Shulei Ji, Jing Luo, Xinyu Yang | 2020 | Score, performance, and audio generation |
+| [A Survey on Recent Deep Learning-driven Singing Voice Synthesis Systems](https://arxiv.org/abs/2110.02511) | Yin-Ping Cho et al. | 2021 | Historical neural SVS survey |
+| [Foundation Models for Music: A Survey](https://arxiv.org/abs/2408.14340) | Yinghao Ma et al. | 2024 | Representation, generation, multimodality, control, agents |
+| [Discrete Audio Tokens: More Than a Survey!](https://arxiv.org/abs/2506.10274) | Pooneh Mousavi et al. | 2025 | Survey and benchmarks for speech/music/general audio tokenizers |
+| [A Survey on Evaluation Metrics for Music Generation](https://arxiv.org/abs/2509.00051) | Faria Binte Kader, Santu Karmaker | 2025 | Symbolic/audio evaluation taxonomy and limitations |
 
----
+## Textbooks, tutorials, and software
 
-This list is a starting point — contributions welcome.
+- Meinard Müller, [*Fundamentals of Music Processing*, second edition](https://www.audiolabs-erlangen.de/fau/professor/mueller/bookFMP) (2021): author-maintained book page and computational examples.
+- [Open Music Theory](https://viva.pressbooks.pub/openmusictheory/) and Robert Hutchinson’s [Music Theory for the 21st-Century Classroom](https://musictheory.pugetsound.edu/mt21c/): open theory textbooks.
+- [CompMusic](https://compmusic.upf.edu/): culturally specific music-information research project.
+- [Open-Source Tools & Data for Music Source Separation](https://source-separation.github.io/tutorial/intro/src_sep_101.html): a tutorial, not a survey paper of the same title.
+- [Chromaprint](https://acoustid.org/chromaprint): fingerprinting for near-identical recordings, not a general cover-song identification algorithm.
+
+## Citation corrections
+
+Entries whose supplied title/author/year combination could not be identified are not retained, including Brée’s “AI and Music: A Comprehensive Survey,” Huang’s “Music Style Modeling and Generation” thesis, Serrà’s “Correlation and Causality in Music Style Construction,” Hung’s “Emotional Music Generation via Disentangled Representations,” and the McKinney MIR survey. Identifiable publications above cover related topics. Unverified does not mean proven nonexistent.
+
+The former Make-It-Music / SongBench entry used arXiv:2502.19324, which actually identifies a [cosmic-ray anisotropy paper](https://arxiv.org/abs/2502.19324), not music research. Other unexplained acronyms, product capabilities, and ambiguously cited textbook editions have been removed from this verified list; they can be reintroduced with exact original sources.
+
+For reading order and scope, see the [survey guide](../docs/surveys/reading-guide.md).

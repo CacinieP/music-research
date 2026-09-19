@@ -1,248 +1,105 @@
-# 综述论文导读：AI 音乐领域关键文献综述
+# AI 音乐综述阅读指南：已核对文献
 
-截至 2025–2026 年 AI 音乐领域最重要的综述论文导读。每篇包含覆盖范围、核心洞察、不足，以及与本仓库笔记的对应关系。
+[English](reading-guide.md)
 
----
+本指南收录可明确识别的综述与教程，于 2026-09-19 对照作者、arXiv、出版方或项目页面核对。除明确注明其他出版版本外，年份表示所链接预印本的首次提交年份。范围摘要描述原文；阅读用途是本仓库的编辑建议。列表为精选，不声称穷尽最新论文。
 
-## 1. A Survey on Deep Learning for Music Generation (2023)
+## 1. 深度学习生成：概念基线
 
-**覆盖**：符号和音频级音乐生成的全面综述，领域内引用最高的通用综述。
+**Jean-Pierre Briot、Gaëtan Hadjeres、François-David Pachet，*Deep Learning Techniques for Music Generation — A Survey*（2017 预印本，后有修订）。** [arXiv:1709.01620](https://arxiv.org/abs/1709.01620)
 
-**核心内容**：
-- 符号音乐生成（RNN、Transformer、GAN）
-- 音频级生成（WaveNet、GAN、扩散）
-- 表示学习（MIDI、钢琴卷帘、音频特征）
-- 评测指标
-- 挑战与未来方向
+该综述按目标、表示、架构、挑战与生成策略组织系统。示例有助于区分乐谱、演奏与音频生成，解释为何表示和控制与网络架构同样值得研究。
 
-**核心洞察**：
-- 自回归模型主导符号生成；扩散模型主导音频级生成
-- 符号和音频级方法之间的"表示鸿沟"仍未弥合
-- 评测是最薄弱的环节：无标准化协议，指标与人类判断相关性差
+**阅读用途**：建立比较方法的框架。历史模型不能被称为 2026 年最先进水平；所链接文献并非无法识别的“A Survey on Deep Learning for Music Generation (2023)”。
 
-**不足**：
-- 2023 年发表，缺少 2024–2025 进展（MusicGen、Stable Audio、ACE-Step、YuE、扩散符号生成）
-- 可控生成覆盖有限
-- 歌声合成未作为独立主题
-- 基础模型和预训练范式讨论少
+**相关笔记**：[音乐生成](../notes/music-generation-zh.md)、[乐理](../notes/music-theory-fundamentals-zh.md)、[评测](../notes/music-evaluation-zh.md)。
 
-**适合谁读**：想了解生成领域全貌的基础读物。最好作为历史基线（2023 年之前已知什么），然后读更近的论文跟进。
+## 2. 不同表示层级的生成
 
-**→ 对应**：[music-generation.md](music-generation.md) §1–§5, [music-evaluation.md](music-evaluation.md)
+**Shulei Ji、Jing Luo、Xinyu Yang，*A Comprehensive Survey on Deep Music Generation: Multi-level Representations, Algorithms, Evaluations, and Future Directions*（2020）。** [arXiv:2011.06801](https://arxiv.org/abs/2011.06801)
 
----
+这篇草稿综述乐谱、演奏和音频生成，并讨论各层级的任务、表示、数据集、方法与评测。
 
-## 2. Discrete Audio Tokens: More Than a Survey (arXiv 2506.10274, 2025)
+**阅读用途**：将“写音符”“演奏乐谱”“合成声音”区分为不同研究目标。编解码器语言模型、扩散、流匹配与完整歌曲生成应补读后续原始论文。出版时间和具体结论须查原文，不能从综述标题推断。
 
-**覆盖**：音频分词最全面、最新的综述——现代文本到音乐系统的核心基础。
+**相关笔记**：[音乐生成](../notes/music-generation-zh.md)、[音频工程](../notes/audio-engineering-zh.md)。
 
-**核心内容**：
-- 历史演进：VQ-VAE → 神经编解码器 → 大规模分词
-- 分词方法分类（RVQ、LFQ、乘积量化、语义分词）
-- 编解码器架构对比（EnCodec、DAC、SoundStream、WavTokenizer、SemantiCodec、TQCodec）
-- 下游应用：语言模型、生成、压缩
-- 开放问题
+## 3. 音频 tokenization
 
-**核心洞察**：
-- 分词质量直接限制生成质量——不只是"压缩"步骤
-- RVQ 仍主导但 LFQ 和语义分词在崛起
-- 领域需要超越重建质量的标准化编解码器评测基准
-- 音乐特定需求（和声结构、时序分辨率）与语音不同
+**Pooneh Mousavi 等，*Discrete Audio Tokens: More Than a Survey!*（2025）。** [arXiv:2506.10274](https://arxiv.org/abs/2506.10274)
 
-**不足**：
-- 非常新 — 部分 2025 模型可能未纳入
-- 技术对比重，音乐含义轻
-- 分词设计如何影响生成可控性讨论有限
+该工作结合 tokenizer 综述与语音、音乐、通用音频基准，按架构、量化、训练、流式能力和用途分类，并评测重建、下游任务与声学语言建模。
 
-**适合谁读**：深入理解音频编解码器和分词——这是理解 MusicGen、AudioLDM 等系统如何工作 的基础。实现任何基于 token 的生成系统之前必读。
+**阅读用途**：在重建质量之外比较 tokenizer。将结论用于音乐前，应检查采样率、码率、领域和模型版本。离散编解码 token 是 MusicGen 等系统的重要环节；AudioLDM 使用连续潜在扩散，并非所有音频生成器都需要离散化。
 
-**→ 对应**：[audio-engineering.md](audio-engineering.md) §2–§5, [music-generation.md](music-generation.md) §1.1
+**相关笔记**：[音频工程](../notes/audio-engineering-zh.md)、[音乐生成](../notes/music-generation-zh.md)。
 
----
+## 4. 音乐基础模型
 
-## 3. Foundation Models for Music: A Survey (arXiv 2408.14340, 2024)
+**Yinghao Ma 等，*Foundation Models for Music: A Survey*（2024）。** [arXiv:2408.14340](https://arxiv.org/abs/2408.14340)
 
-**覆盖**：音乐基础模型综合综述——用于音乐理解和生成的大规模预训练模型。
+该综述涵盖表示学习、生成与多模态学习，讨论预训练、架构、tokenization、微调、可控性、音乐 agent、数据、评测与伦理，其范围明显超出音乐理解编码器。
 
-**核心内容**：
-- 预训练目标（掩码建模、对比学习、自回归）
-- 模型家族（MERT、MusicFM、JukeMIR、CLAP、CLaMP、MusicBERT 等）
-- 下游任务性能（标签、转录、生成）
-- 跨模态对齐（音频-文本、音频-MIDI、音频-图像）
-- 评测基准（MARBLE、SUPERB）
+**阅读用途**：比较基础模型的角色和训练范式。把后续模型归入综述前，应检查实际版本及模型原始出版物；不能从泛泛的“后续更新”推导出“MERT v2”“MusicFM v2”等名称。
 
-**核心洞察**：
-- 大规模音乐语料上的自监督预训练是主导范式
-- 基础模型迁移到下游任务效果好，但不同任务表现差异大
-- 多模态对齐（CLAP、CLaMP 3）实现了零样本音乐理解
-- 调性检测和细粒度和声分析是所有基础模型的弱点
+**相关笔记**：[音乐理解](../notes/music-understanding-mir-zh.md)、[生成](../notes/music-generation-zh.md)、[风格](../notes/music-styles-zh.md)。
 
-**不足**：
-- 领域发展快 — 2025 模型（MERT v2、MusicFM v2）可能未覆盖
-- 生成能力讨论有限（多数聚焦理解）
-- 未讨论计算成本和中小研究组的可及性
+## 5. 歌声合成
 
-**适合谁读**：理解基础模型全景——有哪些模型、如何训练、擅长什么。做迁移学习或零样本 MIR 的必读。
+**Yin-Ping Cho、Fu-Rong Yang、Yung-Chuan Chang、Ching-Ting Cheng、Xiao-Han Wang、Yi-Wen Liu，*A Survey on Recent Deep Learning-driven Singing Voice Synthesis Systems*（2021）。** [arXiv:2110.02511](https://arxiv.org/abs/2110.02511)
 
-**→ 对应**：[music-understanding-mir.md](music-understanding-mir.md) §5, [music-styles.md](music-styles.md) §7
+该综述比较从乐谱与歌词生成歌声的神经系统架构、优势和限制。
 
----
+**阅读用途**：可明确识别的历史 SVS 入门。它不是 2024 年综述，不能证明当前扩散模型的占比，也不覆盖全部后续系统。可配合 [DiffSinger](https://arxiv.org/abs/2105.02446)及更新模型的原始论文阅读。应区分乐谱歌词驱动 SVS、歌声转换、歌词到歌曲与歌声条件伴奏生成。
 
-## 4. A Survey on Singing Voice Synthesis (2024)
+**相关笔记**：[歌声合成](../notes/music-singing-synthesis-zh.md)。
 
-**覆盖**：歌声合成综合综述——从古典 HMM 到现代扩散和端到端系统。
+## 6. 评测
 
-**核心内容**：
-- SVS 管线组件（前端、声学模型、声码器）
-- 模型演进（统计参数 → 神经声码器 → 扩散 → 端到端）
-- 可控歌声（音高、音色、风格、表现力）
-- 歌声转换
-- 数据集和评测
+**Faria Binte Kader、Santu Karmaker，*A Survey on Evaluation Metrics for Music Generation*（2025）。** [arXiv:2509.00051](https://arxiv.org/abs/2509.00051)
 
-**核心洞察**：
-- 扩散模型已成为 SVS 中 mel 频谱图生成的主导方法
-- 可控性（精确音高、音素级时序）是 SVS 区别于通用 TTS 的核心
-- Zero-shot 歌声转换是新兴前沿
-- 没有标准基准 — 评测碎片化
+该综述为符号与音频音乐评测建立分类，并讨论人工感知、跨文化偏差与协议不一致带来的限制。
 
-**不足**：
-- 部分 2025 最新模型未纳入
-- SVS 在通用音频生成系统（MusicGen、AudioLDM）中的定位讨论有限
-- 评测讨论偏简 — 这仍是未充分解决的问题
+**阅读用途**：组织多维评测方案。综述不会使某项指标自动适用于所有任务；定义、参考信号要求与实现细节还需查指标原始论文，并和自动分数一起报告听评协议与不确定性。
 
-**适合谁读**：深入了解 SVS 系统（DiffSinger、OpenDiffSinger、ACE Singer）之前的基础读物。
+**相关笔记**：[音乐评测](../notes/music-evaluation-zh.md)。
 
-**→ 对应**：[music-singing-synthesis.md](music-singing-synthesis.md)
+## 7. 音源分离：实践教程
 
----
+**作者维护的 *Open-Source Tools & Data for Music Source Separation* 教程。** [教程入口](https://source-separation.github.io/tutorial/intro/src_sep_101.html)
 
-## 5. A Survey on Evaluation Metrics for Music Generation (arXiv 2509.00051, 2025)
+这是教程，不是已核实的“Music Source Separation: A Brief Overview (2023)”论文。它介绍任务及开源数据与工具生态。
 
-**覆盖**：音乐生成评测方法的系统综述——与本仓库评测笔记最直接对应的综述。
+**阅读用途**：理解混合音频／音源定义并开始实践。架构比较和特定数据集结果须查原始模型论文。单个 SDR 数值不能证明通用性能上限，波形模型也不天然优于所有频谱模型。应注明分轨集合、评测实现、聚合方法和训练数据。
 
-**核心内容**：
-- 人类评测协议（MOS、MUSHRA、成对比较等）
-- 分布指标（FAD、precision/recall）
-- 嵌入指标（CLAP Score、FSD）
-- 感知指标（PEMO-Q、ViSQOL）
-- 音乐特有指标（和声、节奏、结构）
-- 文本-音频对齐指标
-- 评测基准平台
+**相关笔记**：[音乐理解](../notes/music-understanding-mir-zh.md)、[音频工程](../notes/audio-engineering-zh.md)。
 
-**核心洞察**：
-- 没有单一指标覆盖所有质量维度 — 多指标报告是必需的
-- 自动指标与人类判断之间的相关性差距在所有指标类型中持续存在
-- 音乐特有指标（和声连贯性、节奏对齐）相比通用音频指标发展不足
-- 评测方法论比模型架构更不一致 — 标准化迫切需求
+## 8. 风格、数据集与文化覆盖
 
-**不足**：
-- 非常新 — 可能未包含 2025 最新指标
-- 对比表格多，实践指导少
-- 评测成本与信号权衡讨论有限
+以下为原始研究与研究项目，不用编造的泛化综述标题替代：
 
-**适合谁读**：选择和实现评测指标的权威指南。与 [music-evaluation.md](music-evaluation.md) 配合使用获得实践指导。
+- **Joan Serrà 等（2012），[*Measuring the evolution of contemporary western popular music*](https://arxiv.org/abs/1205.5651)**：音高、音色与响度的语料分析示例；结论应在数据和测量范围内理解。
+- **Bob L. Sturm（2013），[*The GTZAN dataset: Its contents, its faults, their effects on evaluation, and its future use*](https://arxiv.org/abs/1306.1461)**：具体说明数据集缺陷怎样影响流派分类评测。
+- **[CompMusic](https://compmusic.upf.edu/)**：强调文化特殊性分析和专门语料的项目，可用于检查表示与标签中的假设。
 
-**→ 对应**：[music-evaluation.md](music-evaluation.md)
+**相关笔记**：[音乐风格](../notes/music-styles-zh.md)、[音乐理解](../notes/music-understanding-mir-zh.md)。
 
----
+## 9. 建议阅读路径
 
-## 6. AI and Music: A Comprehensive Survey (Brée)
+| 目标 | 建议顺序 |
+|---|---|
+| 音乐 AI 入门 | 乐理笔记 → Briot 综述 → Ji 综述 → 一篇原始系统论文 |
+| 音频生成 | Ji 综述 → tokenizer 综述 → 生成论文 → 评测综述 |
+| MIR／迁移学习 | 基础模型综述 → 模型论文 → 数据集与协议文档 → GTZAN 审计 |
+| 歌声合成 | Cho 综述 → DiffSinger → 新任务论文 → 评测笔记 |
+| 风格／跨文化 | 风格笔记 → CompMusic → 特定语料的分析与评测 |
 
-**覆盖**：AI 音乐全谱的广度综述——从早期专家系统到现代深度学习。聚焦风格与美学。
+以上是编辑性学习路径，不是引用量或完整度排名。
 
-**核心内容**：
-- AI 音乐的历史发展（1950s–至今）
-- 符号生成方法
-- 音频生成
-- 风格与流派建模
-- 交互与即兴
-- 哲学与美学考量
+## 10. 引用与维护边界
 
-**核心洞察**：
-- AI 音乐在"规则型"和"学习型"范式之间多次摇摆
-- 风格建模与质量建模根本不同——模型可以产出风格正确但音乐上无聊的输出
-- AI 音乐的美学维度相比技术性能研究不足
+原指南曾列入缺乏充分识别信息的条目，例如归于 Brée 的“AI and Music: A Comprehensive Survey”以及“McKinney MIR Survey (2009)”。现不将它们保留为已确立参考文献。这不证明不存在相关出版物，而是所提供的标题／作者／年份组合未获核实。
 
-**不足**：
-- 出版较早 — 缺少 2022–2025 进展（扩散模型、基础模型、大规模生成）
-- 现代架构的技术深度有限
-- 对构建系统的实践者帮助较小，更适合理解领域轨迹的研究者
+新增文献应记录精确标题、作者、年份／版本、稳定来源与由原文支持的范围摘要。模型论文、产品页、教程、基准与综述应按实际类型标注。本仓库提供双语笔记和关联链接，不能替代原始方法与实验限制。
 
-**适合谁读**：历史和哲学背景。建议最先读以了解领域从哪来，再读近期的综述了解现状。
-
-**→ 对应**：[music-styles.md](music-styles.md), [music-generation.md](music-generation.md)
-
----
-
-## 7. Music Source Separation: A Brief Overview (2023)
-
-**覆盖**：音乐音源分离焦点综述——将混合音频分离为独立轨道。
-
-**核心内容**：
-- 问题公式化和评测（BSS Eval、SDR/SIR/SAR）
-- 模型演进（频谱图 → 波形 → 混合 → 频带分离）
-- 开放分离（分离任意音源）
-- 数据集
-
-**核心洞察**：
-- 波形域方法（Demucs）超越频谱图域（Spleeter）
-- 混合 Transformer（HT Demucs）和频带分离架构（BSRNN、BS-RoFormer）代表前沿
-- 频带分离处理（分频带独立处理）是 2023–2024 的关键架构创新
-- MUSDB18-HQ 上 ~12 dB SDR 是当前天花板；进一步收益递减
-
-**适合谁读**：快速了解音源分离全貌，然后深入具体模型论文。
-
-**→ 对应**：[music-understanding-mir.md](music-understanding-mir.md) §3
-
----
-
-## 8. 其他值得关注的综述
-
-| 综述 | 年份 | 覆盖 | 为什么重要 |
-|------|------|------|-----------|
-| **MIR: A Survey** (McKinney, 2009) | 2009 | 经典 MIR 综述 | MIR 任务定义和历史基线 |
-| **Neural Audio Synthesis: A Survey** | 2023 | 音频合成（TTS+音乐） | 语音和音乐合成的交叉 |
-| **Music Generation with Diffusion Models** | 2024 | 音乐扩散模型专项 | 主导生成范式的深度 dive |
-| **Multimodal Music Understanding** | 2024 | 跨模态音乐 AI | 新兴方向 |
-| **Culture-Aware MIR** | 2024 | 非西方音乐、文化偏倚 | 解决跨文化差距 |
-
----
-
-## 9. 推荐阅读路径
-
-### 入门路线：
-1. Brée 综述 → 历史和哲学背景
-2. 2023 生成综述 → 基础生成全貌
-3. 音源分离综述 → 一个关键 MIR 任务的专注介绍
-4. 本仓库笔记（乐理基础 → 音乐风格 → 音乐理解 → 音频工程）
-
-### 生成研究方向：
-1. Discrete Audio Tokens (2025) → 先理解分词
-2. 2023 生成综述 → 基线全貌
-3. 2025 评测指标综述 → 评测方法
-4. 基础模型综述 (2024) → 预训练模型
-5. 本仓库笔记（音乐生成 → 音乐评测 → 歌声合成）
-
-### MIR 研究方向：
-1. 基础模型综述 (2024) → 音乐理解现状
-2. 音源分离综述 (2023) → MIR 最成功任务之一
-3. McKinney MIR (2009) → 任务定义和历史
-4. 本仓库笔记（音乐理解 → 乐理基础 → 音乐风格）
-
----
-
-## 10. 本仓库的独特价值
-
-这些综述有共同局限，本仓库正好补位：
-
-| 综述局限 | 本仓库如何补位 |
-|---------|-------------|
-| 综述是快照（很快过时） | 持续更新 2025–2026 进展 |
-| 综述讲"是什么"不讲"对 AI 意味着什么" | 每节都连接理论/实践与 AI 含义 |
-| 综述只有英文 | 中英双语 |
-| 综述不提供学习路径 | 从乐理基础→风格→技术→实践的结构化路径 |
-| 综述缺乏实践指导 | 包含代码结构、GPU 需求、数据集目录、复现指南 |
-
----
-
-> 本导读补充综述论文的宏观视角。各主题的详细覆盖参见对应笔记：[music-generation.md](music-generation.md)、[music-understanding-mir.md](music-understanding-mir.md)、[audio-engineering.md](audio-engineering.md)、[music-evaluation.md](music-evaluation.md)、[music-singing-synthesis.md](music-singing-synthesis.md)、[music-styles.md](music-styles.md)、[music-theory-fundamentals.md](music-theory-fundamentals.md)。
+原始模型论文见[已核对参考列表](../../references/README-zh.md)。主题笔记包括[音频工程](../notes/audio-engineering-zh.md)、[音乐生成](../notes/music-generation-zh.md)、[音乐理解](../notes/music-understanding-mir-zh.md)、[评测](../notes/music-evaluation-zh.md)、[歌声合成](../notes/music-singing-synthesis-zh.md)、[风格](../notes/music-styles-zh.md)与[乐理](../notes/music-theory-fundamentals-zh.md)。
