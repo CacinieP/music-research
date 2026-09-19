@@ -134,6 +134,7 @@ notebooks/
 ```
 
 每个 Notebook 应包含：
+
 1. 环境安装（`!pip install ...`）
 2. 模型加载
 3. 输入示例 + 可视化
